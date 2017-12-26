@@ -1,4 +1,4 @@
-package javachat;
+package chat.client;
 
 // MyCardFrame
 import java.awt.*;
@@ -6,14 +6,14 @@ import java.awt.event.*;
 
 public class MyCardFrame extends Frame {
   LoginPanel lp;
-  ChatPanel cp;
+  MyChatPanel cp;
 
   public MyCardFrame() {
     setLayout(new CardLayout());
     setTitle("Chat");
     setSize(500, 500);
     lp = new LoginPanel(this);
-    cp = new ChatPanel();
+    cp = new MyChatPanel();
     add(lp, "login");
     add(cp, "chat");
 
@@ -57,11 +57,11 @@ class LoginPanel extends Panel implements ActionListener {
 }
 
 
-class ChatPanel extends Panel {
+class MyChatPanel extends Panel {
   Label label1, label2;
   String userName;
 
-  public ChatPanel() {
+  public MyChatPanel() {
     label1 = new Label("Chat Panel: ");
     label2 = new Label("Name will go here");
     add(label1);

@@ -1,13 +1,18 @@
-package javachat;
+package chat.client;
 
-// ListFrame
 import java.awt.*;
 import java.awt.event.*;
-
+/**
+ * The Class ListFrame.
+ */
 public class ListFrame extends Frame {
 
+  /** The lp. */
   ListPanel lp;
 
+  /**
+   * Instantiates a new list frame.
+   */
   public ListFrame() {
 
     setSize(200, 500);
@@ -26,6 +31,11 @@ public class ListFrame extends Frame {
 
 
 
+  /**
+   * The main method.
+   *
+   * @param args the arguments
+   */
   public static void main(String[] args) {
 
     ListFrame lf = new ListFrame();

@@ -1,0 +1,8 @@
+Using the given files to create a complete chat system with java. simple is better. 
+the chat code/java files will be bellow are the 'ChatFrame' 'ChatHandler' 'ChatServer' 'ListFrame' 'MyCardFrame'. 
+Use card layout to obtain name from user.
+Prepend name to messages sent.
+Announce entrances and exits from the chat.
+Working user list of all user within chat.
+Private messages to user within the chat.
+Please base the code off of the code already given.

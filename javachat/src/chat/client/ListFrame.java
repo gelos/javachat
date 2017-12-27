@@ -5,10 +5,10 @@ import java.awt.event.*;
 /**
  * The Class ListFrame.
  */
-public class ListFrame extends Frame {
 
-  /** The lp. */
-  ListPanel lp;
+// TODO use JavaFX
+public class ListFrame extends Frame {
+  private ListPanel lp;
 
   /**
    * Instantiates a new list frame.

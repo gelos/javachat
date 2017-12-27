@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.*;
 
 public class ChatFrame extends Frame {
+  private ChatPanel cp;
   public ChatFrame() {
     setSize(500, 500);
     setTitle("Echo Client");
@@ -15,7 +16,7 @@ public class ChatFrame extends Frame {
         System.exit(0);
       }
     });
-    ChatPanel cp = new ChatPanel();
+    cp = new ChatPanel();
     add(cp, BorderLayout.CENTER);
     setVisible(true);
   }

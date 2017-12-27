@@ -6,3 +6,13 @@ Announce entrances and exits from the chat.
 Working user list of all user within chat.
 Private messages to user within the chat.
 Please base the code off of the code already given.
+
+1) New Swing Frame
+2) In Frame we are using Card Layout to obtain username and enter chat
+3) Chat server have to identify and store client session by usernames
+4) In frame left panel with working user list, right chat
+5) Server announce entrances and exits from the chat
+6) Server allow to send private message to user with /msg <username> text command
+7) Server allow help command
+8) Client must update user list with server messages
+ 

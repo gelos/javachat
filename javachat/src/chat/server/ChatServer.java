@@ -19,7 +19,7 @@ public class ChatServer {
   public final static int _SERVER_PORT = 3000;
 
   /** The server host ip address. */
-  public final static String _SERVER_HOST = "127.0.0.1";
+  public final static String _SERVER_IP = "127.0.0.1";
 
 
   /** The server socket. */
@@ -28,7 +28,7 @@ public class ChatServer {
   /** The client connection socket. */
   Socket clientConnection;
 
-  /** The client session handlers storage. */
+  /** The client session handlers thread-safe storage. */
   // ArrayList handlers;
   CopyOnWriteArrayList<ChatHandler> chatHandlers;
 
@@ -47,6 +47,10 @@ public class ChatServer {
           // Accept client connection and return new client socket
           clientConnection = serverSocket.accept();
 
+          String ip=(((InetSocketAddress) clientConnection.getRemoteSocketAddress()).getAddress()).toString().replace("/","");
+          
+          System.out.println("Accept client connection from " + ip); 
+          
           // Create new ChatHandler with existing client handlers and new client socket as thread
           new ChatHandler(clientConnection, chatHandlers).start();
         }

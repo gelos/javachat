@@ -9,11 +9,6 @@ import java.awt.CardLayout;
 import java.awt.Dimension;
 import javax.swing.JList;
 import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.AbstractListModel;
-import java.awt.GridBagLayout;
-import javax.swing.JTextArea;
-import javax.swing.JComboBox;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
@@ -23,36 +18,41 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
-import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.ListModel;
 import javax.swing.SwingWorker;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
+import chat.server.ChatHandler;
 import chat.server.ChatServer;
 
 // TODO: Auto-generated Javadoc
-
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 /**
- * The Class ChatClient.
+ * The Class ChatClient. Realize swing GUI with chat client logic.
  */
 public class ChatClient {
 
+  // Constant
+
   /** The Constant _GREETING_MESSAGE. */
-  private final static String _GREETING_MESSAGE = "Enter username to start сhat: ";
+  private final static String GREETING_MSG = "Enter username to start сhat: ";
 
-  /** The chat socket. */
-  Socket serverSocket = null;
+  // Class variables
 
-  ProcessServerMessages clientThread;
+  /** The sever socket. */
+  private Socket serverSocket = null;
 
-  /** The send. */
-  PrintWriter send;
+  /** The client thread. */
+  private ProcessServerMessages clientThread;
 
-  /** The rec. */
-  BufferedReader rec;
+  /** The out stream. */
+  private PrintWriter outStream;
+
+  /** The in stream. */
+  private BufferedReader inStream;
+
+  // GUI variables
 
   /** The frame. */
   private JFrame frame;
@@ -66,27 +66,17 @@ public class ChatClient {
   /** The enter text field. */
   private JTextField enterTextField;
 
-  /** The user. */
-  private ChatUser user;
-
   /** The text pane chat. */
   private JTextPane textPaneChat;
 
   /** The user list. */
   private JList userList;
 
-  /**
-   * The user list model.
-   *
-   * @param args the arguments
-   */
-  // private ListModel userListModel;
 
   /**
-   * Launch the application.
+   * The main method. Run GUI in Event Dispatch Thread.
    *
    * @param args the arguments
-   * @wbp.parser.entryPoint
    */
   public static void main(String[] args) {
     EventQueue.invokeLater(new Runnable() {
@@ -94,7 +84,7 @@ public class ChatClient {
         try {
           ChatClient window = new ChatClient();
           window.frame.setVisible(true);
-          window.askForUserName();
+          window.printGreetingMSG();
 
         } catch (Exception e) {
           e.printStackTrace();
@@ -103,55 +93,13 @@ public class ChatClient {
     });
   }
 
-  /**
-   * Create the application.
-   */
-  
-    public ChatClient() { initialize(); }
-   
+  // Constructor
 
   /**
-   * Connect to chat server.
-   *
-   * @param username the username
+   * Initialize GUI components.
    */
-  private void connectToChatServer(String username) {
+  public ChatClient() {
 
-    // try to open server connection
-    try {
-      serverSocket = new Socket(ChatServer._SERVER_HOST, ChatServer._SERVER_PORT);
-      send = new PrintWriter(serverSocket.getOutputStream(), true);
-      rec = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
-
-    } catch (UnknownHostException uhe) {
-      System.out.println(uhe.getMessage());
-    } catch (IOException ioe) {
-      System.out.println(ioe.getMessage());
-    }
-
-    clientThread = new ProcessServerMessages();
-    clientThread.execute();
-
-    // clientThread = new Thread(this, "whatever");
-    // clientThread.start();
-
-    // do {
-    // user = new ChatUser(username);
-
-
-
-    // TODO generate /enter command
-
-
-    cards.next(cardPanel);
-    // } while ((user.getUsername() == "") || !checkUserNameDuplicate(user.getUsername()))
-  }
-
-  /**
-   * Initialize the contents of the frame.
-   * @wbp.parser.entryPoint
-   */
-  private void initialize() {
     frame = new JFrame();
     frame.setBounds(100, 100, 500, 400);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -164,43 +112,13 @@ public class ChatClient {
     splitPane.setLeftComponent(userList);
     splitPane.getLeftComponent().setMinimumSize(new Dimension(125, 0));
 
-    // userList.setModel(new ListModel<String>(new String [] {"one","two"}));
-
-    // userListModel = userList.getModel();
 
     JPanel panel = new JPanel();
     splitPane.setRightComponent(panel);
     panel.setLayout(new BorderLayout(0, 0));
 
     enterTextField = new JTextField();
-    enterTextField.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyReleased(KeyEvent e) {
-        int key = e.getKeyCode();
-        if (e.getSource() == enterTextField) {
-          if (key == KeyEvent.VK_ENTER) {
-
-            // send message to chat
-            if (alreadyConnected()) {
-
-            } else { // start new connection
-              String username = enterTextField.getText();
-              username = username.substring(username.lastIndexOf(":") + 1);
-              connectToChatServer(username);
-              StyledDocument doc = textPaneChat.getStyledDocument();
-              try {
-                doc.insertString(doc.getLength(), username + "\n", null);
-              } catch (BadLocationException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-              }
-            }
-          }
-        }
-      }
-    });
-
-
+    enterTextField.addKeyListener(new enterFieldKeyListener());
     enterTextField.setToolTipText("Type text and press Enter button");
     panel.add(enterTextField, BorderLayout.SOUTH);
     enterTextField.setColumns(10);
@@ -215,7 +133,6 @@ public class ChatClient {
 
     JPanel cardPanelChatText = new JPanel();
     cardPanelChatText.setLayout(new BorderLayout(0, 0));
-    // cardPanel.add(chatTextArea, "name_39697288842864");
     cardPanel.add(cardPanelChatText, "name_39697288842864");
 
     textPaneChat = new JTextPane();
@@ -224,30 +141,125 @@ public class ChatClient {
   }
 
   /**
-   * Ask for user name.
+   * The listener interface for receiving enterFieldKey events. The class that is interested in
+   * processing a enterFieldKey event implements this interface, and the object created with that
+   * class is registered with a component using the component's <code>addenterFieldKeyListener<code>
+   * method. When the enterFieldKey event occurs, that object's appropriate method is invoked.
+   *
+   * @see enterFieldKeyEvent
    */
-  private void askForUserName() {
-    enterTextField.setText(_GREETING_MESSAGE);
+  private class enterFieldKeyListener extends KeyAdapter {
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.awt.event.KeyAdapter#keyReleased(java.awt.event.KeyEvent)
+     */
+    @Override
+    public void keyReleased(KeyEvent e) {
+      int key = e.getKeyCode();
+      if (e.getSource() == enterTextField) {
+        if (key == KeyEvent.VK_ENTER) {
+
+          // send message to chat
+          if (serverSocket.isConnected()) {
+
+          } else { // start new connection
+
+            // get user name
+            String username = enterTextField.getText();
+            username = username.substring(username.lastIndexOf(":") + 1);
+
+            // try to connect
+            connectToChatServer(username);
+
+            StyledDocument doc = textPaneChat.getStyledDocument();
+            try {
+              doc.insertString(doc.getLength(), username + "\n", null);
+            } catch (BadLocationException e1) {
+              // TODO Auto-generated catch block
+              e1.printStackTrace();
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Connect to chat server. Open socket, prepare input/output streams, create new thread to data
+   * transfer.
+   *
+   * @param username the user name
+   */
+  private void connectToChatServer(String username) {
+
+    try {
+
+      // try to open server connection
+      serverSocket = new Socket(ChatServer._SERVER_IP, ChatServer._SERVER_PORT);
+
+      // format streams
+      outStream = new PrintWriter(serverSocket.getOutputStream(), true);
+      inStream = new BufferedReader(new InputStreamReader(serverSocket.getInputStream()));
+
+    } catch (UnknownHostException uhe) {
+
+      System.out.println(uhe.getMessage());
+
+    } catch (IOException ioe) {
+
+      System.out.println(ioe.getMessage());
+
+    }
+
+    // launch new thread with SwingWorker class to safe access swing GUI outside Event Dispatch
+    // Thread
+
+    clientThread = new ProcessServerMessages();
+    clientThread.execute();
+
+    //TODO generate /enter command
+    
+    // send to server /enter command
+    sendEnterCMD(username, outStream);
+    
+
+
+    cards.next(cardPanel);
+
+  }
+
+
+  private void sendEnterCMD(String username, PrintWriter outStream) {
+    outStream.print(ChatHandler.CMD_ENTER + " " + username);
   }
 
   /**
-   * Already connected.
-   *
-   * @return true, if successful
+   * Print greeting message to enter field.
    */
-  private boolean alreadyConnected() {
-    return (serverSocket != null);
+  private void printGreetingMSG() {
+    enterTextField.setText(GREETING_MSG);
   }
 
 
+  /**
+   * The Class ProcessServerMessages.
+   */
   class ProcessServerMessages extends SwingWorker<Void, String> {
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.SwingWorker#doInBackground()
+     */
     @Override
     public Void doInBackground() {
 
       String res = "";
       try {
-        while ((res = rec.readLine()) != null) {
+        while ((res = inStream.readLine()) != null) {
           publish(res);
         }
       } catch (IOException ioe) {
@@ -257,6 +269,11 @@ public class ChatClient {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see javax.swing.SwingWorker#process(java.util.List)
+     */
     protected void process(List<String> chunks) {
       for (String msg : chunks) {
 
@@ -273,17 +290,6 @@ public class ChatClient {
 
   }
 
-  /*
-   * @Override public void run() { String temp = ""; try { while (((temp = rec.readLine()) != null)
-   * && (clientThread != null)) { //ta.append(temp + "\n");
-   * 
-   * StyledDocument doc = textPaneChat.getStyledDocument(); try { doc.insertString(doc.getLength(),
-   * "username" + "\n", null); } catch (BadLocationException e1) { // TODO Auto-generated catch
-   * block e1.printStackTrace(); }
-   * 
-   * } } catch (IOException ioe) { System.out.println(ioe.getMessage()); }
-   * 
-   * }
-   */
+
 
 }

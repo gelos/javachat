@@ -23,21 +23,20 @@ public class ChatHandler extends Thread {
    * The Constant _ENTER_CMD. Command to start chat session, pattern /enter username. Initiated by
    * client, processed by server.
    */
-  public static final String _CMD_ENTER = "/enter";
+  public static final String CMD_ENTER = "/enter";
 
   /**
    * The Constant _EXIT_CMD. Command to close chat session, pattern /exit. Initiated by client,
    * processed by server.
    */
-  public static final String _CMD_EXIT = "/exit";
-
+  public static final String CMD_EXIT = "/exit";
 
   /**
    * The Constant _USRLST_CMD. Command to update user list in client GUI, pattern /usrlst ulst where
    * ulst string of usernames with space character delimeter. Initiated by server, processed by
    * client.
    */
-  public static final String _CMD_USRLST = "/usrlst";
+  public static final String CMD_USRLST = "/usrlst";
 
   /** The Constant _PRVMSG_CMD. */
   static final String _CMD_PRVMSG = "/prvmsg";
@@ -106,6 +105,8 @@ public class ChatHandler extends Thread {
       // check for enter command and read username
       temp = checkForEnterCmd(br);
 
+      System.out.println("user: " + temp);
+      
       // if username not empty
       if (!temp.isEmpty()) {
 
@@ -118,7 +119,7 @@ public class ChatHandler extends Thread {
 
         // Send to all users usrlst command
         for (ChatHandler ch : handlers) {
-          ch.pw.println(_CMD_USRLST + " " + getUserNamesInString());
+          ch.pw.println(CMD_USRLST + " " + getUserNamesInString());
         }
 
         temp = "";
@@ -156,7 +157,7 @@ public class ChatHandler extends Thread {
 
 
   /**
-   * Return the all chat user names in one string. Used in {@link #_CMD_USRLST usrlst} command.
+   * Return the all chat user names in one string. Used in {@link #CMD_USRLST usrlst} command.
    *
    * @return the string of user name
    */
@@ -169,7 +170,7 @@ public class ChatHandler extends Thread {
   }
 
   /**
-   * Read first string from chat client input stream and match it with {@link #_CMD_ENTER enter}
+   * Read first string from chat client input stream and match it with {@link #CMD_ENTER enter}
    * command.
    *
    * @param br the BufferedReader of input chat client stream
@@ -189,11 +190,11 @@ public class ChatHandler extends Thread {
         temp = temp.trim();
 
         // check if string start from enter command with space and at least one char username
-        if (temp.length() >= _CMD_ENTER.length() + 2
-            && temp.substring(0, _CMD_ENTER.length()).equalsIgnoreCase(_CMD_ENTER + " ")) {
+        if (temp.length() >= CMD_ENTER.length() + 2
+            && temp.substring(0, CMD_ENTER.length()).equalsIgnoreCase(CMD_ENTER + " ")) {
 
           // return username
-          res = temp.substring(_CMD_ENTER.length() + 1, temp.length() - 1);
+          res = temp.substring(CMD_ENTER.length() + 1, temp.length() - 1);
         }
       }
     } catch (IOException e) {

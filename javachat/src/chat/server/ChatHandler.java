@@ -5,6 +5,8 @@ package chat.server;
 
 import java.io.*;
 import java.net.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import chat.client.swing.ChatUser;
@@ -106,7 +108,7 @@ public class ChatHandler extends Thread {
       temp = checkForEnterCmd(br);
 
       System.out.println("user: " + temp);
-      
+
       // if username not empty
       if (!temp.isEmpty()) {
 
@@ -129,7 +131,10 @@ public class ChatHandler extends Thread {
 
           // Write pre-read string to all clients output using handler storage
           for (ChatHandler ch : handlers) {
-            ch.pw.println(temp);
+            
+            String currentTime  = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " +  temp);
+            
           }
 
           // Write string to server console
@@ -181,8 +186,15 @@ public class ChatHandler extends Thread {
     String res = "";
     try {
 
-      // read first line
-      temp = br.readLine();
+      //while ((temp = br.readLine()) != null) {
+      while (true) {
+
+        // read first line
+        temp = br.readLine();
+        //System.out.println(temp);
+        //System.out.println(temp.substring(0, CMD_ENTER.length()));
+        //System.out.println(temp.substring(0, CMD_ENTER.length()).length());
+     //}
 
       if (temp != null) {
 
@@ -191,11 +203,14 @@ public class ChatHandler extends Thread {
 
         // check if string start from enter command with space and at least one char username
         if (temp.length() >= CMD_ENTER.length() + 2
-            && temp.substring(0, CMD_ENTER.length()).equalsIgnoreCase(CMD_ENTER + " ")) {
+            && temp.substring(0, CMD_ENTER.length()+1).equalsIgnoreCase(CMD_ENTER + " ")) {
 
           // return username
-          res = temp.substring(CMD_ENTER.length() + 1, temp.length() - 1);
+          res = temp.substring(CMD_ENTER.length() + 1, temp.length());
+          //System.out.println("break");
+          break;
         }
+      }
       }
     } catch (IOException e) {
       // TODO Auto-generated catch block

@@ -24,6 +24,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import chat.server.ChatHandler;
 import chat.server.ChatServer;
+import javax.swing.JLabel;
 
 // TODO: Auto-generated Javadoc
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
@@ -36,7 +37,10 @@ public class ChatClient {
   // Constant
 
   /** The Constant _GREETING_MESSAGE. */
-  private final static String GREETING_MSG = "Enter username to start сhat: ";
+  private final static String MSG_GREETING = "Enter username to start сhat: ";
+
+  private final static String MSG_CANT_CON_SRV = "Can't connect to server " + ChatServer.SERVER_IP
+      + ":" + ChatServer.SERVER_PORT + ". Server not started.";
 
   // Class variables
 
@@ -44,13 +48,13 @@ public class ChatClient {
   private Socket serverSocket = null;
 
   /** The client thread. */
-  private ProcessServerMessages clientThread;
+  private ProcessServerMessages clientThread = null;
 
   /** The out stream. */
-  private PrintWriter outStream;
+  private PrintWriter outStream = null;
 
   /** The in stream. */
-  private BufferedReader inStream;
+  private BufferedReader inStream = null;
 
   // GUI variables
 
@@ -67,10 +71,11 @@ public class ChatClient {
   private JTextField enterTextField;
 
   /** The text pane chat. */
-  private JTextPane textPaneChat;
+  private JTextPane textPanelChat;
 
   /** The user list. */
   private JList userList;
+  private JLabel emptyPanelLabel;
 
 
   /**
@@ -131,12 +136,15 @@ public class ChatClient {
     JPanel cardPanelEmpty = new JPanel(new BorderLayout());
     cardPanel.add(cardPanelEmpty, "name_39379659049175");
 
+    emptyPanelLabel = new JLabel("New label");
+    cardPanelEmpty.add(emptyPanelLabel, BorderLayout.SOUTH);
+
     JPanel cardPanelChatText = new JPanel();
     cardPanelChatText.setLayout(new BorderLayout(0, 0));
     cardPanel.add(cardPanelChatText, "name_39697288842864");
 
-    textPaneChat = new JTextPane();
-    cardPanelChatText.add(textPaneChat, BorderLayout.SOUTH);
+    textPanelChat = new JTextPane();
+    cardPanelChatText.add(textPanelChat, BorderLayout.SOUTH);
 
   }
 
@@ -161,8 +169,15 @@ public class ChatClient {
       if (e.getSource() == enterTextField) {
         if (key == KeyEvent.VK_ENTER) {
 
-          // send message to chat
-          if (serverSocket.isConnected()) {
+          // clear error msg text
+          emptyPanelLabel.setText("");
+          
+          // check if serverSocket already opened
+          if (serverSocket != null && serverSocket.isConnected()) {
+
+            // send message to chat
+            outStream.println(enterTextField.getText());
+            enterTextField.setText("");
 
           } else { // start new connection
 
@@ -171,14 +186,17 @@ public class ChatClient {
             username = username.substring(username.lastIndexOf(":") + 1);
 
             // try to connect
-            connectToChatServer(username);
+            if (connectToChatServer(username)) {
 
-            StyledDocument doc = textPaneChat.getStyledDocument();
-            try {
-              doc.insertString(doc.getLength(), username + "\n", null);
-            } catch (BadLocationException e1) {
-              // TODO Auto-generated catch block
-              e1.printStackTrace();
+              StyledDocument doc = textPanelChat.getStyledDocument();
+              try {
+                doc.insertString(doc.getLength(), username + "\n", null);
+              } catch (BadLocationException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+              }
+            } else {
+              printGreetingMSG();
             }
           }
         }
@@ -193,12 +211,13 @@ public class ChatClient {
    *
    * @param username the user name
    */
-  private void connectToChatServer(String username) {
+  private boolean connectToChatServer(String username) {
 
+    boolean res = false;
     try {
 
       // try to open server connection
-      serverSocket = new Socket(ChatServer._SERVER_IP, ChatServer._SERVER_PORT);
+      serverSocket = new Socket(ChatServer.SERVER_IP, ChatServer.SERVER_PORT);
 
       // format streams
       outStream = new PrintWriter(serverSocket.getOutputStream(), true);
@@ -207,10 +226,13 @@ public class ChatClient {
     } catch (UnknownHostException uhe) {
 
       System.out.println(uhe.getMessage());
+      return res;
 
     } catch (IOException ioe) {
 
-      System.out.println(ioe.getMessage());
+      //System.out.println(ioe.getMessage());
+      emptyPanelLabel.setText(MSG_CANT_CON_SRV);
+      return res;
 
     }
 
@@ -220,27 +242,26 @@ public class ChatClient {
     clientThread = new ProcessServerMessages();
     clientThread.execute();
 
-    //TODO generate /enter command
-    
+    // TODO generate /enter command
+
     // send to server /enter command
     sendEnterCMD(username, outStream);
-    
-
-
     cards.next(cardPanel);
+
+    return res;
 
   }
 
-
   private void sendEnterCMD(String username, PrintWriter outStream) {
-    outStream.print(ChatHandler.CMD_ENTER + " " + username);
+    outStream.println(ChatHandler.CMD_ENTER + " " + username);
+    //outStream.flush();
   }
 
   /**
    * Print greeting message to enter field.
    */
   private void printGreetingMSG() {
-    enterTextField.setText(GREETING_MSG);
+    enterTextField.setText(MSG_GREETING);
   }
 
 
@@ -277,7 +298,7 @@ public class ChatClient {
     protected void process(List<String> chunks) {
       for (String msg : chunks) {
 
-        StyledDocument doc = textPaneChat.getStyledDocument();
+        StyledDocument doc = textPanelChat.getStyledDocument();
         try {
           doc.insertString(doc.getLength(), msg + "\n", null);
         } catch (BadLocationException e1) {

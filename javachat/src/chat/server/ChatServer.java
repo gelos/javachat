@@ -16,10 +16,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ChatServer {
 
   /** The server port number. */
-  public final static int _SERVER_PORT = 3000;
+  public final static int SERVER_PORT = 3000;
 
   /** The server host ip address. */
-  public final static String _SERVER_IP = "127.0.0.1";
+  public final static String SERVER_IP = "127.0.0.1";
 
 
   /** The server socket. */
@@ -78,9 +78,9 @@ public class ChatServer {
       chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
 
       // Init server socket with _SERVER_SOCKET port
-      serverSocket = new ServerSocket(_SERVER_PORT);
+      serverSocket = new ServerSocket(SERVER_PORT);
 
-      System.out.println("Connection socket on port " + _SERVER_PORT + " created.");
+      System.out.println("Connection socket on port " + SERVER_PORT + " created.");
       acception.start();
 
       /*
@@ -133,7 +133,7 @@ public class ChatServer {
           System.out.println("Stoping server...");
           serverSocket.close();
         } catch (IOException e) {
-          System.err.println("Could not close port: 2000.");
+          System.err.println("Could not close port: " + SERVER_PORT + ".");
           System.exit(1);
         } finally {
           break;

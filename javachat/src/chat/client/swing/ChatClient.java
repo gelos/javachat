@@ -26,7 +26,6 @@ import chat.server.ChatHandler;
 import chat.server.ChatServer;
 import javax.swing.JLabel;
 
-// TODO: Auto-generated Javadoc
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 /**
@@ -74,7 +73,7 @@ public class ChatClient {
   private JTextPane textPanelChat;
 
   /** The user list. */
-  private JList userList;
+  private JList<?> userList;
   private JLabel emptyPanelLabel;
 
 
@@ -85,6 +84,7 @@ public class ChatClient {
    */
   public static void main(String[] args) {
     EventQueue.invokeLater(new Runnable() {
+      @Override
       public void run() {
         try {
           ChatClient window = new ChatClient();
@@ -295,6 +295,7 @@ public class ChatClient {
      * 
      * @see javax.swing.SwingWorker#process(java.util.List)
      */
+    @Override
     protected void process(List<String> chunks) {
       for (String msg : chunks) {
 

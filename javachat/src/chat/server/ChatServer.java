@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-// TODO: Auto-generated Javadoc
+// TODO: use netty+protobuf
 /**
  * Implements server side of chat application. Initialize server part, accept client connection and
  * create new thread as ChartHandler object for every new client connection. Use quit command from
@@ -32,7 +32,6 @@ public class ChatServer {
   // ArrayList handlers;
   CopyOnWriteArrayList<ChatHandler> chatHandlers;
 
-
   /** The distinct thread to accept client connections. */
   private Thread acception = new Thread("Acception Thread") {
 
@@ -43,7 +42,7 @@ public class ChatServer {
         while (true) {
           System.out.println("Waiting for client connection...");
           // new EchoServer2(serverSocket.accept());
-
+          
           // Accept client connection and return new client socket
           clientConnection = serverSocket.accept();
 

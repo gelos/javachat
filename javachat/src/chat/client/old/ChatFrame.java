@@ -1,4 +1,4 @@
-package chat.client;
+package chat.client.old;
 
 // ChatFrame.java
 import java.awt.*;

@@ -1,4 +1,4 @@
-package chat.client;
+package chat.client.old;
 
 import java.awt.*;
 import java.awt.event.*;

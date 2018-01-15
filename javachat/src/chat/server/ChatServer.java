@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 // TODO: use netty+protobuf
+// TODO add log support
 /**
  * Implements server side of chat application. Initialize server part, accept client connection and
  * create new thread as ChartHandler object for every new client connection. Use quit command from

@@ -1,4 +1,4 @@
-package chat.client.swing;
+package chat.server;
 
 // TODO: Auto-generated Javadoc
 /**

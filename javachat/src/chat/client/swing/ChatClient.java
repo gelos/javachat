@@ -29,7 +29,7 @@ import javax.swing.JLabel;
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 /**
- * The Class ChatClient. Realize swing GUI with chat client logic.
+ * The Class ChatClientView. Realize swing GUI with chat client logic.
  */
 public class ChatClient {
 

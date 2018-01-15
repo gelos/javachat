@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import chat.client.swing.ChatUser;
 
 // TODO: Auto-generated Javadoc
 /**

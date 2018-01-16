@@ -160,6 +160,41 @@ public class ChatHandler extends Thread {
   }
 
 
+  public boolean close() {
+    
+    if (br != null) {
+      try {
+        br.close();
+        br = null;
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        return false;
+      }
+    }
+    
+    if (pw != null) {
+      pw.close();
+      pw = null;
+    } 
+    
+    if (s != null) {
+      try {
+        s.close();
+        s = null;
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        return false;
+      }
+    }
+    
+    chatUser = null;
+    
+    return true;
+    
+  }
+  
   /**
    * Return the all chat user names in one string. Used in {@link #CMD_USRLST usrlst} command.
    *

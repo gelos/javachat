@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // TODO: use netty+protobuf
 // TODO add log support
@@ -36,6 +37,8 @@ public class ChatServer {
   /** The distinct thread to accept client connections. */
   private Thread acception = new Thread("Acception Thread") {
 
+    //private final AtomicBoolean running = new AtomicBoolean(false);
+    
     @Override
     public void run() {
 
@@ -43,19 +46,20 @@ public class ChatServer {
         while (true) {
           System.out.println("Waiting for client connection...");
           // new EchoServer2(serverSocket.accept());
-          
+
           // Accept client connection and return new client socket
           clientConnection = serverSocket.accept();
 
-          String ip=(((InetSocketAddress) clientConnection.getRemoteSocketAddress()).getAddress()).toString().replace("/","");
-          
-          System.out.println("Accept client connection from " + ip); 
-          
+          String ip = (((InetSocketAddress) clientConnection.getRemoteSocketAddress()).getAddress())
+              .toString().replace("/", "");
+
+          System.out.println("Accept client connection from " + ip);
+
           // Create new ChatHandler with existing client handlers and new client socket as thread
           new ChatHandler(clientConnection, chatHandlers).start();
         }
       } catch (SocketException e) {
-        if (serverSocket.isClosed())
+        if (serverSocket == null || serverSocket.isClosed())
           System.out.println("Server stoped.");
       } catch (IOException e) {
         System.err.println("Accept failed.");
@@ -129,20 +133,40 @@ public class ChatServer {
 
     while (true) {
       if (s.equalsIgnoreCase("quit")) {
-        try {
-          System.out.println("Stoping server...");
-          serverSocket.close();
-        } catch (IOException e) {
-          System.err.println("Could not close port: " + SERVER_PORT + ".");
-          System.exit(1);
-        } finally {
-          break;
-        }
+        close();
+        break;
       }
       s = scn.next();
     }
 
   }
+
+  public boolean close() {
+    try {
+      
+      System.out.println("Stopping acception thread...");
+      //acception.sto
+      
+      System.out.println("Closing all client handlers...");
+      for (ChatHandler ch : chatHandlers) {
+        if (!ch.close()) {
+          System.out.println("Client handlers closing error.");
+        };
+      }
+            
+      System.out.println("Stoping server...");
+      serverSocket.close();
+      serverSocket = null;
+    } catch (IOException e) {
+      System.err.println("Could not close port: " + SERVER_PORT + ".");
+      // System.exit(1);
+      return false;
+    }
+
+    return true;
+
+  }
+
 
   /**
    * The main method.

@@ -1,5 +1,8 @@
 package chat.test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,6 +12,8 @@ import chat.server.ChatServer;
 
 class ChatTest {
 
+  ChatServer server = null; 
+  
   @BeforeEach
   void setUp() throws Exception {}
 
@@ -16,13 +21,32 @@ class ChatTest {
   void tearDown() throws Exception {}
 
   @Test
-  void test() {
+  void testServerStartStop() {
+        
+    server = null;
     
-    ChatServer server = new ChatServer();
+    Thread chatServerThread = new Thread() {
+      @Override
+      public void run() {
+        server = new ChatServer();
+      }
+      
+    };
     
-    ChatClientSwingPresenter client = new ChatClientSwingPresenter();
+    //ChatServer server = new ChatServer();
     
-    fail("Not yet implemented");
+    chatServerThread.start();
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    assertNull(server);
+    //assertTrue(server.close());
+    //ChatClientSwingPresenter client = new ChatClientSwingPresenter();
+    
+    //fail("Not yet implemented");
   }
 
 }

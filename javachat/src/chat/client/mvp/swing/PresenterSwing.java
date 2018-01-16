@@ -1,8 +1,8 @@
 package chat.client.mvp.swing;
 
-public interface Presenter {
+public interface PresenterSwing {
    
-  void setView(ChatClientView view);
+  void setView(ChatClientSwingView view);
   
   boolean openConnection(String username);
 
@@ -12,8 +12,12 @@ public interface Presenter {
 
   void sendPrvMsg();
 
-  void sendMsg(String string);
+  //void sendChatMsgToServer(String string);
 
   void printMsg();
+
+  void showGreetingMsg();
+
+  void sendChatMsgToServer();
 
 }

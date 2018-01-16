@@ -10,6 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -18,9 +19,9 @@ import javax.swing.text.StyledDocument;
 
 //
 /**
- * The Class ChatClientView. Realize swing GUI view with chat client logic.
+ * The Class ChatClientSwingView. Realize swing GUI view with chat client logic.
  */
-public class ChatClientView extends JFrame implements View {
+public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   // Constant
 
@@ -30,7 +31,7 @@ public class ChatClientView extends JFrame implements View {
 
   // Class variables
 
-  private Presenter presenter;
+  private PresenterSwing presenterSwing;
 
   private Action enterKeyListenerAction;
 
@@ -40,7 +41,7 @@ public class ChatClientView extends JFrame implements View {
   private JTextField chatTextField;
 
   /** The text pane chat. */
-  private JTextPane chatPanelChat;
+  private JTextPane chatTextPane;
 
   /** The user list. */
   private JList<?> chatUserList;
@@ -50,7 +51,7 @@ public class ChatClientView extends JFrame implements View {
   /**
    * Initialize GUI components.
    */
-  public ChatClientView() {
+  public ChatClientSwingView() {
 
     initActions();
     initComponents();
@@ -69,7 +70,8 @@ public class ChatClientView extends JFrame implements View {
       @Override
       public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
-        getPresenter().sendMsg(chatTextField.getText());
+        //getPresenter().sendChatMsgToServer(chatTextField.getText());
+        getPresenterSwing().sendChatMsgToServer();
       }
     };
 
@@ -88,6 +90,7 @@ public class ChatClientView extends JFrame implements View {
     getContentPane().add(splitPane);
 
     chatUserList = new JList();
+    chatUserList.setFocusable(false);
     splitPane.setLeftComponent(chatUserList);
     splitPane.getLeftComponent().setMinimumSize(new Dimension(125, 0));
 
@@ -102,28 +105,37 @@ public class ChatClientView extends JFrame implements View {
     chatTextField.setToolTipText("Type text and press Enter button");
     panel.add(chatTextField, BorderLayout.SOUTH);
     chatTextField.setColumns(10);
+     
+    JPanel chatPanel = new JPanel();
+    JScrollPane scrollChatPane = new JScrollPane(chatPanel);
+    //panel.add(panel_1, BorderLayout.CENTER);
+    panel.add(scrollChatPane, BorderLayout.CENTER);
+    chatPanel.setLayout(new BorderLayout(0, 0));
 
-    JPanel panel_1 = new JPanel();
-    panel.add(panel_1, BorderLayout.CENTER);
-    panel_1.setLayout(new BorderLayout(0, 0));
+    chatTextPane = new JTextPane();
+    chatTextPane.setFocusable(false);
+    chatTextPane.setEditable(false);
+    //JScrollPane jsp = new JScrollPane(chatPanelChat);
+    chatPanel.add(chatTextPane, BorderLayout.SOUTH);
+    //panel_1.add(jsp, BorderLayout.SOUTH);
 
-    chatPanelChat = new JTextPane();
-    panel_1.add(chatPanelChat, BorderLayout.SOUTH);
-
+    chatTextField.requestFocusInWindow();
+    
   }
+
+  private PresenterSwing getPresenterSwing() {
+    if (presenterSwing == null) {
+      throw new IllegalStateException("The presenterSwing is not set");
+    } else {
+      return presenterSwing;
+    }
+  }
+
 
   @Override
-  public void setPresenter(Presenter presenter) {
-    this.presenter = presenter;
+  public void setPresenterSwing(PresenterSwing presenterSwing) {
+    this.presenterSwing = presenterSwing;
 
-  }
-
-  private Presenter getPresenter() {
-    if (presenter == null) {
-      throw new IllegalStateException("The presenter is not set");
-    } else {
-      return presenter;
-    }
   }
 
   @Override
@@ -132,14 +144,18 @@ public class ChatClientView extends JFrame implements View {
     JOptionPane.showMessageDialog(this, message, title, messageType);
   }
 
-
-  // TODO where we must catch exceptions, in view or in presenter?
+  // TODO where we must catch exceptions, in view or in presenterSwing?
   @Override
-  public void showChatMessage(String message) {
+  public void showMsgOnChatPane(String message) {
 
-    StyledDocument doc = chatPanelChat.getStyledDocument();
+    StyledDocument doc = chatTextPane.getStyledDocument();
     try {
-      doc.insertString(doc.getLength(), message + "\n", null);
+      if (doc.getLength() == 0) {
+        
+        doc.insertString(doc.getLength(), message, null);
+      } else {
+        doc.insertString(doc.getLength(), "\n" + message , null);
+     }
     } catch (BadLocationException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -147,39 +163,41 @@ public class ChatClientView extends JFrame implements View {
 
   }
 
+
   @Override
-  public void showUserList() {
+  public void clearChatPane() {
     // TODO Auto-generated method stub
-    //chatUserList.setT
+    chatTextPane.setText("");
   }
-  
-  
-  void clearChatUserList() {
+
+  @Override
+  public void showUserList(String[] usrList) {
+    // TODO Auto-generated method stub
+    // chatUserList.setT
+    DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();
+    for (String username : usrList) {
+      listModel.addElement(username);
+    }
+    // chatUserList.setModel(listModel);
+  }
+
+  @Override
+  public void clearChatUserList() {
     DefaultListModel listModel = (DefaultListModel) chatUserList.getModel();
     listModel.removeAllElements();
   }
 
 
-
   @Override
-  public void clearChatPane() {
-    // TODO Auto-generated method stub
-    chatPanelChat.setText("");
+  public String getEnterTextField() {
+    return chatTextField.getText();
   }
-
 
 
   @Override
   public void clearEnterTextField() {
     // TODO Auto-generated method stub
     chatTextField.setText("");
-  }
-
-
-
-  @Override
-  public String getEnterTextField() {
-    return chatTextField.getText();
   }
 
 

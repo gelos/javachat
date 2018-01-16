@@ -1,7 +1,5 @@
 package chat.client.mvp.swing;
 
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,17 +12,19 @@ import chat.server.ChatHandler;
 import chat.server.ChatServer;
 
 /**
- * The Class ChatClientPresenter. Realize chat client logic.
+ * The Class ChatClientSwingPresenter. Realize chat client logic.
  */
-public class ChatClientPresenter implements Presenter {
+public class ChatClientSwingPresenter implements PresenterSwing {
 
   /** The Constant _GREETING_MESSAGE. */
-  private final static String MSG_GREETING = "Enter username to start сhat: ";
+  private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
+
+  private final static String MSG_EMPTY_USRENAME = "Username cannot be empty.";
 
   private final static String MSG_CANT_CON_SRV = "Can't connect to server " + ChatServer.SERVER_IP
       + ":" + ChatServer.SERVER_PORT + ". Server not started.";
 
-  private View view;
+  private ViewSwing viewSwing;
 
   /** The sever socket. */
   private Socket serverSocket = null;
@@ -38,6 +38,39 @@ public class ChatClientPresenter implements Presenter {
   /** The in stream. */
   private BufferedReader inStream = null;
 
+
+  @Override
+  public void sendChatMsgToServer() {
+    // TODO Auto-generated method stub
+
+    String message = getViewSwing().getEnterTextField();
+    getViewSwing().clearEnterTextField();
+
+    if (serverSocket != null && serverSocket.isConnected()) {
+
+      // send message to chat
+      outStream.println(message);
+
+      // enterTextField.setText("");
+
+    } else { // start new connection
+
+      // get user name
+      String username = message;
+      if (!username.equals("")) {
+
+        if (openConnection(username)) {
+
+          getViewSwing().showMsgOnChatPane(username);
+        } else {
+          getViewSwing().showMsgOnChatPane(MSG_CANT_CON_SRV);
+        }
+      } else {
+        getViewSwing().showMsgOnChatPane(MSG_EMPTY_USRENAME);
+        getViewSwing().showMsgOnChatPane(MSG_ASK_FOR_USERNAME);
+      }
+    }
+  }
 
 
   /**
@@ -99,9 +132,10 @@ public class ChatClientPresenter implements Presenter {
   /**
    * Print greeting message to enter field.
    */
-  private void printGreetingMSG() {
-    getView().clearChatPane();
-    getView().showChatMessage(MSG_GREETING);
+  @Override
+  public void showGreetingMsg() {
+    getViewSwing().clearChatPane();
+    getViewSwing().showMsgOnChatPane(MSG_ASK_FOR_USERNAME);
   }
 
 
@@ -140,7 +174,7 @@ public class ChatClientPresenter implements Presenter {
       for (String message : chunks) {
 
         // getView().showChatMessage(message);
-        getView().showChatMessage(message);
+        getViewSwing().showMsgOnChatPane(message);
 
 
       }
@@ -153,7 +187,7 @@ public class ChatClientPresenter implements Presenter {
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.Presenter#closeConnection()
+   * @see chat.client.mvp.swing.PresenterSwing#closeConnection()
    */
   @Override
   public void closeConnection() {
@@ -164,7 +198,7 @@ public class ChatClientPresenter implements Presenter {
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.Presenter#updateUserList()
+   * @see chat.client.mvp.swing.PresenterSwing#updateUserList()
    */
   @Override
   public void updateUserList() {
@@ -175,7 +209,7 @@ public class ChatClientPresenter implements Presenter {
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.Presenter#sendPrvMsg()
+   * @see chat.client.mvp.swing.PresenterSwing#sendPrvMsg()
    */
   @Override
   public void sendPrvMsg() {
@@ -183,42 +217,12 @@ public class ChatClientPresenter implements Presenter {
 
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see chat.client.mvp.swing.Presenter#sendMsg()
-   */
-  @Override
-  public void sendMsg(String message) {
-    // TODO Auto-generated method stub
-    if (serverSocket != null && serverSocket.isConnected()) {
 
-      // send message to chat
-      outStream.println(message);
-      getView().clearEnterTextField();
-      //enterTextField.setText("");
-
-    } else { // start new connection
-
-      // get user name
-      String username = getView().getEnterTextField();
-      username = username.substring(username.lastIndexOf(":") + 1);
-
-      // try to connect
-      // if (connectToChatServer(username)) {
-      if (openConnection(username)) {
-
-        getView().showChatMessage(username);
-       } else {
-        printGreetingMSG();
-      }
-    }
-  }
 
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.Presenter#printMsg()
+   * @see chat.client.mvp.swing.PresenterSwing#printMsg()
    */
   @Override
   public void printMsg() {
@@ -229,16 +233,16 @@ public class ChatClientPresenter implements Presenter {
 
 
   @Override
-  public void setView(ChatClientView view) {
-    this.view = view;
+  public void setView(ChatClientSwingView view) {
+    this.viewSwing = view;
 
   }
 
-  private View getView() {
-    if (view == null) {
-      throw new IllegalStateException("The view is not set.");
+  private ViewSwing getViewSwing() {
+    if (viewSwing == null) {
+      throw new IllegalStateException("The viewSwing is not set.");
     } else {
-      return this.view;
+      return this.viewSwing;
     }
   }
 

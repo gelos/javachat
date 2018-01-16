@@ -6,12 +6,12 @@ import javax.swing.SwingUtilities;
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 
 /**
- * The Class ChatClient. Main class to start chat client.
+ * The Class ChatClientSwing. Main class to start chat client.
  */
-public class ChatClient {
+public class ChatClientSwing {
 
   /**
-   * The main method. Run GUI in Event Dispatch Thread. Initialize View and Presenter.
+   * The main method. Run GUI in Event Dispatch Thread. Initialize ViewSwing and PresenterSwing.
    *
    * @param args the arguments
    */
@@ -22,14 +22,15 @@ public class ChatClient {
       public void run() {
         try {
           
-          // Initialize View and Presenter
-          final ChatClientPresenter presenter = new ChatClientPresenter();
-          final ChatClientView mainWindow = new ChatClientView();
+          // Initialize ViewSwing and PresenterSwing
+          final ChatClientSwingPresenter presenter = new ChatClientSwingPresenter();
+          final ChatClientSwingView mainWindow = new ChatClientSwingView();
           presenter.setView(mainWindow);
-          mainWindow.setPresenter(presenter);
+          mainWindow.setPresenterSwing(presenter);
           
           // Show main window
-          mainWindow.setVisible(true);         
+          mainWindow.setVisible(true);
+          presenter.showGreetingMsg();
 
         } catch (Exception e) {
           e.printStackTrace();

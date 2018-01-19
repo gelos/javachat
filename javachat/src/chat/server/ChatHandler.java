@@ -78,7 +78,7 @@ public class ChatHandler extends Thread {
    * @param handlers the handlers storage
    */
   // public ChatHandler(Socket s, ArrayList handlers) {
-  public ChatHandler(Socket s, CopyOnWriteArrayList handlers) {
+  public ChatHandler(Socket s, CopyOnWriteArrayList<ChatHandler> handlers) {
     this.s = s;
     this.handlers = handlers;
   }

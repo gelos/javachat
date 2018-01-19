@@ -46,31 +46,36 @@ public class ChatServer {
 
   // Constructor
 
+  public ChatServer() {
+    this(SERVER_PORT, new SocketFactoryImpl());
+  }
+    
   /**
    * Instantiates a new chat server.
    */
-  public ChatServer() {
+  public ChatServer(int port, SocketFactory socketFactory) {
 
     System.out.println("Chat server starting...");
 
     // Initialize client session handlers storage
     chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
 
-    try {
+    //try {
 
       // Initialize server socket with _SERVER_SOCKET port
-      serverSocket = new ServerSocket(SERVER_PORT);
+      //serverSocket = new ServerSocket(SERVER_PORT);
+      serverSocket = socketFactory.createSocketFor(port);
 
-      System.out.println("Connection socket on port " + SERVER_PORT + " created.");
+      System.out.println("Connection socket on port " + port + " created.");
 
 
-    } catch (IOException ioe) {
+/*   // } catch (IOException ioe) {
 
       System.out.println(ioe.getMessage());
       System.exit(1);
 
     }
-
+*/
     // Start thread to process chat client communications
     chatClientCommunicationThread = new ChatClientCommunicationThreadClass();
     chatClientCommunicationThread.start();
@@ -85,6 +90,8 @@ public class ChatServer {
     System.out.println("Server started.");
 
   }
+
+  
 
   /**
    * Close.

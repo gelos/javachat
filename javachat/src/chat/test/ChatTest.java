@@ -1,20 +1,26 @@
 package chat.test;
 
+import mockit.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.net.ServerSocketFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.server.ChatServer;
+import chat.server.SocketFactory;
+import chat.server.SocketFactoryImpl;
 
 class ChatTest {
-
+ 
   //ChatServer server = null;
   AtomicReference<ChatServer> server = new AtomicReference<ChatServer>(null);
   AtomicInteger number = new AtomicInteger(0);
@@ -43,7 +49,7 @@ class ChatTest {
   }
   
   
-  //@Disabled
+  @Disabled
   @Test
   void testServerStartStop() throws Throwable {
 
@@ -105,4 +111,44 @@ class ChatTest {
 
   }
 
+  @DisplayName("Test server behavior on IOException during creating ServerSocket")
+  @Test
+  void serverStartStopTest() {
+    ChatServer chatServer = new ChatServer();
+    //ChatServer chatServer = new ChatServer(ChatServer.SERVER_PORT,)
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    assertTrue(chatServer.close());
+    
+  }
+  
+  //TODO http://jmockit.github.io/about.html
+  
+  @DisplayName("Test server behavior on IOException during creating ServerSocket")
+  @Test
+  void serverStartIOExceptionTest() {
+    // ChatServer chatServer = new ChatServer();
+    
+    //SocketFactory mock = MockUp.newEmptyProxy(SocketFactory.class);
+    new MockUp<SocketFactoryImpl>() {
+      
+    };
+    
+    //mock.doSomething();
+    
+    ChatServer chatServer = new ChatServer(ChatServer.SERVER_PORT, socketFactory )
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    assertTrue(chatServer.close());
+    
+  }
+  
 }

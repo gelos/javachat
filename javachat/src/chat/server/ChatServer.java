@@ -46,14 +46,15 @@ public class ChatServer {
 
   // Constructor
 
-  public ChatServer() {
+  public ChatServer() throws IOException {
     this(SERVER_PORT, new SocketFactoryImpl());
   }
     
   /**
    * Instantiates a new chat server.
+   * @throws IOException 
    */
-  public ChatServer(int port, SocketFactory socketFactory) {
+  public ChatServer(int port, SocketFactory socketFactory) throws IOException {
 
     System.out.println("Chat server starting...");
 
@@ -64,7 +65,12 @@ public class ChatServer {
 
       // Initialize server socket with _SERVER_SOCKET port
       //serverSocket = new ServerSocket(SERVER_PORT);
-      serverSocket = socketFactory.createSocketFor(port);
+      //try {
+        serverSocket = socketFactory.createSocketFor(port);
+      /*} catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } */
 
       System.out.println("Connection socket on port " + port + " created.");
 
@@ -145,7 +151,12 @@ public class ChatServer {
    * @param args the arguments
    */
   public static void main(String[] args) {
-    new ChatServer();
+    try {
+      new ChatServer();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   /** The distinct thread to process chat client connections. */

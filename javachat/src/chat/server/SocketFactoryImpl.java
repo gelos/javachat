@@ -6,16 +6,16 @@ import java.net.ServerSocket;
 public class SocketFactoryImpl implements SocketFactory {
 
   @Override
-  public ServerSocket createSocketFor(int port) {
+  public ServerSocket createSocketFor(int port) throws IOException {
     
     ServerSocket res = null;
     
-    try {
+    //try {
       res = new ServerSocket(port);
-    } catch (IOException e) {
+    /*} catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
+    } */
     
     return res;
   }

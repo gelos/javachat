@@ -40,48 +40,62 @@ public class ChatServer {
   /** The client session handlers thread-safe storage. */
   private CopyOnWriteArrayList<ChatHandler> chatHandlers;
 
+  /** The chat client communication thread. */
   private ChatClientCommunicationThreadClass chatClientCommunicationThread;
 
+  /** The process console input thread. */
   private ProcessConsoleInputThreadClass processConsoleInputThread;
 
+  /**  Started flag. */
+  private boolean started;
+  
   // Constructor
 
-  public ChatServer() throws IOException {
-    this(SERVER_PORT, new SocketFactoryImpl());
-  }
-    
   /**
    * Instantiates a new chat server.
-   * @throws IOException 
    */
-  public ChatServer(int port, SocketFactory socketFactory) throws IOException {
+  public ChatServer() {
+    this(SERVER_PORT, new SocketFactoryImpl());
+  }
+
+  /**
+   * Instantiates a new chat server.
+   *
+   * @param port the port
+   * @param socketFactory the socket factory
+   */
+  public ChatServer(int port, SocketFactory socketFactory) {
+    
+    // Set state to not started yet
+    started = false;
 
     System.out.println("Chat server starting...");
 
     // Initialize client session handlers storage
     chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
 
-    //try {
+    // try {
 
-      // Initialize server socket with _SERVER_SOCKET port
-      //serverSocket = new ServerSocket(SERVER_PORT);
-      //try {
-        serverSocket = socketFactory.createSocketFor(port);
-      /*} catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } */
-
-      System.out.println("Connection socket on port " + port + " created.");
-
-
-/*   // } catch (IOException ioe) {
-
-      System.out.println(ioe.getMessage());
+    // Initialize server socket with _SERVER_SOCKET port
+    try {
+      //serverSocket = socketFactory.createSocketFor(port);
+      serverSocket = new ServerSocket(port);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      System.err.println("Failed to create server socket on port " + port);
       System.exit(1);
-
     }
-*/
+
+    System.out.println("Connection socket on port " + port + " created.");
+
+
+    /*
+     * // } catch (IOException ioe) {
+     * 
+     * System.out.println(ioe.getMessage()); System.exit(1);
+     * 
+     * }
+     */
     // Start thread to process chat client communications
     chatClientCommunicationThread = new ChatClientCommunicationThreadClass();
     chatClientCommunicationThread.start();
@@ -95,9 +109,21 @@ public class ChatServer {
 
     System.out.println("Server started.");
 
+    // Set state to already started
+    started = true;
+    
   }
 
   
+  /**
+   * Checks if is started.
+   *
+   * @return true, if constructor complete execution, then we agree what server started
+   */
+  public boolean isStarted() {
+    return started;
+  }
+
 
   /**
    * Close.
@@ -109,7 +135,7 @@ public class ChatServer {
     try {
 
       System.out.println("Stopping server thread...");
-      
+
       // Try to stop thread, set running flag to false
       chatClientCommunicationThread.stop();
 
@@ -117,7 +143,7 @@ public class ChatServer {
       // serverSocket.accept(). Throw SocketException and stop thread.
       serverSocket.close();
       serverSocket = null;
-      
+
       processConsoleInputThread.stop();
 
 
@@ -151,26 +177,31 @@ public class ChatServer {
    * @param args the arguments
    */
   public static void main(String[] args) {
-    try {
-      new ChatServer();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+
+    new ChatServer();
+
   }
 
   /** The distinct thread to process chat client connections. */
   private class ChatClientCommunicationThreadClass implements Runnable {
 
+    /** The worker. */
     private Thread worker;
 
+    /** The running. */
     // Start-stop thread flag
     private final AtomicBoolean running = new AtomicBoolean(false);
 
+    /**
+     * Stop.
+     */
     public void stop() {
       running.set(false);
     }
 
+    /**
+     * Start.
+     */
     public void start() {
 
       // Setting running flag for while circle
@@ -182,6 +213,9 @@ public class ChatServer {
 
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 
@@ -228,19 +262,31 @@ public class ChatServer {
   /** The thread to process console input. */
   private class ProcessConsoleInputThreadClass implements Runnable {
 
+    /** The worker. */
     private Thread worker;
+    
+    /** The running. */
     private final AtomicBoolean running = new AtomicBoolean(false);
 
+    /**
+     * Stop.
+     */
     public void stop() {
       running.set(false);
     }
 
+    /**
+     * Start.
+     */
     public void start() {
       running.set(true);
       worker = new Thread(this);
       worker.start();
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 

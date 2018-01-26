@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import chat.client.mvp.swing.ChatClientSwingPresenter;
 import chat.server.ChatServer;
 import chat.server.SocketFactory;
 import chat.server.SocketFactoryImpl;
@@ -115,8 +116,8 @@ class ChatTest {
 
   }
 
+    //@DisplayName("Test server behavior on IOException during creating ServerSocket")
   @Disabled
-  @DisplayName("Test server behavior on IOException during creating ServerSocket")
   @Test
   void serverStartStopTest() {
     //ChatServer chatServer = new ChatServer();
@@ -131,33 +132,10 @@ class ChatTest {
 
   }
 
-  
-  
-  @Test
-  void serverIOExceptionTestJMockitnew(@Mocked SocketFactory socketFactoryImpl) throws IOException {       
-    
-    new Expectations() {
-      {
-        socketFactoryImpl.createSocketFor(anyInt);
-        result = new IOException();
-      }
-    };
-    
-    assertThrows(IOException.class, () -> {
-      new ChatServer(ChatServer.SERVER_PORT, socketFactoryImpl);
-    });
-    
-    new Verifications() { {
-      socketFactoryImpl.createSocketFor(anyInt);
-    }};
-
-  }
-
-  
-
-  @Injectable SocketFactoryImpl socketFactoryImpl;
+   //@Injectable SocketFactoryImpl socketFactoryImpl;
   @DisplayName("Tests IOException catching while ServerSocket creating using Jmockit")
   @Test
+  @Disabled
   void serverIOExceptionTestJMockit() throws IOException {
         
     new Expectations() {
@@ -176,22 +154,59 @@ class ChatTest {
     }};
 
   }
+ 
 
-  @DisplayName("Tests IOException catching while ServerSocket creating")
+  @Mocked
+  SocketFactoryImpl socketFactoryImpl; 
+  
+  @Injectable
+  ServerSocket serverSocket;
+  
   @Test
-  void createServerSocketIOExceptionTest() {
-    class socketFactoryMock implements SocketFactory {
-
-      @Override
-      public ServerSocket createSocketFor(int port) throws IOException {
-        throw new IOException();
+  void createServerSocketIOExceptionTest() throws IOException {       
+    
+    new Expectations() {
+      {
+        socketFactoryImpl.createSocketFor(anyInt);
+        result = new IOException();
       }
-    }
-
+    };
+    
     assertThrows(IOException.class, () -> {
-      new ChatServer(ChatServer.SERVER_PORT, new socketFactoryMock());
-    });
-        
+      new ChatServer(ChatServer.SERVER_PORT, socketFactoryImpl);
+    });    
   }
 
+  @Test
+  void acceptServerSocketIOExceptionTest() throws Throwable {
+    
+    final AtomicReference<Throwable> exception = new AtomicReference<>();
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(final Thread t, final Throwable e) {
+        exception.compareAndSet(null, e);
+      }
+    });
+    
+    new Expectations() {{
+      //socketFactoryImpl.createSocketFor(anyInt); result = serverSocket;
+      serverSocket.accept(); result = new IOException();
+    }};
+    
+   //ChatServer chatServer = new ChatServer(ChatServer.SERVER_PORT, socketFactory);
+    
+ //   ChatClientSwingPresenter chatPresenter1 = new ChatClientSwingPresenter();
+ //   ChatClientSwingPresenter
+    
+    assertThrows(IOException.class, () -> {
+      new ChatServer(ChatServer.SERVER_PORT, socketFactoryImpl);
+    });
+  
+   if (exception.get() != null) {
+     throw exception.get();
+   }
+
+   
+  }
+  
 }

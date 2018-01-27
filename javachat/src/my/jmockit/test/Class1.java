@@ -10,7 +10,13 @@ public class Class1 {
   }
 
   public boolean method1Class1() {
+    System.out.println("We are in original method 1");
     return true;
   };
+  
+  public int method2Class1() {
+    System.out.println("We are in original method 2");
+    return -100;
+  }
   
 }

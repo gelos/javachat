@@ -2,13 +2,16 @@ package chat.test;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.server.ChatServer;
 import mockit.Expectations;
@@ -27,7 +30,8 @@ class ChatServerTest {
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
-  @Disabled
+  //@Disabled
+  @DisplayName("Test start stop server without error.")
   @Test
   void serverStartStopTest() throws InterruptedException {
 
@@ -65,18 +69,56 @@ class ChatServerTest {
 
   }
 
+  @DisplayName("Test chat server behavior on IOException error while create ServerSocket.")
+  @Test
+  void newServerSocketIOExceptionTest(@Mocked ServerSocket serverSocket)
+      throws InterruptedException, IOException {
+
+    // redirect System.out & System.err
+    System.setErr(new PrintStream(errContent));
+
+    // throw IOException on ServerSocket create
+    new Expectations() {
+      {
+        new ServerSocket(anyInt);
+        result = new IOException();
+      }
+    };
+
+    // create chet server
+    ChatServer chatServer = new ChatServer();
+
+    int timeout = 1;
+    // wait while chatServer started
+    while (!chatServer.isStarted() && (timeout <= 10) && (errContent.toString().length() == 0)) {
+      System.out.println(chatServer == null);
+      TimeUnit.SECONDS.sleep(1);
+      timeout++;
+    }
+
+    assertTrue("Chat server not properly catch IOException on new ServerSocket.",
+        errContent.toString().contains("Failed to create server socket on port"));
+
+    // restore
+    System.setErr(System.err);
+
+  }
+
+  @Disabled
   @Test
   // void acceptServerSocketIOExceptionTest(@Mocked ChatServer chatServerMock, @Injectable
   // ServerSocket serverSocketMock) throws IOException, InterruptedException {
-  //void acceptServerSocketIOExceptionTest(@Mocked ChatServer chatServerMock) throws InterruptedException {
-  void acceptServerSocketIOExceptionTest(@Mocked ChatServer chatServerMock, @Injectable ServerSocket serverSocket) throws InterruptedException, IOException {
-    
+  // void acceptServerSocketIOExceptionTest(@Mocked ChatServer chatServerMock) throws
+  // InterruptedException {
+  void acceptServerSocketIOExceptionTest(@Mocked ChatServer chatServerMock,
+      @Injectable ServerSocket serverSocket) throws InterruptedException, IOException {
+
     new Expectations() {
       {
-        
-        //chatServer.close(); result = false;
-        //new ChatServer(); result = chatServerMock;
-        //chatServerMock.isStarted(); result = true;
+
+        // chatServer.close(); result = false;
+        // new ChatServer(); result = chatServerMock;
+        // chatServerMock.isStarted(); result = true;
         new ServerSocket();
         result = new IOException();
         // serverSocketMock.accept();
@@ -90,11 +132,11 @@ class ChatServerTest {
      * assertThrows(IOException.class, () -> { new ChatServer(); });
      */
 
-    //ChatServer chatServer = new ChatServer();
-    //chatServerMock1 = new ChatServer();
+    // ChatServer chatServer = new ChatServer();
+    // chatServerMock1 = new ChatServer();
 
     ChatServer chatServer = new ChatServer();
-    
+
     int timeout = 1;
 
     // wait while chatServer started
@@ -106,13 +148,12 @@ class ChatServerTest {
 
     chatServer.close();
 
-    
-      /*new FullVerifications() { {
-        chatServerMock;
-        chatServerMock.isStarted();
-        chatServerMock.close();
-      }};*/
-     
+
+    /*
+     * new FullVerifications() { { chatServerMock; chatServerMock.isStarted();
+     * chatServerMock.close(); }};
+     */
+
   }
 
 }

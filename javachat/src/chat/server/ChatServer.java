@@ -83,8 +83,11 @@ public class ChatServer {
     } catch (IOException e) {
       // TODO Auto-generated catch block
       System.err.println("Failed to create server socket on port " + port);
-      System.exit(1);
-    }
+      e.printStackTrace();
+      //System.exit(0);
+      //exit(1);
+      return;
+    } 
 
     System.out.println("Connection socket on port " + port + " created.");
 
@@ -250,7 +253,7 @@ public class ChatServer {
 
         } catch (IOException e) { // Exit program on IOException
           System.err.println("Accept failed.");
-          System.exit(1);
+          exit(1);
         }
       }
     }
@@ -312,6 +315,9 @@ public class ChatServer {
     }
   };
 
+  private void exit(int status) {
+    System.exit(status);
+  }
 
 }
 

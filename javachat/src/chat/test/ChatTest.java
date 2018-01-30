@@ -105,7 +105,7 @@ class ChatTest {
     assertNotNull(server.get(), "after timeout");
     assertEquals(1, number.get(), "after timeout");
     // assertNull(server.get());
-    assertTrue(server.get().close());
+    assertTrue(server.get().stop());
     // ChatClientSwingPresenter client = new ChatClientSwingPresenter();
 
     // fail("Not yet implemented");

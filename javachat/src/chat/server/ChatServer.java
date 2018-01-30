@@ -46,9 +46,9 @@ public class ChatServer {
   /** The process console input thread. */
   private ProcessConsoleInputThreadClass processConsoleInputThread;
 
-  /**  Started flag. */
+  /** Started flag. */
   private boolean started;
-  
+
   // Constructor
 
   /**
@@ -65,7 +65,7 @@ public class ChatServer {
    * @param socketFactory the socket factory
    */
   public ChatServer(int port, SocketFactory socketFactory) {
-    
+
     // Set state to not started yet
     started = false;
 
@@ -78,16 +78,16 @@ public class ChatServer {
 
     // Initialize server socket with _SERVER_SOCKET port
     try {
-      //serverSocket = socketFactory.createSocketFor(port);
+      // serverSocket = socketFactory.createSocketFor(port);
       serverSocket = new ServerSocket(port);
     } catch (IOException e) {
       // TODO Auto-generated catch block
       System.err.println("Failed to create server socket on port " + port);
       e.printStackTrace();
-      //System.exit(0);
-      //exit(1);
+      // System.exit(0);
+      // exit(1);
       return;
-    } 
+    }
 
     System.out.println("Connection socket on port " + port + " created.");
 
@@ -107,17 +107,28 @@ public class ChatServer {
     processConsoleInputThread = new ProcessConsoleInputThreadClass();
     processConsoleInputThread.start();
 
-    // support to close, using the command line.
-    System.out.println("Type quit in console to shutdown server.");
+    // Check that both thread successfully running
 
-    System.out.println("Server started.");
+    if (chatClientCommunicationThread.isRuning() && processConsoleInputThread.isRuning()) {
 
-    // Set state to already started
-    started = true;
-    
+      // support to close, using the command line.
+      System.out.println("Type quit in console to shutdown server.");
+
+      System.out.println("Server started.");
+
+      // Set state to already started
+      started = true;
+    } else {
+      // force to close server
+      stop();
+      started = false;
+    }
+
+
+
   }
 
-  
+
   /**
    * Checks if is started.
    *
@@ -133,7 +144,7 @@ public class ChatServer {
    *
    * @return true, if successful
    */
-  public boolean close() {
+  public boolean stop() {
 
     try {
 
@@ -195,6 +206,10 @@ public class ChatServer {
     // Start-stop thread flag
     private final AtomicBoolean running = new AtomicBoolean(false);
 
+    public boolean isRuning() {
+      return running.get();
+    }
+
     /**
      * Stop.
      */
@@ -216,7 +231,9 @@ public class ChatServer {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -252,8 +269,11 @@ public class ChatServer {
           }
 
         } catch (IOException e) { // Exit program on IOException
-          System.err.println("Accept failed.");
-          exit(1);
+          System.err.println("Chat client acception failed.");
+          e.printStackTrace();
+          stop();
+          // exit(1);
+
         }
       }
     }
@@ -267,7 +287,7 @@ public class ChatServer {
 
     /** The worker. */
     private Thread worker;
-    
+
     /** The running. */
     private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -276,6 +296,11 @@ public class ChatServer {
      */
     public void stop() {
       running.set(false);
+    }
+
+    public boolean isRuning() {
+      // TODO Auto-generated method stub
+      return running.get();
     }
 
     /**
@@ -287,7 +312,9 @@ public class ChatServer {
       worker.start();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -310,14 +337,10 @@ public class ChatServer {
       consoleInput.close();
 
       // try to close server
-      close();
+      stop();
 
     }
   };
-
-  private void exit(int status) {
-    System.exit(status);
-  }
 
 }
 

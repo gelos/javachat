@@ -71,7 +71,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
       public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
         //getPresenter().sendChatMsgToServer(chatTextField.getText());
-        getPresenterSwing().sendChatMsgToServer();
+        getPresenterSwing().sendChatMsg();
       }
     };
 
@@ -123,7 +123,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
     
   }
 
-  private PresenterSwing getPresenterSwing() {
+  public PresenterSwing getPresenterSwing() {
     if (presenterSwing == null) {
       throw new IllegalStateException("The presenterSwing is not set");
     } else {
@@ -146,7 +146,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   // TODO where we must catch exceptions, in view or in presenterSwing?
   @Override
-  public void showMsgOnChatPane(String message) {
+  public void showMsgChatPane(String message) {
 
     StyledDocument doc = chatTextPane.getStyledDocument();
     try {
@@ -171,7 +171,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
   }
 
   @Override
-  public void showUserList(String[] usrList) {
+  public void updateChatUserList(String[] usrList) {
     // TODO Auto-generated method stub
     // chatUserList.setT
     DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();

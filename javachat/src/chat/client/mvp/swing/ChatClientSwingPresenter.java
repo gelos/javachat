@@ -32,6 +32,9 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   /** The client thread. */
   private ProcessServerMessages clientThread = null;
 
+ // private MessageHandler messageHandler = null;
+  private Thread messageHandler = null;
+  
   /** The out stream. */
   private PrintWriter outStream = null;
 
@@ -40,7 +43,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
 
   @Override
-  public void sendChatMsgToServer() {
+  public void sendChatMsg() {
     // TODO Auto-generated method stub
 
     String message = getViewSwing().getEnterTextField();
@@ -61,13 +64,13 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
         if (openConnection(username)) {
 
-          getViewSwing().showMsgOnChatPane(username);
+          getViewSwing().showMsgChatPane(username);
         } else {
-          getViewSwing().showMsgOnChatPane(MSG_CANT_CON_SRV);
+          getViewSwing().showMsgChatPane(MSG_CANT_CON_SRV);
         }
       } else {
-        getViewSwing().showMsgOnChatPane(MSG_EMPTY_USRENAME);
-        getViewSwing().showMsgOnChatPane(MSG_ASK_FOR_USERNAME);
+        getViewSwing().showMsgChatPane(MSG_EMPTY_USRENAME);
+        getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
       }
     }
   }
@@ -82,7 +85,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   @Override
   public boolean openConnection(String username) {
     // TODO Auto-generated method stub
-
+    
     boolean res = false;
     try {
 
@@ -100,7 +103,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
     } catch (IOException ioe) {
 
-      // System.out.println(ioe.getMessage());
+      System.out.println(ioe.getMessage());
       // emptyPanelLabel.setText(MSG_CANT_CON_SRV);
       return res;
 
@@ -108,15 +111,24 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
     // launch new thread with SwingWorker class to safe access swing GUI outside Event Dispatch
     // Thread
-
-    clientThread = new ProcessServerMessages();
-    clientThread.execute();
+    
+    //getViewSwing().showMsgChatPane("wegfw");
+    
+    messageHandler = new Thread (new MessageHandler(), "messageHandlerThread");
+    messageHandler.start();
+    
+    //getViewSwing().showMsgChatPane("wegfw");
+    
+    //clientThread = new ProcessServerMessages();
+    //clientThread.execute();
 
     // TODO generate /enter command
-
+    
     // send to server /enter command
     sendEnterCMD(username, outStream);
 
+    //System.out.println(getViewSwing().getEnterTextField() + " openConnection");
+    
     return res;
 
 
@@ -135,9 +147,30 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   @Override
   public void showGreetingMsg() {
     getViewSwing().clearChatPane();
-    getViewSwing().showMsgOnChatPane(MSG_ASK_FOR_USERNAME);
+    getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
   }
 
+  
+  class MessageHandler implements Runnable {
+
+    @Override
+    public void run() {
+      // TODO Auto-generated method stub
+      String message = "";
+      //getViewSwing().showMsgChatPane(message);
+      try {
+        while ((message = inStream.readLine()) != null) {
+          //getViewSwing().showMsgChatPane("");
+          System.out.println(message);
+          getViewSwing().showMsgChatPane(message);
+        }
+      } catch (IOException ioe) {
+        System.out.println(ioe.getMessage());
+      }
+    }
+    
+  }
+  
 
   /**
    * The Class ProcessServerMessages.
@@ -152,6 +185,8 @@ public class ChatClientSwingPresenter implements PresenterSwing {
     @Override
     public Void doInBackground() {
 
+      System.out.println(getViewSwing().getEnterTextField() + " doInBackground");
+      
       String res = "";
       try {
         while ((res = inStream.readLine()) != null) {
@@ -173,8 +208,11 @@ public class ChatClientSwingPresenter implements PresenterSwing {
     protected void process(List<String> chunks) {
       for (String message : chunks) {
 
+        System.out.println(message);
+        System.out.println(getViewSwing().getEnterTextField() + " in process");
+        
         // getView().showChatMessage(message);
-        getViewSwing().showMsgOnChatPane(message);
+        getViewSwing().showMsgChatPane(message);
 
 
       }
@@ -192,7 +230,8 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   @Override
   public void closeConnection() {
     // TODO Auto-generated method stub
-
+    System.out.println("Closing client");
+    System.out.println("Closing client");
   }
 
   /*
@@ -238,7 +277,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
   }
 
-  private ViewSwing getViewSwing() {
+  public ViewSwing getViewSwing() {
     if (viewSwing == null) {
       throw new IllegalStateException("The viewSwing is not set.");
     } else {

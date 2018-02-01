@@ -18,6 +18,6 @@ public interface PresenterSwing {
 
   void showGreetingMsg();
 
-  void sendChatMsgToServer();
+  void sendChatMsg();
 
 }

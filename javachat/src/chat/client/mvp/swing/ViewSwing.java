@@ -5,28 +5,18 @@ package chat.client.mvp.swing;
  */
 public interface ViewSwing {
 
-  /**
-   * Sets the presenter.
-   *
-   * @param presenterSwing the new presenter
-   */
   void setPresenterSwing(PresenterSwing presenterSwing);
-
-  /**
-   * Show user list.
-   */
-
   void showMessageWindow(Object message, String title, int messageType);
 
-  void showMsgOnChatPane(String message);
-
+  // Chat text pane
+  void showMsgChatPane(String message);
   void clearChatPane();
-
-  String getEnterTextField();
   
+  // Message text field
+  String getEnterTextField(); 
   void clearEnterTextField();
 
-  void showUserList(String[] usrList);
-
+  // Chat user list 
+  void updateChatUserList(String[] usrList);
   void clearChatUserList();
 }

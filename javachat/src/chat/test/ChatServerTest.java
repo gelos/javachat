@@ -2,34 +2,27 @@ package chat.test;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.hamcrest.core.IsNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.server.ChatServer;
-import javafx.scene.CacheHint;
 import mockit.Expectations;
-import mockit.FullVerifications;
-import mockit.Injectable;
 import mockit.Mocked;
-import mockit.Tested;
-import mockit.Verifications;
 
 class ChatServerTest {
 
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
+  //@Disabled
   @DisplayName("Test starting, stoping server.")
   @Test
   void serverStartStopTest() throws Throwable {
@@ -66,8 +59,11 @@ class ChatServerTest {
     assertTrue("Maybe server not started correctly? Check ChatServer() constructor.",
         outContent.toString().contains("Server started."));
 
+    // try to stop server
+    chatServer.stop();
+
     // try to stop server, wait for return true
-    assertTrue("Server not stopped correctly.", chatServer.stop());
+    assertTrue("Server not stopped correctly.", chatServer.isStopped());
 
     // check for lack of errors and correctness standard output on server stopping
     assertNotEquals(outContent.toString().length(), 0);
@@ -98,8 +94,11 @@ class ChatServerTest {
       timeout++;
     }
 
+    // try to stop server
+    chatServer.stop();
+
     // try to stop server, wait for return true
-    assertTrue("Server not stopped correctly on second try.", chatServer.stop());
+    assertTrue("Server not stopped correctly on second try.", chatServer.isStopped());
 
     // if we get other thread exception throw it in current thread
     if (exception.get() != null) {

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import chat.base.WorkerThreadClass;
 
 // TODO: use netty+protobuf or ZeroMQ
-// TODO add log support
+// TODO add log support logback https://stackify.com/logging-logback/
 /**
  * Implements server side of chat application. Initialize server part, accept client connection and
  * create new thread as ChartHandler object for every new client connection. Use stop command from
@@ -258,11 +258,10 @@ public class ChatServer {
 
   }
 
-
   /** The thread to process console input. */
   private class ProcessConsoleInputThreadClass extends WorkerThreadClass {
 
-        @Override
+    @Override
     public void run() {
 
       Scanner consoleInput = new Scanner(System.in);

@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities;
 public class ChatClientSwing {
 
   /**
-   * The main method. Run GUI in Event Dispatch Thread. Initialize ViewSwing and PresenterSwing.
+   * The main method. Run GUI in Event Dispatch Thread. Initialize ViewSwing and Presenter.
    *
    * @param args the arguments
    */
@@ -22,11 +22,11 @@ public class ChatClientSwing {
       public void run() {
         try {
           
-          // Initialize ViewSwing and PresenterSwing
-          final ChatClientSwingPresenter presenter = new ChatClientSwingPresenter();
+          // Initialize ViewSwing and Presenter
+          final ChatClientPresenter presenter = new ChatClientPresenter();
           final ChatClientSwingView mainWindow = new ChatClientSwingView();
           presenter.setView(mainWindow);
-          mainWindow.setPresenterSwing(presenter);
+          mainWindow.setPresenter(presenter);
           
           // Show main window
           mainWindow.setVisible(true);

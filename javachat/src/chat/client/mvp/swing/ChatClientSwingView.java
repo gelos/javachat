@@ -31,7 +31,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   // Class variables
 
-  private PresenterSwing presenterSwing;
+  private Presenter presenter;
 
   private Action enterKeyListenerAction;
 
@@ -71,7 +71,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
       public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
         //getPresenter().sendChatMsgToServer(chatTextField.getText());
-        getPresenterSwing().sendChatMsg();
+        getPresenter().sendChatMsg();
       }
     };
 
@@ -123,18 +123,18 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
     
   }
 
-  public PresenterSwing getPresenterSwing() {
-    if (presenterSwing == null) {
-      throw new IllegalStateException("The presenterSwing is not set");
+  public Presenter getPresenter() {
+    if (presenter == null) {
+      throw new IllegalStateException("The presenter is not set");
     } else {
-      return presenterSwing;
+      return presenter;
     }
   }
 
 
   @Override
-  public void setPresenterSwing(PresenterSwing presenterSwing) {
-    this.presenterSwing = presenterSwing;
+  public void setPresenter(Presenter presenter) {
+    this.presenter = presenter;
 
   }
 
@@ -144,7 +144,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
     JOptionPane.showMessageDialog(this, message, title, messageType);
   }
 
-  // TODO where we must catch exceptions, in view or in presenterSwing?
+  // TODO where we must catch exceptions, in view or in presenter?
   @Override
   public void showMsgChatPane(String message) {
 

@@ -5,7 +5,7 @@ package chat.client.mvp.swing;
  */
 public interface ViewSwing {
 
-  void setPresenterSwing(PresenterSwing presenterSwing);
+  void setPresenter(Presenter presenter);
   void showMessageWindow(Object message, String title, int messageType);
 
   // Chat text pane

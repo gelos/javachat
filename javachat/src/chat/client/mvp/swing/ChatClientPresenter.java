@@ -7,14 +7,16 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Scanner;
 import javax.swing.SwingWorker;
+import chat.base.WorkerThreadClass;
 import chat.server.ChatHandler;
 import chat.server.ChatServer;
 
 /**
- * The Class ChatClientSwingPresenter. Realize chat client logic.
+ * The Class ChatClientPresenter. Realize chat client logic.
  */
-public class ChatClientSwingPresenter implements PresenterSwing {
+public class ChatClientPresenter implements Presenter {
 
   /** The Constant _GREETING_MESSAGE. */
   private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
@@ -32,9 +34,9 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   /** The client thread. */
   private ProcessServerMessages clientThread = null;
 
- // private MessageHandler messageHandler = null;
-  private Thread messageHandler = null;
-  
+  // private MessageHandler messageHandler = null;
+  private MessageHandler messageHandler = null;
+
   /** The out stream. */
   private PrintWriter outStream = null;
 
@@ -85,7 +87,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   @Override
   public boolean openConnection(String username) {
     // TODO Auto-generated method stub
-    
+
     boolean res = false;
     try {
 
@@ -111,33 +113,27 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
     // launch new thread with SwingWorker class to safe access swing GUI outside Event Dispatch
     // Thread
-    
-    //getViewSwing().showMsgChatPane("wegfw");
-    
-    messageHandler = new Thread (new MessageHandler(), "messageHandlerThread");
+
+    // getViewSwing().showMsgChatPane("wegfw");
+
+    messageHandler = new MessageHandler();
     messageHandler.start();
-    
-    //getViewSwing().showMsgChatPane("wegfw");
-    
-    //clientThread = new ProcessServerMessages();
-    //clientThread.execute();
+
+    // getViewSwing().showMsgChatPane("wegfw");
+
+    // clientThread = new ProcessServerMessages();
+    // clientThread.execute();
 
     // TODO generate /enter command
-    
+
     // send to server /enter command
     sendEnterCMD(username, outStream);
 
-    //System.out.println(getViewSwing().getEnterTextField() + " openConnection");
-    
+    // System.out.println(getViewSwing().getEnterTextField() + " openConnection");
+
     return res;
 
 
-  }
-
-
-  private void sendEnterCMD(String username, PrintWriter outStream) {
-    outStream.println(ChatHandler.CMD_ENTER + " " + username);
-    // outStream.flush();
   }
 
 
@@ -150,27 +146,31 @@ public class ChatClientSwingPresenter implements PresenterSwing {
     getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
   }
 
-  
-  class MessageHandler implements Runnable {
+
+  class MessageHandler extends WorkerThreadClass {
 
     @Override
     public void run() {
+
       // TODO Auto-generated method stub
       String message = "";
-      //getViewSwing().showMsgChatPane(message);
+      // getViewSwing().showMsgChatPane(message);
       try {
-        while ((message = inStream.readLine()) != null) {
-          //getViewSwing().showMsgChatPane("");
-          System.out.println(message);
-          getViewSwing().showMsgChatPane(message);
+        while (this.isRuning()) {
+          // while ((message = inStream.readLine()) != null) {
+          // getViewSwing().showMsgChatPane("");
+          message = inStream.readLine();
+          System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+          System.out.println(getViewSwing().getEnterTextField());
+          //getViewSwing().showMsgChatPane(message);
         }
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
       }
     }
-    
+
   }
-  
+
 
   /**
    * The Class ProcessServerMessages.
@@ -186,7 +186,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
     public Void doInBackground() {
 
       System.out.println(getViewSwing().getEnterTextField() + " doInBackground");
-      
+
       String res = "";
       try {
         while ((res = inStream.readLine()) != null) {
@@ -210,7 +210,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
 
         System.out.println(message);
         System.out.println(getViewSwing().getEnterTextField() + " in process");
-        
+
         // getView().showChatMessage(message);
         getViewSwing().showMsgChatPane(message);
 
@@ -221,23 +221,35 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   }
 
 
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see chat.client.mvp.swing.PresenterSwing#closeConnection()
-   */
-  @Override
-  public void closeConnection() {
+  public void stop() {
     // TODO Auto-generated method stub
-    System.out.println("Closing client");
-    System.out.println("Closing client");
+    System.out.println("Closing client...");
+    
+    System.out.println("Send exit command");
+    sendExitCMD(outStream);
+    
+    System.out.println("Stopping message handler thread, closing ServerSocket");
+    closeConnection();
+    
+    System.out.println("Client stopped.");
   }
 
+  private void sendExitCMD(PrintWriter outStream) {
+    // TODO Auto-generated method stub
+    outStream.println(ChatHandler.CMD_EXIT);
+  }
+
+
+  private void sendEnterCMD(String username, PrintWriter outStream) {
+    outStream.println(ChatHandler.CMD_ENTER + " " + username);
+    // outStream.flush();
+  }
+
+
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.PresenterSwing#updateUserList()
+   * @see chat.client.mvp.swing.Presenter#updateUserList()
    */
   @Override
   public void updateUserList() {
@@ -248,7 +260,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.PresenterSwing#sendPrvMsg()
+   * @see chat.client.mvp.swing.Presenter#sendPrvMsg()
    */
   @Override
   public void sendPrvMsg() {
@@ -261,7 +273,7 @@ public class ChatClientSwingPresenter implements PresenterSwing {
   /*
    * (non-Javadoc)
    * 
-   * @see chat.client.mvp.swing.PresenterSwing#printMsg()
+   * @see chat.client.mvp.swing.Presenter#printMsg()
    */
   @Override
   public void printMsg() {
@@ -282,6 +294,27 @@ public class ChatClientSwingPresenter implements PresenterSwing {
       throw new IllegalStateException("The viewSwing is not set.");
     } else {
       return this.viewSwing;
+    }
+  }
+
+
+  @Override
+  public void closeConnection() {
+
+    // stop message handler thread
+    if ((messageHandler != null) && (messageHandler.isRuning())) {
+      messageHandler.stop();
+    }
+
+    // try to close serversocket
+
+    if (serverSocket != null && serverSocket.isConnected()) {
+      try {
+        serverSocket.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
   }
 

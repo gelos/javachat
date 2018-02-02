@@ -7,9 +7,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import chat.client.mvp.swing.ChatClientSwingPresenter;
+import chat.client.mvp.swing.ChatClientPresenter;
 import chat.client.mvp.swing.ChatClientSwingView;
-import chat.client.mvp.swing.PresenterSwing;
+import chat.client.mvp.swing.Presenter;
 import chat.client.mvp.swing.ViewSwing;
 import chat.client.swing.ChatClient;
 import chat.server.ChatServer;
@@ -18,7 +18,7 @@ import mockit.*;
 class ChatClientTest {
 
   private ChatServer chatServer;
-  //private ChatClientSwingPresenter chatClientPresenter;
+  //private ChatClientPresenter chatClientPresenter;
     
   @BeforeEach
   void setUp() throws Exception {
@@ -34,7 +34,7 @@ class ChatClientTest {
     }   
     
     // create client
-   //chatClientPresenter = new ChatClientSwingPresenter();
+   //chatClientPresenter = new ChatClientPresenter();
       
   }
 
@@ -54,28 +54,31 @@ class ChatClientTest {
   
   @DisplayName("Start one client connect to server, send \"Hello\" message and then disconnect.")
   @Test
-  //void startStopClientTest(final @Tested ChatClientSwingPresenter chatClientPresenter, @Capturing ChatClientSwingView chatClientView) {  
+  //void startStopClientTest(final @Tested ChatClientPresenter chatClientPresenter, @Capturing ChatClientSwingView chatClientView) {  
+  //void startStopClientTest(@Capturing ChatClientSwingView chatClientView) {
   void startStopClientTest(@Capturing ChatClientSwingView chatClientView) {
   //void startStopClientTest() {
     
-    final ChatClientSwingPresenter chatClientPresenter = new ChatClientSwingPresenter();
+    final ChatClientPresenter chatClientPresenter = new ChatClientPresenter();
     
     //ChatClientSwingView chatClientView = new ChatClientSwingView();
     //ViewSwing chatClientView = new ViewSwing();
             
     //ChatClientSwingView chatClientSwingView = new ChatClientSwingView();
     
-    new Expectations() {{
-      chatClientView.getPresenterSwing(); result = chatClientPresenter;
+    chatClientPresenter.setView(chatClientView);
+    
+    new Expectations(ChatClientSwingView.class) {{
+      chatClientView.getPresenter(); result = chatClientPresenter;
       chatClientView.getEnterTextField(); result = "this is test";
-      chatClientView.showMsgChatPane(anyString);
+      chatClientView.showMsgChatPane(anyString); result = null;
     }};  
     
     chatClientPresenter.setView(chatClientView);
     
     //System.out.println(chatClientView.getEnterTextField());
     
-    //System.out.println(((ChatClientSwingPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
+    //System.out.println(((ChatClientPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
     //chatClientPresenter.getViewSwing().showMsgChatPane("");
     
     assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
@@ -84,7 +87,7 @@ class ChatClientTest {
     System.out.println("connection oppened");
     //chatClientPresenter.sendChatMsg();
     
-    chatClientPresenter.closeConnection();
+    chatClientPresenter.stop();
     
     //chatClientPresenter = null;
   }

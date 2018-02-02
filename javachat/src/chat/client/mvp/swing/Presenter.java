@@ -1,12 +1,14 @@
 package chat.client.mvp.swing;
 
-public interface PresenterSwing {
+public interface Presenter {
    
   void setView(ChatClientSwingView view);
   
   boolean openConnection(String username);
 
   void closeConnection();
+  
+  void stop();
 
   void updateUserList();
 

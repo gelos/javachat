@@ -47,7 +47,7 @@ class ChatClientTest {
     
     // stop server
     chatServer.stop();
-    chatServer = null;  
+    //chatServer = null;  
    
   }
 
@@ -69,8 +69,8 @@ class ChatClientTest {
     chatClientPresenter.setView(chatClientView);
     
     new Expectations(ChatClientSwingView.class) {{
-      chatClientView.getPresenter(); result = chatClientPresenter;
-      chatClientView.getEnterTextField(); result = "this is test";
+      //chatClientView.getPresenter(); result = chatClientPresenter;
+      //chatClientView.getEnterTextField(); result = "this is test";
       chatClientView.showMsgChatPane(anyString); result = null;
     }};  
     
@@ -81,13 +81,33 @@ class ChatClientTest {
     //System.out.println(((ChatClientPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
     //chatClientPresenter.getViewSwing().showMsgChatPane("");
     
-    assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
+    chatClientPresenter.openConnection("oleg");
+    
+    try {
+      TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+    //assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
     //(chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
     
     System.out.println("connection oppened");
     //chatClientPresenter.sendChatMsg();
     
     chatClientPresenter.stop();
+    
+    try {
+      TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+    new Verifications() {{
+      chatClientView.showMsgChatPane(anyString); times =1;
+    }};
     
     //chatClientPresenter = null;
   }

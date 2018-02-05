@@ -31,9 +31,6 @@ public class ChatClientPresenter implements Presenter {
   /** The sever socket. */
   private Socket serverSocket = null;
 
-  /** The client thread. */
-  private ProcessServerMessages clientThread = null;
-
   // private MessageHandler messageHandler = null;
   private MessageHandler messageHandler = null;
 
@@ -157,12 +154,14 @@ public class ChatClientPresenter implements Presenter {
       // getViewSwing().showMsgChatPane(message);
       try {
         while (this.isRuning()) {
-          // while ((message = inStream.readLine()) != null) {
-          // getViewSwing().showMsgChatPane("");
+
           message = inStream.readLine();
-          System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-          System.out.println(getViewSwing().getEnterTextField());
-          //getViewSwing().showMsgChatPane(message);
+          if (message == null) {
+            break;
+          }
+          System.out.println(message);
+
+          getViewSwing().showMsgChatPane(message);
         }
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
@@ -171,55 +170,11 @@ public class ChatClientPresenter implements Presenter {
 
   }
 
-
-  /**
-   * The Class ProcessServerMessages.
-   */
-  class ProcessServerMessages extends SwingWorker<Void, String> {
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.SwingWorker#doInBackground()
-     */
-    @Override
-    public Void doInBackground() {
-
-      System.out.println(getViewSwing().getEnterTextField() + " doInBackground");
-
-      String res = "";
-      try {
-        while ((res = inStream.readLine()) != null) {
-          publish(res);
-        }
-      } catch (IOException ioe) {
-        System.out.println(ioe.getMessage());
-      }
-      return null;
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see javax.swing.SwingWorker#process(java.util.List)
-     */
-    @Override
-    protected void process(List<String> chunks) {
-      for (String message : chunks) {
-
-        System.out.println(message);
-        System.out.println(getViewSwing().getEnterTextField() + " in process");
-
-        // getView().showChatMessage(message);
-        getViewSwing().showMsgChatPane(message);
-
-
-      }
-    }
-
+  
+  // TODO complete that
+  private void handleUsrLstCMD() {
+    
   }
-
 
   public void stop() {
     // TODO Auto-generated method stub

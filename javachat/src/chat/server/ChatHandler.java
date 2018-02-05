@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import chat.base.WorkerThreadClass;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -17,8 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * 
  * @see ChatServer
  */
-// TODO try to change on implement Runnable
-public class ChatHandler extends Thread {
+public class ChatHandler extends WorkerThreadClass {
 
   /**
    * The Constant _ENTER_CMD. Command to start chat session, pattern /enter username. Initiated by
@@ -77,7 +77,6 @@ public class ChatHandler extends Thread {
    * @param s the client socket
    * @param handlers the handlers storage
    */
-  // public ChatHandler(Socket s, ArrayList handlers) {
   public ChatHandler(Socket s, CopyOnWriteArrayList<ChatHandler> handlers) {
     this.s = s;
     this.handlers = handlers;
@@ -104,13 +103,13 @@ public class ChatHandler extends Thread {
       pw = new PrintWriter(s.getOutputStream(), true);
 
       // check for enter command and read username
-      temp = checkForEnterCmd(br);
-
-      System.out.println("user: " + temp);
+      temp = checkForEnterCmd(br);     
 
       // if username not empty
       if (!temp.isEmpty()) {
 
+        System.out.println("user: " + temp);
+        
         // create new user
         chatUser = new ChatUser(temp);
 
@@ -126,7 +125,7 @@ public class ChatHandler extends Thread {
         temp = "";
 
         // Read all strings from current client socket input
-        while ((temp = br.readLine()) != null) {
+        while ((temp = br.readLine()) != null && isRuning()) {
 
           // Write pre-read string to all clients output using handler storage
           for (ChatHandler ch : handlers) {
@@ -140,7 +139,7 @@ public class ChatHandler extends Thread {
           System.out.println(temp);
 
         }
-      } else { // if username empty send to client error message
+      } else if (isRuning()) { // if username empty send to client error message
 
         this.pw.println(_ERR_MSG_NAME);
 
@@ -154,14 +153,21 @@ public class ChatHandler extends Thread {
 
     } finally {
 
+      // dispose User object
+      chatUser = null;
+      
+      closeInputStream();
+      closeOutputStream();
+      closeSocket();
+      
       // Remove this handler from handlers storage
       handlers.remove(this);
     }
   }
 
 
-  public boolean close() {
-    
+  private boolean closeInputStream() {
+    boolean res = true;
     if (br != null) {
       try {
         br.close();
@@ -169,15 +175,21 @@ public class ChatHandler extends Thread {
       } catch (IOException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
-        return false;
+        res = false;
       }
     }
-    
+    return res;
+  }
+  
+  private void closeOutputStream() {
     if (pw != null) {
       pw.close();
       pw = null;
-    } 
-    
+    }
+  }
+  
+  private boolean closeSocket() {
+    boolean res = true;   
     if (s != null) {
       try {
         s.close();
@@ -185,14 +197,10 @@ public class ChatHandler extends Thread {
       } catch (IOException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
-        return false;
+        res = false;
       }
     }
-    
-    chatUser = null;
-    
-    return true;
-    
+    return res;
   }
   
   /**
@@ -220,8 +228,7 @@ public class ChatHandler extends Thread {
     String res = "";
     try {
 
-      //while ((temp = br.readLine()) != null) {
-      while (true) {
+      while (isRuning()) {
 
         // read first line
         temp = br.readLine();

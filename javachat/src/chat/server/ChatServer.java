@@ -175,14 +175,15 @@ public class ChatServer {
         processConsoleInputThread.stop();
       }
 
-      System.out.println("Closing all client handlers...");
+      System.out.println("Stopping all client handlers...");
 
       if (chatHandlers != null) {
         // Close all ChatHadnlers
         for (ChatHandler ch : chatHandlers) {
-          if (!ch.close()) {
+          ch.stop();
+          /*if (!ch.stop()) {
             System.out.println("Client handlers closing error.");
-          }
+          } */
         }
       }
 

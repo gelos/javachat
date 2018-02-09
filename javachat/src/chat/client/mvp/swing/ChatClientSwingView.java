@@ -138,12 +138,6 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   }
 
-  @Override
-  public void showMessageWindow(Object message, String title, int messageType) {
-    // TODO Auto-generated method stub
-    JOptionPane.showMessageDialog(this, message, title, messageType);
-  }
-
   // TODO where we must catch exceptions, in view or in presenter?
   @Override
   public void showMsgChatPane(String message) {
@@ -198,6 +192,42 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
   public void clearEnterTextField() {
     // TODO Auto-generated method stub
     chatTextField.setText("");
+  }
+
+  @Override
+  public void showMessageWindow(Object message, String title) {
+    // TODO Auto-generated method stub
+    JOptionPane.showMessageDialog(this, message, title, JOptionPane.PLAIN_MESSAGE);
+  }
+
+  @Override
+  public void showInformationWindow(Object message, String title) {
+    // TODO Auto-generated method stub
+    JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+  }
+
+  @Override
+  public void showWarningWindow(Object message, String title) {
+    // TODO Auto-generated method stub
+    JOptionPane.showMessageDialog(this, message, title, JOptionPane.WARNING_MESSAGE);
+  }
+
+  @Override
+  public void showErrorWindow(Object message, String title) {
+    // TODO Auto-generated method stub
+    JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
+  }
+
+  @Override
+  public void onSessionOpen() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void onSessionClose() {
+    // TODO Auto-generated method stub
+    
   }
 
 

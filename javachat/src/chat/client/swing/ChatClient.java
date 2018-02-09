@@ -22,7 +22,8 @@ import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
-import chat.server.ChatHandler;
+import chat.base.CommandName;
+import chat.base.CommandParser;
 import chat.server.ChatServer;
 import javax.swing.JLabel;
 
@@ -253,7 +254,7 @@ public class ChatClient {
   }
 
   private void sendEnterCMD(String username, PrintWriter outStream) {
-    outStream.println(ChatHandler.CMD_ENTER + " " + username);
+    outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
     //outStream.flush();
   }
 

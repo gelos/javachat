@@ -2,13 +2,13 @@ package chat.base;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class WorkerThreadClass implements Runnable{
+public class WorkerThread implements Runnable{
 
   private Thread worker;
 
   private AtomicBoolean running;
 
-  public WorkerThreadClass() {
+  public WorkerThread() {
     running = new AtomicBoolean(false);
   }
 

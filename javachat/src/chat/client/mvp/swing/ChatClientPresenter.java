@@ -8,9 +8,15 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingWorker;
-import chat.base.WorkerThreadClass;
-import chat.server.ChatHandler;
+import org.omg.CORBA.PRIVATE_MEMBER;
+import chat.base.ChatCommand;
+import chat.base.CommandName;
+import chat.base.CommandParser;
+import chat.base.WorkerThread;
+import chat.client.swing.ChatClient;
 import chat.server.ChatServer;
 
 /**
@@ -26,6 +32,8 @@ public class ChatClientPresenter implements Presenter {
   private final static String MSG_CANT_CON_SRV = "Can't connect to server " + ChatServer.SERVER_IP
       + ":" + ChatServer.SERVER_PORT + ". Server not started.";
 
+  private final static int TIMEOUT_SESSION_OPEN = 3;
+
   private ViewSwing viewSwing;
 
   /** The sever socket. */
@@ -40,6 +48,11 @@ public class ChatClientPresenter implements Presenter {
   /** The in stream. */
   private BufferedReader inStream = null;
 
+  private AtomicBoolean isSessionOpen;
+
+  public ChatClientPresenter() {
+    isSessionOpen.set(false);
+  }
 
   @Override
   public void sendChatMsg() {
@@ -85,6 +98,8 @@ public class ChatClientPresenter implements Presenter {
   public boolean openConnection(String username) {
     // TODO Auto-generated method stub
 
+    isSessionOpen.set(false);
+
     boolean res = false;
     try {
 
@@ -113,23 +128,79 @@ public class ChatClientPresenter implements Presenter {
 
     // getViewSwing().showMsgChatPane("wegfw");
 
-    messageHandler = new MessageHandler();
-    messageHandler.start();
 
     // getViewSwing().showMsgChatPane("wegfw");
 
     // clientThread = new ProcessServerMessages();
     // clientThread.execute();
 
-    // TODO generate /enter command
-
     // send to server /enter command
     sendEnterCMD(username, outStream);
+
+
+    WorkerThread openSessionHandler = new WorkerThread() {
+      public void run() {
+
+        String message = "";
+
+        // wait for usrlst command with username as a signal of successful session opening
+        while (this.isRuning()) {
+
+          try {
+            message = inStream.readLine();
+          } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+          if (message == null) {
+            break;
+          }
+          System.out.println(message);
+          if (handleUsrLstCMD(message)) {
+            isSessionOpen.set(true);
+            break;
+          };
+        }
+      }
+    };
+
+    openSessionHandler.start();
+
+    int timeout = 1;
+    // wait while chatServer started
+    while (!isSessionOpen.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
+      try {
+        TimeUnit.SECONDS.sleep(1);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      timeout++;
+    }
+
+    if (isSessionOpen.get()) {
+
+      // close usrlst open session handler
+      openSessionHandler.stop();
+      
+      getViewSwing().onSessionOpen();
+      
+      messageHandler = new MessageHandler();
+      messageHandler.start();
+
+      
+      res = true;
+    } else {
+      String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
+          + ". Check server, try again or increase open session timeout.";
+      System.out.println(msg);
+      getViewSwing().showErrorWindow(msg, "Open session timeout.");
+      getViewSwing().onSessionClose();
+    }
 
     // System.out.println(getViewSwing().getEnterTextField() + " openConnection");
 
     return res;
-
 
   }
 
@@ -144,7 +215,7 @@ public class ChatClientPresenter implements Presenter {
   }
 
 
-  class MessageHandler extends WorkerThreadClass {
+  class MessageHandler extends WorkerThread {
 
     @Override
     public void run() {
@@ -170,33 +241,65 @@ public class ChatClientPresenter implements Presenter {
 
   }
 
-  
+
+
+  private void processMsg(String message) {
+
+
+  }
+
   // TODO complete that
-  private void handleUsrLstCMD() {
+  private boolean handleUsrLstCMD(String message) {
+
+    boolean res = false;
+    message = message.trim();
+
+    ChatCommand cmd = CommandParser.parseMessage(message);
     
+    if(cmd.getCommand() == CommandName.CMDUSRLST) {
+      getViewSwing().clearChatUserList();
+      getViewSwing().updateChatUserList(cmd.getPayload().split(" "));
+      res = true;
+    }
+    
+    // check if string start from usrlst command with space and at least one char username
+    /*if (message.length() >= CommandParser.CMD_USRLST.length() + 2
+        && message.substring(0, CommandParser.CMD_USRLST.length() + 1)
+            .equalsIgnoreCase(CommandParser.CMD_USRLST + " ")) {
+
+      // get username list
+      message = message.substring(CommandParser.CMD_USRLST.length() + 1, message.length());
+
+      getViewSwing().clearChatUserList();
+      getViewSwing().updateChatUserList(message.split(" "));
+      res = true;
+    }
+*/
+    return res;
+
   }
 
   public void stop() {
     // TODO Auto-generated method stub
     System.out.println("Closing client...");
-    
+
     System.out.println("Send exit command");
     sendExitCMD(outStream);
-    
+
     System.out.println("Stopping message handler thread, closing ServerSocket");
     closeConnection();
-    
+
     System.out.println("Client stopped.");
   }
 
   private void sendExitCMD(PrintWriter outStream) {
     // TODO Auto-generated method stub
-    outStream.println(ChatHandler.CMD_EXIT);
+    outStream.println(CommandName.CMDEXIT.toString());
   }
 
 
   private void sendEnterCMD(String username, PrintWriter outStream) {
-    outStream.println(ChatHandler.CMD_ENTER + " " + username);
+    outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
     // outStream.flush();
   }
 

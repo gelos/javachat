@@ -1,4 +1,4 @@
-package chat.server;
+package chat.base;
 
 // TODO: Auto-generated Javadoc
 /**

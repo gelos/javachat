@@ -9,7 +9,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
-import chat.base.WorkerThreadClass;
+import chat.base.ChatCommand;
+import chat.base.ChatUser;
+import chat.base.CommandName;
+import chat.base.CommandParser;
+import chat.base.WorkerThread;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -18,35 +22,7 @@ import chat.base.WorkerThreadClass;
  * 
  * @see ChatServer
  */
-public class ChatHandler extends WorkerThreadClass {
-
-  /**
-   * The Constant _ENTER_CMD. Command to start chat session, pattern /enter username. Initiated by
-   * client, processed by server.
-   */
-  public static final String CMD_ENTER = "/enter";
-
-  /**
-   * The Constant _EXIT_CMD. Command to close chat session, pattern /exit. Initiated by client,
-   * processed by server.
-   */
-  public static final String CMD_EXIT = "/exit";
-
-  /**
-   * The Constant _USRLST_CMD. Command to update user list in client GUI, pattern /usrlst ulst where
-   * ulst string of usernames with space character delimeter. Initiated by server, processed by
-   * client.
-   */
-  public static final String CMD_USRLST = "/usrlst";
-
-  /** The Constant _PRVMSG_CMD. */
-  static final String _CMD_PRVMSG = "/prvmsg";
-
-  /** The Constant _MSG_CMD. */
-  static final String _CMD_MSG = "/msg";
-
-  /** The Constant _HELP_CMD. */
-  static final String _CMD_HELP = "/help";
+public class ChatHandler extends WorkerThread {
 
   /** The Constant _ERR_MSG_NAME. */
   private static final String _ERR_MSG_NAME =
@@ -119,7 +95,7 @@ public class ChatHandler extends WorkerThreadClass {
 
         // Send to all users usrlst command
         for (ChatHandler ch : handlers) {
-          ch.pw.println(CMD_USRLST + " " + getUserNamesInString());
+          ch.pw.println(CommandName.CMDUSRLST.toString() + CommandName.CMDDLM.toString() + getUserNamesInString());
         }
 
         temp = "";
@@ -204,7 +180,7 @@ public class ChatHandler extends WorkerThreadClass {
   }
   
   /**
-   * Return the all chat user names in one string. Used in {@link #CMD_USRLST usrlst} command.
+   * Return the all chat user names in one string. Used in {@link CommandParser#CMD_USRLST usrlst} command.
    *
    * @return the string of user name
    */
@@ -217,7 +193,7 @@ public class ChatHandler extends WorkerThreadClass {
   }
 
   /**
-   * Read first string from chat client input stream and match it with {@link #CMD_ENTER enter}
+   * Read first string from chat client input stream and match it with {@link CommandParser#CMD_ENTER enter}
    * command.
    *
    * @param br the BufferedReader of input chat client stream
@@ -243,15 +219,21 @@ public class ChatHandler extends WorkerThreadClass {
         temp = temp.trim();
 
         // check if string start from enter command with space and at least one char username
-        if (temp.length() >= CMD_ENTER.length() + 2
-            && temp.substring(0, CMD_ENTER.length()+1).equalsIgnoreCase(CMD_ENTER + " ")) {
+        ChatCommand cmd = CommandParser.parseMessage(temp);
+        if (cmd.getCommand() == CommandName.CMDENTER) {
+          res = cmd.getPayload();
+          break;
+        }
+        
+        /*if (temp.length() >= CommandParser.CMD_ENTER.length() + 2
+            && temp.substring(0, CommandParser.CMD_ENTER.length()+1).equalsIgnoreCase(CommandParser.CMD_ENTER + " ")) {
 
           // return username
-          res = temp.substring(CMD_ENTER.length() + 1, temp.length());
+          res = temp.substring(CommandParser.CMD_ENTER.length() + 1, temp.length());
           //System.out.println("break");
           break;
         }
-      }
+*/      }
       }
     } catch (IOException e) {
       // TODO Auto-generated catch block

@@ -6,7 +6,10 @@ package chat.client.mvp.swing;
 public interface ViewSwing {
 
   void setPresenter(Presenter presenter);
-  void showMessageWindow(Object message, String title, int messageType);
+  void showMessageWindow(Object message, String title);
+  void showInformationWindow(Object message, String title);
+  void showWarningWindow(Object message, String title);
+  void showErrorWindow(Object message, String title);
 
   // Chat text pane
   void showMsgChatPane(String message);
@@ -19,4 +22,9 @@ public interface ViewSwing {
   // Chat user list 
   void updateChatUserList(String[] usrList);
   void clearChatUserList();
+  
+  
+  void onSessionOpen();
+  void onSessionClose();
+  
 }

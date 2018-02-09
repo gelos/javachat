@@ -1,7 +1,7 @@
 package chat.client.mvp.swing;
 
 public interface Presenter {
-   
+  
   void setView(ChatClientSwingView view);
   
   boolean openConnection(String username);

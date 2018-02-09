@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import chat.base.WorkerThreadClass;
+import chat.base.WorkerThread;
 
 // TODO: use netty+protobuf or ZeroMQ
 // TODO add log support logback https://stackify.com/logging-logback/
@@ -210,7 +210,7 @@ public class ChatServer {
   }
 
   /** The distinct thread to process chat client connections. */
-  private class ChatClientCommunicationThreadClass extends WorkerThreadClass {
+  private class ChatClientCommunicationThreadClass extends WorkerThread {
 
     @Override
     public void run() {
@@ -260,7 +260,7 @@ public class ChatServer {
   }
 
   /** The thread to process console input. */
-  private class ProcessConsoleInputThreadClass extends WorkerThreadClass {
+  private class ProcessConsoleInputThreadClass extends WorkerThread {
 
     @Override
     public void run() {

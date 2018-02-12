@@ -1,10 +1,13 @@
 package chat.base;
 
+import java.io.OutputStream;
+import java.io.PrintWriter;
+
 public class ChatCommand {
-  
+
   private CommandName command;
   private String payload;
-  
+
   public final CommandName getCommand() {
     return this.command;
   }
@@ -12,11 +15,10 @@ public class ChatCommand {
   public final String getPayload() {
     return this.payload;
   }
- 
+
   public ChatCommand(CommandName command, String payload) {
     this.command = command;
     this.payload = payload;
-        
   }
 
   @Override
@@ -40,5 +42,5 @@ public class ChatCommand {
       return false;
     return true;
   }
-  
+
 }

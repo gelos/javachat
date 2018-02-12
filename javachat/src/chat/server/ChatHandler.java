@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import chat.base.ChatCommand;
 import chat.base.ChatUser;
+import chat.base.ChatUtils;
 import chat.base.CommandName;
 import chat.base.CommandParser;
 import chat.base.WorkerThread;
@@ -95,7 +96,8 @@ public class ChatHandler extends WorkerThread {
 
         // Send to all users usrlst command
         for (ChatHandler ch : handlers) {
-          ch.pw.println(CommandName.CMDUSRLST.toString() + CommandName.CMDDLM.toString() + getUserNamesInString());
+          //ch.pw.println(CommandName.CMDUSRLST.toString() + CommandName.CMDDLM.toString() + getUserNamesInString());
+          ChatUtils.sendCommand(new ChatCommand(CommandName.CMDUSRLST, getUserNamesInString()), ch.pw);
         }
 
         temp = "";
@@ -219,7 +221,7 @@ public class ChatHandler extends WorkerThread {
         temp = temp.trim();
 
         // check if string start from enter command with space and at least one char username
-        ChatCommand cmd = CommandParser.parseMessage(temp);
+        ChatCommand cmd = ChatUtils.parseMessage(temp);
         if (cmd.getCommand() == CommandName.CMDENTER) {
           res = cmd.getPayload();
           break;

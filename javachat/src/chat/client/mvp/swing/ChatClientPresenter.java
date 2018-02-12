@@ -6,17 +6,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.swing.SwingWorker;
-import org.omg.CORBA.PRIVATE_MEMBER;
 import chat.base.ChatCommand;
+import chat.base.ChatUtils;
 import chat.base.CommandName;
-import chat.base.CommandParser;
 import chat.base.WorkerThread;
-import chat.client.swing.ChatClient;
 import chat.server.ChatServer;
 
 /**
@@ -134,11 +129,15 @@ public class ChatClientPresenter implements Presenter {
     // clientThread = new ProcessServerMessages();
     // clientThread.execute();
 
+    messageHandler = new MessageHandler();
+    messageHandler.start();
+    
     // send to server /enter command
-    sendEnterCMD(username, outStream);
+    //sendEnterCMD(username, outStream);
+    ChatUtils.sendCommand(new ChatCommand(CommandName.CMDENTER, username), outStream);
 
 
-    WorkerThread openSessionHandler = new WorkerThread() {
+   /* WorkerThread openSessionHandler = new WorkerThread() {
       public void run() {
 
         String message = "";
@@ -159,12 +158,12 @@ public class ChatClientPresenter implements Presenter {
           if (handleUsrLstCMD(message)) {
             isSessionOpen.set(true);
             break;
-          };
+          } ;
         }
       }
-    };
+    };*/
 
-    openSessionHandler.start();
+    //openSessionHandler.start();
 
     int timeout = 1;
     // wait while chatServer started
@@ -181,14 +180,15 @@ public class ChatClientPresenter implements Presenter {
     if (isSessionOpen.get()) {
 
       // close usrlst open session handler
-      openSessionHandler.stop();
-      
-      getViewSwing().onSessionOpen();
-      
-      messageHandler = new MessageHandler();
-      messageHandler.start();
+      //openSessionHandler.stop();
+      messageHandler.stop();
 
-      
+      getViewSwing().onSessionOpen();
+
+      //messageHandler = new MessageHandler();
+      //messageHandler.start();
+
+
       res = true;
     } else {
       String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
@@ -231,6 +231,16 @@ public class ChatClientPresenter implements Presenter {
             break;
           }
           System.out.println(message);
+          ChatCommand cmd = ChatUtils.parseMessage(message);
+          
+          switch (cmd.getCommand().toString()) {
+            case CommandName:
+              
+              break;
+
+            default:
+              break;
+          }
 
           getViewSwing().showMsgChatPane(message);
         }
@@ -254,27 +264,25 @@ public class ChatClientPresenter implements Presenter {
     boolean res = false;
     message = message.trim();
 
-    ChatCommand cmd = CommandParser.parseMessage(message);
-    
-    if(cmd.getCommand() == CommandName.CMDUSRLST) {
+    ChatCommand cmd = ChatUtils.parseMessage(message);
+
+    if (cmd.getCommand() == CommandName.CMDUSRLST) {
       getViewSwing().clearChatUserList();
       getViewSwing().updateChatUserList(cmd.getPayload().split(" "));
       res = true;
     }
-    
+
     // check if string start from usrlst command with space and at least one char username
-    /*if (message.length() >= CommandParser.CMD_USRLST.length() + 2
-        && message.substring(0, CommandParser.CMD_USRLST.length() + 1)
-            .equalsIgnoreCase(CommandParser.CMD_USRLST + " ")) {
-
-      // get username list
-      message = message.substring(CommandParser.CMD_USRLST.length() + 1, message.length());
-
-      getViewSwing().clearChatUserList();
-      getViewSwing().updateChatUserList(message.split(" "));
-      res = true;
-    }
-*/
+    /*
+     * if (message.length() >= CommandParser.CMD_USRLST.length() + 2 && message.substring(0,
+     * CommandParser.CMD_USRLST.length() + 1) .equalsIgnoreCase(CommandParser.CMD_USRLST + " ")) {
+     * 
+     * // get username list message = message.substring(CommandParser.CMD_USRLST.length() + 1,
+     * message.length());
+     * 
+     * getViewSwing().clearChatUserList(); getViewSwing().updateChatUserList(message.split(" "));
+     * res = true; }
+     */
     return res;
 
   }
@@ -298,10 +306,10 @@ public class ChatClientPresenter implements Presenter {
   }
 
 
-  private void sendEnterCMD(String username, PrintWriter outStream) {
+  /*private void sendEnterCMD(String username, PrintWriter outStream) {
     outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
     // outStream.flush();
-  }
+  }*/
 
 
   /*

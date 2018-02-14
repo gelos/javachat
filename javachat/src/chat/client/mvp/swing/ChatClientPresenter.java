@@ -46,7 +46,8 @@ public class ChatClientPresenter implements Presenter {
   private AtomicBoolean isSessionOpen;
 
   public ChatClientPresenter() {
-    isSessionOpen.set(false);
+
+    isSessionOpen = new AtomicBoolean(false);
   }
 
   @Override
@@ -91,7 +92,6 @@ public class ChatClientPresenter implements Presenter {
    */
   @Override
   public boolean openConnection(String username) {
-    // TODO Auto-generated method stub
 
     isSessionOpen.set(false);
 
@@ -113,92 +113,45 @@ public class ChatClientPresenter implements Presenter {
     } catch (IOException ioe) {
 
       System.out.println(ioe.getMessage());
-      // emptyPanelLabel.setText(MSG_CANT_CON_SRV);
       return res;
 
     }
 
-    // launch new thread with SwingWorker class to safe access swing GUI outside Event Dispatch
-    // Thread
-
-    // getViewSwing().showMsgChatPane("wegfw");
-
-
-    // getViewSwing().showMsgChatPane("wegfw");
-
-    // clientThread = new ProcessServerMessages();
-    // clientThread.execute();
-
+    // start message handler
     messageHandler = new MessageHandler();
     messageHandler.start();
-    
-    // send to server /enter command
-    //sendEnterCMD(username, outStream);
+
+    // send to server enter command
     ChatUtils.sendCommand(new ChatCommand(CommandName.CMDENTER, username), outStream);
-
-
-   /* WorkerThread openSessionHandler = new WorkerThread() {
-      public void run() {
-
-        String message = "";
-
-        // wait for usrlst command with username as a signal of successful session opening
-        while (this.isRuning()) {
-
-          try {
-            message = inStream.readLine();
-          } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-          if (message == null) {
-            break;
-          }
-          System.out.println(message);
-          if (handleUsrLstCMD(message)) {
-            isSessionOpen.set(true);
-            break;
-          } ;
-        }
-      }
-    };*/
-
-    //openSessionHandler.start();
-
+    
     int timeout = 1;
-    // wait while chatServer started
+    // wait for ok enter command from server 
     while (!isSessionOpen.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
       try {
         TimeUnit.SECONDS.sleep(1);
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
       timeout++;
     }
 
-    if (isSessionOpen.get()) {
+    if (isSessionOpen.get()) { // we receive ok enter command
 
-      // close usrlst open session handler
-      //openSessionHandler.stop();
-      messageHandler.stop();
-
+      // do that we must do in View on session open
       getViewSwing().onSessionOpen();
 
-      //messageHandler = new MessageHandler();
-      //messageHandler.start();
-
-
       res = true;
-    } else {
+    
+    } else { 
+      
+      // stop message handler
+      messageHandler.stop();
       String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
           + ". Check server, try again or increase open session timeout.";
       System.out.println(msg);
       getViewSwing().showErrorWindow(msg, "Open session timeout.");
       getViewSwing().onSessionClose();
     }
-
-    // System.out.println(getViewSwing().getEnterTextField() + " openConnection");
 
     return res;
 
@@ -232,29 +185,35 @@ public class ChatClientPresenter implements Presenter {
           }
           System.out.println(message);
           ChatCommand cmd = ChatUtils.parseMessage(message);
-          
-          switch (cmd.getCommand().toString()) {
-            case CommandName:
-              
+
+          switch (cmd.getCommand()) {
+            case CMDOK:
+              if (cmd.getPayload().equals(CommandName.CMDENTER.toString())) {
+                isSessionOpen.set(true);
+              }
+              break;
+
+            case CMDUSRLST:
+              updateUserList();
+              break;
+            case CMDEXIT:
+              // TODO change it
+
+              break;
+            case CMDPRVMSG:
+            case CMDMSG:
+              getViewSwing().showMsgChatPane(cmd.getPayload());
               break;
 
             default:
-              break;
+              cmd = new ChatCommand(CommandName.CMDERR, "Unknow command " + message);
           }
 
-          getViewSwing().showMsgChatPane(message);
         }
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
       }
     }
-
-  }
-
-
-
-  private void processMsg(String message) {
-
 
   }
 
@@ -306,10 +265,11 @@ public class ChatClientPresenter implements Presenter {
   }
 
 
-  /*private void sendEnterCMD(String username, PrintWriter outStream) {
-    outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
-    // outStream.flush();
-  }*/
+  /*
+   * private void sendEnterCMD(String username, PrintWriter outStream) {
+   * outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
+   * // outStream.flush(); }
+   */
 
 
   /*

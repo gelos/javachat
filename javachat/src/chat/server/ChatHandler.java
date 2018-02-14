@@ -3,17 +3,18 @@
  */
 package chat.server;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import chat.base.ChatCommand;
 import chat.base.ChatUser;
 import chat.base.ChatUtils;
 import chat.base.CommandName;
-import chat.base.CommandParser;
 import chat.base.WorkerThread;
 
 // TODO: Auto-generated Javadoc
@@ -80,13 +81,13 @@ public class ChatHandler extends WorkerThread {
       pw = new PrintWriter(s.getOutputStream(), true);
 
       // check for enter command and read username
-      temp = checkForEnterCmd(br);     
+      temp = checkForEnterCmd(br);
 
       // if username not empty
       if (!temp.isEmpty()) {
 
         System.out.println("user: " + temp);
-        
+
         // create new user
         chatUser = new ChatUser(temp);
 
@@ -94,10 +95,17 @@ public class ChatHandler extends WorkerThread {
         // TODO use serialization
         // https://stackoverflow.com/questions/26245306/send-objects-and-objects-arrays-through-socket
 
+        // Send OK Enter command
+
+        ChatUtils.sendCommand(new ChatCommand(CommandName.CMDOK, CommandName.CMDENTER.toString()),
+            pw);
+
         // Send to all users usrlst command
         for (ChatHandler ch : handlers) {
-          //ch.pw.println(CommandName.CMDUSRLST.toString() + CommandName.CMDDLM.toString() + getUserNamesInString());
-          ChatUtils.sendCommand(new ChatCommand(CommandName.CMDUSRLST, getUserNamesInString()), ch.pw);
+          // ch.pw.println(CommandName.CMDUSRLST.toString() + CommandName.CMDDLM.toString() +
+          // getUserNamesInString());
+          ChatUtils.sendCommand(new ChatCommand(CommandName.CMDUSRLST, getUserNamesInString()),
+              ch.pw);
         }
 
         temp = "";
@@ -107,10 +115,11 @@ public class ChatHandler extends WorkerThread {
 
           // Write pre-read string to all clients output using handler storage
           for (ChatHandler ch : handlers) {
-            
-            String currentTime  = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " +  temp);
-            
+
+            String currentTime =
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " + temp);
+
           }
 
           // Write string to server console
@@ -133,11 +142,11 @@ public class ChatHandler extends WorkerThread {
 
       // dispose User object
       chatUser = null;
-      
+
       closeInputStream();
       closeOutputStream();
       closeSocket();
-      
+
       // Remove this handler from handlers storage
       handlers.remove(this);
     }
@@ -158,16 +167,16 @@ public class ChatHandler extends WorkerThread {
     }
     return res;
   }
-  
+
   private void closeOutputStream() {
     if (pw != null) {
       pw.close();
       pw = null;
     }
   }
-  
+
   private boolean closeSocket() {
-    boolean res = true;   
+    boolean res = true;
     if (s != null) {
       try {
         s.close();
@@ -180,9 +189,10 @@ public class ChatHandler extends WorkerThread {
     }
     return res;
   }
-  
+
   /**
-   * Return the all chat user names in one string. Used in {@link CommandParser#CMD_USRLST usrlst} command.
+   * Return the all chat user names in one string. Used in {@link CommandParser#CMD_USRLST usrlst}
+   * command.
    *
    * @return the string of user name
    */
@@ -195,8 +205,8 @@ public class ChatHandler extends WorkerThread {
   }
 
   /**
-   * Read first string from chat client input stream and match it with {@link CommandParser#CMD_ENTER enter}
-   * command.
+   * Read first string from chat client input stream and match it with
+   * {@link CommandParser#CMD_ENTER enter} command.
    *
    * @param br the BufferedReader of input chat client stream
    * @return the user name or empty string if an error occurred
@@ -210,32 +220,20 @@ public class ChatHandler extends WorkerThread {
 
         // read first line
         temp = br.readLine();
-        //System.out.println(temp);
-        //System.out.println(temp.substring(0, CMD_ENTER.length()));
-        //System.out.println(temp.substring(0, CMD_ENTER.length()).length());
-     //}
 
-      if (temp != null) {
+        if (temp != null) {
 
-        // trim spaces
-        temp = temp.trim();
+          // trim spaces
+          temp = temp.trim();
 
-        // check if string start from enter command with space and at least one char username
-        ChatCommand cmd = ChatUtils.parseMessage(temp);
-        if (cmd.getCommand() == CommandName.CMDENTER) {
-          res = cmd.getPayload();
-          break;
+          // check if string start from enter command with space and at least one char username
+          ChatCommand cmd = ChatUtils.parseMessage(temp);
+
+          if (cmd.getCommand() == CommandName.CMDENTER) {
+            res = cmd.getPayload();
+            break;
+          }
         }
-        
-        /*if (temp.length() >= CommandParser.CMD_ENTER.length() + 2
-            && temp.substring(0, CommandParser.CMD_ENTER.length()+1).equalsIgnoreCase(CommandParser.CMD_ENTER + " ")) {
-
-          // return username
-          res = temp.substring(CommandParser.CMD_ENTER.length() + 1, temp.length());
-          //System.out.println("break");
-          break;
-        }
-*/      }
       }
     } catch (IOException e) {
       // TODO Auto-generated catch block

@@ -1,8 +1,5 @@
 package chat.base;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
-
 public class ChatCommand {
 
   private CommandName command;
@@ -27,6 +24,11 @@ public class ChatCommand {
     int result = 1;
     result = prime * result + ((command == null) ? 0 : command.hashCode());
     return result;
+  }
+
+  @Override
+  public String toString() {
+    return "ChatCommand [command=" + command + ", payload=" + payload + "]";
   }
 
   @Override

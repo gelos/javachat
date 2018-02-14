@@ -69,7 +69,7 @@ class ChatClientTest {
     chatClientPresenter.setView(chatClientView);
     
     new Expectations(ChatClientSwingView.class) {{
-      //chatClientView.getPresenter(); result = chatClientPresenter;
+      chatClientView.getPresenter(); result = chatClientPresenter;
       //chatClientView.getEnterTextField(); result = "this is test";
       chatClientView.showMsgChatPane(anyString); result = null;
     }};  
@@ -84,7 +84,7 @@ class ChatClientTest {
     chatClientPresenter.openConnection("oleg");
     
     try {
-      TimeUnit.SECONDS.sleep(3);
+      TimeUnit.SECONDS.sleep(5);
     } catch (InterruptedException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

@@ -1,14 +1,9 @@
 package chat.client.swing;
 
-import java.awt.EventQueue;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import javax.swing.JSplitPane;
 import java.awt.CardLayout;
 import java.awt.Dimension;
-import javax.swing.JList;
-import javax.swing.JTextField;
+import java.awt.EventQueue;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
@@ -18,14 +13,18 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingWorker;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import chat.base.CommandName;
-import chat.base.CommandParser;
 import chat.server.ChatServer;
-import javax.swing.JLabel;
 
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/

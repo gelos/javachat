@@ -81,7 +81,7 @@ public class ChatHandler extends WorkerThread {
       pw = new PrintWriter(s.getOutputStream(), true);
 
       // check for enter command and read username
-      temp = checkForEnterCmd(br);
+      temp = waitForEnterCmd(br);
 
       // if username not empty
       if (!temp.isEmpty()) {
@@ -113,12 +113,30 @@ public class ChatHandler extends WorkerThread {
         // Read all strings from current client socket input
         while ((temp = br.readLine()) != null && isRuning()) {
 
-          // Write pre-read string to all clients output using handler storage
-          for (ChatHandler ch : handlers) {
+          ChatCommand cmd = ChatUtils.parseMessage(temp);
 
-            String currentTime =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " + temp);
+          switch (cmd.getCommand()) {
+
+            case CMDEXIT:
+              // TODO change it
+
+              break;
+            case CMDPRVMSG:
+            case CMDMSG:
+              // Write pre-read string to all clients output using handler storage
+              for (ChatHandler ch : handlers) {
+
+                String currentTime =
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                String payload = currentTime + " " + chatUser.getUsername() + ": " + cmd.getPayload();
+                //ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " + cmd.getPayload());
+                ChatUtils.sendCommand(new ChatCommand(cmd.getCommand(), payload), ch.pw);
+
+              }
+
+              break;
+            default:
+              break;
 
           }
 
@@ -211,7 +229,7 @@ public class ChatHandler extends WorkerThread {
    * @param br the BufferedReader of input chat client stream
    * @return the user name or empty string if an error occurred
    */
-  private String checkForEnterCmd(BufferedReader br) {
+  private String waitForEnterCmd(BufferedReader br) {
 
     String res = "";
     try {

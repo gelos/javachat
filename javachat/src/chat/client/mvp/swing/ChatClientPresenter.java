@@ -50,40 +50,6 @@ public class ChatClientPresenter implements Presenter {
     isSessionOpen = new AtomicBoolean(false);
   }
 
-  @Override
-  public void sendChatMsg() {
-    // TODO Auto-generated method stub
-
-    String message = getViewSwing().getEnterTextField();
-    getViewSwing().clearEnterTextField();
-
-    if (serverSocket != null && serverSocket.isConnected()) {
-
-      // send message to chat
-      outStream.println(message);
-
-      // enterTextField.setText("");
-
-    } else { // start new connection
-
-      // get user name
-      String username = message;
-      if (!username.equals("")) {
-
-        if (openConnection(username)) {
-
-          getViewSwing().showMsgChatPane(username);
-        } else {
-          getViewSwing().showMsgChatPane(MSG_CANT_CON_SRV);
-        }
-      } else {
-        getViewSwing().showMsgChatPane(MSG_EMPTY_USRENAME);
-        getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
-      }
-    }
-  }
-
-
   /**
    * Connect to chat server. Open socket, prepare input/output streams, create new thread to data
    * transfer.
@@ -123,9 +89,9 @@ public class ChatClientPresenter implements Presenter {
 
     // send to server enter command
     ChatUtils.sendCommand(new ChatCommand(CommandName.CMDENTER, username), outStream);
-    
+
     int timeout = 1;
-    // wait for ok enter command from server 
+    // wait for ok enter command from server
     while (!isSessionOpen.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
       try {
         TimeUnit.SECONDS.sleep(1);
@@ -141,9 +107,9 @@ public class ChatClientPresenter implements Presenter {
       getViewSwing().onSessionOpen();
 
       res = true;
-    
-    } else { 
-      
+
+    } else {
+
       // stop message handler
       messageHandler.stop();
       String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
@@ -158,15 +124,41 @@ public class ChatClientPresenter implements Presenter {
   }
 
 
-  /**
-   * Print greeting message to enter field.
-   */
   @Override
-  public void showGreetingMsg() {
-    getViewSwing().clearChatPane();
-    getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
+  public void closeConnection() {
+
+    // stop message handler thread
+    if ((messageHandler != null) && (messageHandler.isRuning())) {
+      messageHandler.stop();
+    }
+
+    // try to close serversocket
+
+    if (serverSocket != null && serverSocket.isConnected()) {
+
+      // send to server exit command
+      ChatUtils.sendCommand(new ChatCommand(CommandName.CMDEXIT, ""), outStream);
+
+      try {
+        serverSocket.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
   }
 
+  @Override
+  public void sendMsg(String message) {
+    ChatUtils.sendCommand(new ChatCommand(CommandName.CMDMSG, message), outStream);
+  }
+
+  @Override
+  public void sendPrvMsg(String message, String userList) {
+    ChatUtils.sendCommand(
+        new ChatCommand(CommandName.CMDPRVMSG, message + CommandName.CMDDLM + userList), outStream);
+
+  }
 
   class MessageHandler extends WorkerThread {
 
@@ -194,14 +186,18 @@ public class ChatClientPresenter implements Presenter {
               break;
 
             case CMDUSRLST:
-              updateUserList();
+              // Update userList
+              getViewSwing().clearChatUserList();
+              getViewSwing().updateChatUserList(cmd.getPayload().split(" "));;
               break;
+
             case CMDEXIT:
               // TODO change it
 
               break;
             case CMDPRVMSG:
             case CMDMSG:
+              System.out.println("ChatClientPresenter.MessageHandler.run()");
               getViewSwing().showMsgChatPane(cmd.getPayload());
               break;
 
@@ -217,33 +213,13 @@ public class ChatClientPresenter implements Presenter {
 
   }
 
-  // TODO complete that
-  private boolean handleUsrLstCMD(String message) {
-
-    boolean res = false;
-    message = message.trim();
-
-    ChatCommand cmd = ChatUtils.parseMessage(message);
-
-    if (cmd.getCommand() == CommandName.CMDUSRLST) {
-      getViewSwing().clearChatUserList();
-      getViewSwing().updateChatUserList(cmd.getPayload().split(" "));
-      res = true;
-    }
-
-    // check if string start from usrlst command with space and at least one char username
-    /*
-     * if (message.length() >= CommandParser.CMD_USRLST.length() + 2 && message.substring(0,
-     * CommandParser.CMD_USRLST.length() + 1) .equalsIgnoreCase(CommandParser.CMD_USRLST + " ")) {
-     * 
-     * // get username list message = message.substring(CommandParser.CMD_USRLST.length() + 1,
-     * message.length());
-     * 
-     * getViewSwing().clearChatUserList(); getViewSwing().updateChatUserList(message.split(" "));
-     * res = true; }
-     */
-    return res;
-
+  /**
+   * Print greeting message to enter field.
+   */
+  @Override
+  public void showGreetingMsg() {
+    getViewSwing().clearChatPane();
+    getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
   }
 
   public void stop() {
@@ -251,63 +227,13 @@ public class ChatClientPresenter implements Presenter {
     System.out.println("Closing client...");
 
     System.out.println("Send exit command");
-    sendExitCMD(outStream);
+    ChatUtils.sendCommand(new ChatCommand(CommandName.CMDEXIT, ""), outStream);;
 
     System.out.println("Stopping message handler thread, closing ServerSocket");
     closeConnection();
 
     System.out.println("Client stopped.");
   }
-
-  private void sendExitCMD(PrintWriter outStream) {
-    // TODO Auto-generated method stub
-    outStream.println(CommandName.CMDEXIT.toString());
-  }
-
-
-  /*
-   * private void sendEnterCMD(String username, PrintWriter outStream) {
-   * outStream.println(CommandName.CMDENTER.toString() + CommandName.CMDDLM.toString() + username);
-   * // outStream.flush(); }
-   */
-
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see chat.client.mvp.swing.Presenter#updateUserList()
-   */
-  @Override
-  public void updateUserList() {
-    // TODO Auto-generated method stub
-
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see chat.client.mvp.swing.Presenter#sendPrvMsg()
-   */
-  @Override
-  public void sendPrvMsg() {
-    // TODO Auto-generated method stub
-
-  }
-
-
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see chat.client.mvp.swing.Presenter#printMsg()
-   */
-  @Override
-  public void printMsg() {
-    // TODO Auto-generated method stub
-
-  }
-
-
 
   @Override
   public void setView(ChatClientSwingView view) {
@@ -323,25 +249,5 @@ public class ChatClientPresenter implements Presenter {
     }
   }
 
-
-  @Override
-  public void closeConnection() {
-
-    // stop message handler thread
-    if ((messageHandler != null) && (messageHandler.isRuning())) {
-      messageHandler.stop();
-    }
-
-    // try to close serversocket
-
-    if (serverSocket != null && serverSocket.isConnected()) {
-      try {
-        serverSocket.close();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
-  }
 
 }

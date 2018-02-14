@@ -1,19 +1,17 @@
 package chat.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import java.time.Duration;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.client.mvp.swing.ChatClientPresenter;
 import chat.client.mvp.swing.ChatClientSwingView;
-import chat.client.mvp.swing.Presenter;
-import chat.client.mvp.swing.ViewSwing;
-import chat.client.swing.ChatClient;
 import chat.server.ChatServer;
-import mockit.*;
+import mockit.Capturing;
+import mockit.Expectations;
 
 class ChatClientTest {
 
@@ -56,8 +54,17 @@ class ChatClientTest {
   @Test
   //void startStopClientTest(final @Tested ChatClientPresenter chatClientPresenter, @Capturing ChatClientSwingView chatClientView) {  
   //void startStopClientTest(@Capturing ChatClientSwingView chatClientView) {
-  void startStopClientTest(@Capturing ChatClientSwingView chatClientView) {
-  //void startStopClientTest() {
+  void startStopClientTest(@Capturing ChatClientSwingView chatClientView) throws Throwable {
+  //void startStopClientTest() {   
+    
+    // set exception handler to throw other thread exceptions in current thread
+    final AtomicReference<Throwable> exception = new AtomicReference<>();
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+      @Override
+      public void uncaughtException(final Thread t, final Throwable e) {
+        exception.compareAndSet(null, e);
+      }
+    });    
     
     final ChatClientPresenter chatClientPresenter = new ChatClientPresenter();
     
@@ -69,9 +76,12 @@ class ChatClientTest {
     chatClientPresenter.setView(chatClientView);
     
     new Expectations(ChatClientSwingView.class) {{
-      chatClientView.getPresenter(); result = chatClientPresenter;
+      //chatClientView.getPresenter(); result = chatClientPresenter;
       //chatClientView.getEnterTextField(); result = "this is test";
-      chatClientView.showMsgChatPane(anyString); result = null;
+      chatClientView.showMsgChatPane(anyString); //result = null; 
+      chatClientView.clearChatUserList(); result = null;
+      chatClientView.updateChatUserList((String[])any); result = null;
+      chatClientView.onSessionOpen();
     }};  
     
     chatClientPresenter.setView(chatClientView);
@@ -90,12 +100,21 @@ class ChatClientTest {
       e.printStackTrace();
     }
     
+    chatClientPresenter.sendMsg("hello");
+    
     //assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
     //(chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
     
     System.out.println("connection oppened");
     //chatClientPresenter.sendChatMsg();
     
+    try {
+      TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+        
     chatClientPresenter.stop();
     
     try {
@@ -105,10 +124,16 @@ class ChatClientTest {
       e.printStackTrace();
     }
     
-    new Verifications() {{
+    // if we get other thread exception throw it in current thread
+    if (exception.get() != null) {
+      throw exception.get();
+    }
+
+    
+    /*new Verifications() {{
       chatClientView.showMsgChatPane(anyString); times =1;
     }};
-    
+*/    
     //chatClientPresenter = null;
   }
 

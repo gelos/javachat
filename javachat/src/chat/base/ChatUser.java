@@ -2,7 +2,7 @@ package chat.base;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class ChatUser.
+ * The Class Chat User. 
  */
 public class ChatUser {
 

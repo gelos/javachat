@@ -10,7 +10,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.server.ChatServer;

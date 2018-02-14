@@ -10,7 +10,7 @@ public final class ChatUtils {
   /**
    * Send command.
    *
-   * @param cmd the chat command
+   * @param cmd the Chat Command
    * @param outStream the stream to send command
    */
   public static void sendCommand(ChatCommand cmd, PrintWriter outStream) {
@@ -19,16 +19,17 @@ public final class ChatUtils {
   }
 
   /**
-   * Parses the message. If can't parse message return ERR chat command.
+   * Parse the message. If can't parse message return ERR Chat Command with original message in
+   * payload.
    *
-   * @param message the message string
-   * @return the chat command
+   * @param message the String message to parse
+   * @return the Chat Command
    */
   public static ChatCommand parseMessage(String message) {
 
     CommandName command = CommandName.CMDERR;
     String cmdString = "";
-    String payload = "";
+    String payload = message;
 
     // split string with CMDDLM on command and payload
     String[] str = message.split(CommandName.CMDDLM.toString(), 2);

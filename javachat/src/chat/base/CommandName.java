@@ -13,37 +13,37 @@ public enum CommandName {
   CMDDLM(" "),
 
   /** The command to close chat session. Initiated by client or server. */
-  CMDEXIT("exit"),
+  CMDEXIT("/exit"),
 
   /** The command to start chat session. Initiated by client, processed by server. */
-  CMDENTER("enter"),
+  CMDENTER("/enter"),
 
   /**
    * The command to update user list on client View, payload is a string of the user names with
    * space character delimiter. Initiated by server, processed by client.
    */
-  CMDUSRLST("usrlst"),
+  CMDUSRLST("/usrlst"),
 
   /** The command to send private chat messages. Initiated by client, processed by server. */
-  CMDPRVMSG("prvmsg"),
+  CMDPRVMSG("/prvmsg"),
 
   /** The command to send chat messages. Initiated by client, processed by server. */
-  CMDMSG("msg"),
+  CMDMSG("/msg"),
 
   /**
    * The error command, using if something going wrong. Example client or server receive unknown
    * command. Initiated by client or server.
    */
-  CMDERR("err"),
+  CMDERR("/err"),
 
   /** The command to display help for supported commands. Initiated by client or server. */
-  CMDHLP("help"),
+  CMDHLP("/help"),
 
   /**
    * The command to approve client chat session establishing. Initiated by server, processed by
    * client.
    */
-  CMDOK("ok");
+  CMDOK("/ok");
 
   /** The command name. */
   private String commandName;

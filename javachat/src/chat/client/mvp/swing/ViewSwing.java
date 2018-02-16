@@ -23,8 +23,10 @@ public interface ViewSwing {
   void updateChatUserList(String[] usrList);
   void clearChatUserList();
   
+  void onConnectionOpening(String title);
+  void onSessionClosing(String title);
   
-  void onSessionOpen();
-  void onSessionClose();
+  void onConnectionOpened(String title);
+  void onConnectionClosed(String title); 
   
 }

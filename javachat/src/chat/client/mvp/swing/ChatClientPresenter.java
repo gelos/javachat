@@ -43,11 +43,12 @@ public class ChatClientPresenter implements Presenter {
   /** The in stream. */
   private BufferedReader inStream = null;
 
-  private AtomicBoolean isSessionOpen;
+  private AtomicBoolean isConnectionOpen;
+
+  private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
 
   public ChatClientPresenter() {
-
-    isSessionOpen = new AtomicBoolean(false);
+    isConnectionOpen = new AtomicBoolean(false);
   }
 
   /**
@@ -59,7 +60,11 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public boolean openConnection(String username) {
 
-    isSessionOpen.set(false);
+    //getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
+    
+    //System.out.println("ChatClientPresenter.openConnection("+ username + ")");
+    
+    isConnectionOpen.set(false);
 
     boolean res = false;
     try {
@@ -92,7 +97,7 @@ public class ChatClientPresenter implements Presenter {
 
     int timeout = 1;
     // wait for ok enter command from server
-    while (!isSessionOpen.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
+    while (!isConnectionOpen.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
       try {
         TimeUnit.SECONDS.sleep(1);
       } catch (InterruptedException e) {
@@ -101,10 +106,10 @@ public class ChatClientPresenter implements Presenter {
       timeout++;
     }
 
-    if (isSessionOpen.get()) { // we receive ok enter command
+    if (isConnectionOpen.get()) { // we receive ok enter command
 
       // do that we must do in View on session open
-      getViewSwing().onSessionOpen();
+      getViewSwing().onConnectionOpened(username);
 
       res = true;
 
@@ -116,7 +121,7 @@ public class ChatClientPresenter implements Presenter {
           + ". Check server, try again or increase open session timeout.";
       System.out.println(msg);
       getViewSwing().showErrorWindow(msg, "Open session timeout.");
-      getViewSwing().onSessionClose();
+      getViewSwing().onConnectionClosed(DEFAULT_WINDOW_NAME);
     }
 
     return res;
@@ -151,6 +156,7 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public void sendMsg(String message) {
     ChatUtils.sendCommand(new ChatCommand(CommandName.CMDMSG, message), outStream);
+    getViewSwing().clearEnterTextField();
   }
 
   @Override
@@ -166,22 +172,18 @@ public class ChatClientPresenter implements Presenter {
     public void run() {
 
       // TODO Auto-generated method stub
-      String message = "";
+      String inputString;
       // getViewSwing().showMsgChatPane(message);
       try {
-        while (this.isRuning()) {
+        while ((inputString = inStream.readLine()) != null && isRuning()) {
 
-          message = inStream.readLine();
-          if (message == null) {
-            break;
-          }
-          System.out.println(message);
-          ChatCommand cmd = ChatUtils.parseMessage(message);
+          System.out.println(inputString);
+          ChatCommand cmd = ChatUtils.parseMessage(inputString);
 
           switch (cmd.getCommand()) {
             case CMDOK:
               if (cmd.getPayload().equals(CommandName.CMDENTER.toString())) {
-                isSessionOpen.set(true);
+                isConnectionOpen.set(true);
               }
               break;
 
@@ -202,7 +204,7 @@ public class ChatClientPresenter implements Presenter {
               break;
 
             default:
-              cmd = new ChatCommand(CommandName.CMDERR, "Unknow command " + message);
+              cmd = new ChatCommand(CommandName.CMDERR, "Unknow command " + inputString);
           }
 
         }
@@ -216,9 +218,8 @@ public class ChatClientPresenter implements Presenter {
   /**
    * Print greeting message to enter field.
    */
-  @Override
-  public void showGreetingMsg() {
-    getViewSwing().clearChatPane();
+  public void onClientStart() {
+    getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
     getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
   }
 

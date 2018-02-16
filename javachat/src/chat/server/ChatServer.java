@@ -36,7 +36,7 @@ public class ChatServer {
   private ServerSocket serverSocket;
 
   /** The client connection socket. */
-  private Socket clientConnection;
+  private Socket clientSocket;
 
   /** The client session handlers thread-safe storage. */
   private CopyOnWriteArrayList<ChatHandler> chatHandlers;
@@ -90,7 +90,7 @@ public class ChatServer {
     try {
 
       serverSocket = new ServerSocket(port);
-    
+
     } catch (BindException e) {
 
       System.err.println("Port " + port + " already in use.");
@@ -98,8 +98,8 @@ public class ChatServer {
 
       // try to stop server
       this.stop();
-      return;    
-      
+      return;
+
     } catch (IOException e) {
 
       System.err.println("Failed to create server socket on port " + port);
@@ -181,9 +181,6 @@ public class ChatServer {
         // Close all ChatHadnlers
         for (ChatHandler ch : chatHandlers) {
           ch.stop();
-          /*if (!ch.stop()) {
-            System.out.println("Client handlers closing error.");
-          } */
         }
       }
 
@@ -221,12 +218,12 @@ public class ChatServer {
         try {
 
           // Accept client connection and return new client socket
-          clientConnection = serverSocket.accept();
+          clientSocket = serverSocket.accept();
 
           // Create new ChatHandler with existing client handlers and new client socket as thread
-          new ChatHandler(clientConnection, chatHandlers).start();
+          new ChatHandler(clientSocket, chatHandlers).start();
 
-          String ip = (((InetSocketAddress) clientConnection.getRemoteSocketAddress()).getAddress())
+          String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
               .toString().replace("/", "");
           System.out.println("Accepted client connection from " + ip);
 

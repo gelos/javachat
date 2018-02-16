@@ -26,8 +26,6 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   private static final long serialVersionUID = -2989309737312155966L;
 
-  private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
-
   // Class variables
 
   private Presenter presenter;
@@ -70,10 +68,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        System.out.println(chatTextField.getText());
-        showMsgChatPane(chatTextField.getText());
         getPresenter().sendMsg(chatTextField.getText());
-        System.out.println("enterKeyListenerAction");
       }
     };
 
@@ -86,59 +81,53 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        showMsgChatPane(chatTextField.getText());
         getPresenter().openConnection(chatTextField.getText());
-        //chatTextField.setText("");
-        
-        chatTextField.setEditable(false);
-        System.out.println("openConnectionListenerAction");
-
       }
     };
 
   }
 
   private void initComponents() {
-    // TODO Auto-generated method stub
 
-    // frame = new JFrame();
     setBounds(100, 100, 500, 400);
-    setTitle(DEFAULT_WINDOW_NAME);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     getContentPane().setLayout(new BorderLayout(0, 0));
 
     JSplitPane splitPane = new JSplitPane();
     getContentPane().add(splitPane);
 
-    chatUserList = new JList();
-    chatUserList.setFocusable(false);
-    splitPane.setLeftComponent(chatUserList);
-    splitPane.getLeftComponent().setMinimumSize(new Dimension(125, 0));
+    JPanel panel_left = new JPanel();
+    splitPane.setLeftComponent(panel_left);
+    panel_left.setLayout(new BorderLayout(0, 0));
 
-    JPanel panel = new JPanel();
-    splitPane.setRightComponent(panel);
-    panel.setLayout(new BorderLayout(0, 0));
+    chatUserList = new JList<String>();
+    chatUserList.setFocusable(false);
+
+    JScrollPane scrollChatUserList = new JScrollPane(chatUserList);
+    panel_left.add(scrollChatUserList);
+    splitPane.getLeftComponent().setPreferredSize(new Dimension(100, 0));
+    splitPane.getLeftComponent().setMinimumSize(new Dimension(50, 0));
+
+    JPanel panel_right = new JPanel();
+    splitPane.setRightComponent(panel_right);
+    panel_right.setLayout(new BorderLayout(0, 0));
 
     chatTextField = new JTextField();
-    chatTextField.addActionListener(openConnectionListenerAction);
     chatTextField.setToolTipText("Type text and press Enter button");
-    panel.add(chatTextField, BorderLayout.SOUTH);
+    panel_right.add(chatTextField, BorderLayout.SOUTH);
     chatTextField.setColumns(10);
 
     JPanel chatPanel = new JPanel();
     JScrollPane scrollChatPane = new JScrollPane(chatPanel);
-    panel.add(scrollChatPane, BorderLayout.CENTER);
+    panel_right.add(scrollChatPane, BorderLayout.CENTER);
     chatPanel.setLayout(new BorderLayout(0, 0));
 
     chatTextPane = new JTextPane();
     chatTextPane.setFocusable(false);
     chatTextPane.setEditable(false);
-    // JScrollPane jsp = new JScrollPane(chatPanelChat);
     chatPanel.add(chatTextPane, BorderLayout.SOUTH);
-    // panel_1.add(jsp, BorderLayout.SOUTH);
 
     chatTextField.requestFocusInWindow();
-
   }
 
   public Presenter getPresenter() {
@@ -149,16 +138,16 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
     }
   }
 
-
   @Override
   public void setPresenter(Presenter presenter) {
     this.presenter = presenter;
-
   }
 
   // TODO where we must catch exceptions, in view or in presenter?
   @Override
   public void showMsgChatPane(String message) {
+
+    // System.out.println("ChatClientSwingView.showMsgChatPane(" + message + ")");
 
     StyledDocument doc = chatTextPane.getStyledDocument();
     try {
@@ -235,21 +224,42 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
   }
 
   @Override
-  public void onSessionOpen() {
-    chatTextField.removeActionListener(openConnectionListenerAction);
-    chatTextField.addActionListener(enterKeyListenerAction);
-    chatTextField.setEditable(true);
+  public void onConnectionOpened(String title) {
     chatTextPane.setText("");
-    System.out.println("ChatClientSwingView.onSessionOpen()");
+    chatTextField.setText("");
+    chatTextField.removeActionListener(openConnectionListenerAction);
+    chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.addActionListener(enterKeyListenerAction);
+    setTitle(title);
   }
 
   @Override
-  public void onSessionClose() {
+  public void onConnectionClosed(String title) {
     // TODO Auto-generated method stub
     chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.removeActionListener(openConnectionListenerAction);
     chatTextField.addActionListener(openConnectionListenerAction);
-    chatTextField.setEditable(true);
-    System.out.println("ChatClientSwingView.onSessionClose()");
+    // chatTextField.setEditable(true);
+    setTitle(title);
+  }
+
+  @Override
+  public void onConnectionOpening(String title) {
+    chatTextPane.setText("");
+    chatTextField.setText("");
+    // chatTextField.setEditable(true);
+
+    chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.removeActionListener(openConnectionListenerAction);
+    chatTextField.addActionListener(openConnectionListenerAction);
+
+    setTitle(title);
+
+  }
+
+  @Override
+  public void onSessionClosing(String title) {
+    // TODO Auto-generated method stub
   }
 
 

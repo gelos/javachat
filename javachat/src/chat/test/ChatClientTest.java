@@ -81,7 +81,7 @@ class ChatClientTest {
       chatClientView.showMsgChatPane(anyString); //result = null; 
       chatClientView.clearChatUserList(); result = null;
       chatClientView.updateChatUserList((String[])any); result = null;
-      chatClientView.onSessionOpen();
+      chatClientView.onConnectionOpened(anyString);
     }};  
     
     chatClientPresenter.setView(chatClientView);

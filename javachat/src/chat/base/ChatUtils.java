@@ -28,9 +28,13 @@ public final class ChatUtils {
   public static ChatCommand parseMessage(String message) {
 
     CommandName command = CommandName.CMDERR;
+    
+    //trim spaces
+    message = message.trim();
+    
     String cmdString = "";
-    String payload = message;
-
+    String payload = message;    
+    
     // split string with CMDDLM on command and payload
     String[] str = message.split(CommandName.CMDDLM.toString(), 2);
 

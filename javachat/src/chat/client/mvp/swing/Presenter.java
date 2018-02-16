@@ -6,12 +6,6 @@ public interface Presenter {
 
   void stop();
 
-
-  //void updateUserList();
-
-  void showGreetingMsg();
-
-
   boolean openConnection(String username);
 
   void closeConnection();

@@ -30,7 +30,7 @@ public class ChatClientSwing {
           
           // Show main window
           mainWindow.setVisible(true);
-          presenter.showGreetingMsg();
+          presenter.onClientStart();
 
         } catch (Exception e) {
           e.printStackTrace();

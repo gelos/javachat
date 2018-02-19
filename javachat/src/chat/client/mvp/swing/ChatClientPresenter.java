@@ -162,10 +162,10 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public void sendPrvMsg(String message, String userList) {
     ChatUtils.sendCommand(
-        new ChatCommand(CommandName.CMDPRVMSG, message + CommandName.CMDDLM + userList), outStream);
-
+        new ChatCommand(CommandName.CMDPRVMSG, message, userList), outStream);
   }
 
+  
   class MessageHandler extends WorkerThread {
 
     @Override
@@ -182,7 +182,7 @@ public class ChatClientPresenter implements Presenter {
 
           switch (cmd.getCommand()) {
             case CMDOK:
-              if (cmd.getPayload().equals(CommandName.CMDENTER.toString())) {
+              if (cmd.getMessage().equals(CommandName.CMDENTER.toString())) {
                 isConnectionOpen.set(true);
               }
               break;
@@ -190,7 +190,7 @@ public class ChatClientPresenter implements Presenter {
             case CMDUSRLST:
               // Update userList
               getViewSwing().clearChatUserList();
-              getViewSwing().updateChatUserList(cmd.getPayload().split(" "));;
+              getViewSwing().updateChatUserList(cmd.getMessage().split(" "));;
               break;
 
             case CMDEXIT:
@@ -200,7 +200,7 @@ public class ChatClientPresenter implements Presenter {
             case CMDPRVMSG:
             case CMDMSG:
               System.out.println("ChatClientPresenter.MessageHandler.run()");
-              getViewSwing().showMsgChatPane(cmd.getPayload());
+              getViewSwing().showMsgChatPane(cmd.getMessage());
               break;
 
             default:
@@ -249,6 +249,5 @@ public class ChatClientPresenter implements Presenter {
       return this.viewSwing;
     }
   }
-
 
 }

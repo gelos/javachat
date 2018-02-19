@@ -15,7 +15,7 @@ public final class ChatUtils {
    */
   public static void sendCommand(ChatCommand cmd, PrintWriter outStream) {
     outStream
-        .println(cmd.getCommand().toString() + CommandName.CMDDLM.toString() + cmd.getPayload());
+        .println(cmd.getCommand().toString() + CommandName.CMDDLM.toString() + cmd.getMessage());
   }
 
   /**

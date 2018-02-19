@@ -10,6 +10,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import chat.base.ChatCommand;
 import chat.base.ChatUser;
@@ -124,17 +127,23 @@ public class ChatHandler extends WorkerThread {
               break;
             case CMDPRVMSG:
             case CMDMSG:
+
+              String[] usrList = cmd.getPayload().split(" ");
+              Set<String> set = new HashSet<String>(Arrays.asList(usrList));
+
               // Write pre-read string to all clients output using handler storage
               for (ChatHandler ch : handlers) {
+                if ((set.size() == 0) // send message to all user or only to users in private
+                                      // message user list
+                    || (set.size() > 0 && set.contains(ch.chatUser.getUsername()))) {
 
-                currentTime =
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                String payload =
-                    currentTime + " " + chatUser.getUsername() + ": " + cmd.getPayload();
-                // ch.pw.println(currentTime + " " + chatUser.getUsername() + ": " +
-                // cmd.getPayload());
-                ChatUtils.sendCommand(new ChatCommand(cmd.getCommand(), payload), ch.outputStream);
-
+                  currentTime = LocalDateTime.now()
+                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                  String payload =
+                      currentTime + " " + chatUser.getUsername() + ": " + cmd.getMessage();
+                  ChatUtils.sendCommand(new ChatCommand(cmd.getCommand(), payload),
+                      ch.outputStream);
+                }
               }
 
               break;
@@ -172,6 +181,10 @@ public class ChatHandler extends WorkerThread {
       // Remove this handler from handlers storage
       handlers.remove(this);
     }
+  }
+
+  public String getUsername() {
+    return chatUser.getUsername();
   }
 
   private void sendToAllChatClients(ChatCommand command) {
@@ -250,7 +263,7 @@ public class ChatHandler extends WorkerThread {
         ChatCommand cmd = ChatUtils.parseMessage(inputString);
 
         if (cmd.getCommand() == CommandName.CMDENTER) {
-          res = cmd.getPayload();
+          res = cmd.getMessage();
           break;
         }
 

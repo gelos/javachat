@@ -8,8 +8,30 @@ public class ChatCommand {
   /** The command name. */
   private CommandName cmdName;
   
-  /** The payload. */
+  /** The message. */
+  private String message;
+
   private String payload;
+
+  public ChatCommand(CommandName cmdName, String message) {
+    this(cmdName, message, "");
+  }
+  
+  /**
+   * Instantiates a new chat command.
+   *
+   * @param cmdName the CommandName
+   * @param message the message string
+   */
+  public ChatCommand(CommandName cmdName, String message, String payload) {
+    this.cmdName = cmdName;
+    this.message = message;
+    this.payload = payload;
+  }
+
+  public final String getPayload() {
+    return payload;
+  }
 
   /**
    * Gets the command.
@@ -21,23 +43,12 @@ public class ChatCommand {
   }
 
   /**
-   * Gets the payload.
+   * Gets the message.
    *
-   * @return the payload
+   * @return the message
    */
-  public final String getPayload() {
-    return this.payload;
-  }
-
-  /**
-   * Instantiates a new chat command.
-   *
-   * @param cmdName the CommandName
-   * @param payload the payload string
-   */
-  public ChatCommand(CommandName cmdName, String payload) {
-    this.cmdName = cmdName;
-    this.payload = payload;
+  public final String getMessage() {
+    return this.message;
   }
 
   /* (non-Javadoc)
@@ -56,7 +67,7 @@ public class ChatCommand {
    */
   @Override
   public String toString() {
-    return "ChatCommand [cmdName=" + cmdName + ", payload=" + payload + "]";
+    return "ChatCommand [cmdName=" + cmdName + ", message=" + message + "]";
   }
 
   /* (non-Javadoc)

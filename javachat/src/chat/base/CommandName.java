@@ -1,5 +1,6 @@
 package chat.base;
 
+import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +8,7 @@ import java.util.Map;
 /**
  * The Enum CommandName. Command format <command name> <command delimiter> <command payload>
  */
-public enum CommandName {
+public enum CommandName implements Serializable{
 
   /**  The command delimiter. */
   CMDDLM(" "),

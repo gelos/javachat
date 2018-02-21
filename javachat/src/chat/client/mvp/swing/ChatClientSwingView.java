@@ -68,7 +68,12 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
+        
+        //TODO remove it!!!
+        showMsgChatPane(chatTextField.getText());
+        
         getPresenter().sendMsg(chatTextField.getText());
+        
       }
     };
 
@@ -81,6 +86,8 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
+        System.out.println(
+            "ChatClientSwingView.initActions().new AbstractAction() {...}.actionPerformed()");
         getPresenter().openConnection(chatTextField.getText());
       }
     };

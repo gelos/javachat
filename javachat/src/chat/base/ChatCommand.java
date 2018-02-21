@@ -1,9 +1,16 @@
 package chat.base;
 
+import java.io.Serializable;
+
 /**
  * The Class Chat Command. 
  */
-public class ChatCommand {
+public class ChatCommand implements Serializable {
+
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
   /** The command name. */
   private CommandName cmdName;
@@ -13,6 +20,10 @@ public class ChatCommand {
 
   private String payload;
 
+  public ChatCommand() {
+    this(CommandName.CMDERR,"");
+  }
+  
   public ChatCommand(CommandName cmdName, String message) {
     this(cmdName, message, "");
   }

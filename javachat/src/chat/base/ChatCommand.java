@@ -1,5 +1,7 @@
 package chat.base;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
@@ -40,6 +42,16 @@ public class ChatCommand implements Serializable {
     this.payload = payload;
   }
 
+  public final void send(ObjectOutputStream outputStream) {
+    try {
+      outputStream.writeObject(this);
+      outputStream.flush();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
+  
   public final String getPayload() {
     return payload;
   }

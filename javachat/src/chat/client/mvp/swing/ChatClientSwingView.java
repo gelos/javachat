@@ -15,6 +15,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
 
 /**
@@ -86,8 +87,6 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        System.out.println(
-            "ChatClientSwingView.initActions().new AbstractAction() {...}.actionPerformed()");
         getPresenter().openConnection(chatTextField.getText());
       }
     };
@@ -132,6 +131,8 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
     chatTextPane = new JTextPane();
     chatTextPane.setFocusable(false);
     chatTextPane.setEditable(false);
+    DefaultCaret caret = (DefaultCaret) chatTextPane.getCaret();
+    caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     chatPanel.add(chatTextPane, BorderLayout.SOUTH);
 
     chatTextField.requestFocusInWindow();

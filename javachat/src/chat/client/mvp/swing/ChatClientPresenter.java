@@ -60,10 +60,9 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public boolean openConnection(String username) {
 
-    //getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
-    
-    System.out.println("ChatClientPresenter.openConnection("+ username + ")");
-    
+    // getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
+
+
     isConnectionOpen.set(false);
 
     boolean res = false;
@@ -72,15 +71,17 @@ public class ChatClientPresenter implements Presenter {
       // try to open server connection
       serverSocket = new Socket(ChatServer.SERVER_IP, ChatServer.SERVER_PORT);
 
-      //System.out.println("ChatClientPresenter.openConnection("+ username + ")");
-      
-      // format streams
-      outputStream = new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
-      System.out.println("ChatClientPresenter.openConnection()");
-      inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
+      // System.out.println("ChatClientPresenter.openConnection("+ username + ")");
 
-      
-      
+      // format streams
+
+      // inputStream = new ObjectInputStream(new
+      // BufferedInputStream(serverSocket.getInputStream()));
+      // System.out.println("ChatClientPresenter.openConnection("+ username + ")");
+      outputStream =
+          new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
+      System.out.println("ChatClientPresenter.openConnection(" + username + ")");
+
     } catch (UnknownHostException uhe) {
 
       System.out.println(uhe.getMessage());
@@ -93,15 +94,22 @@ public class ChatClientPresenter implements Presenter {
 
     }
 
-    System.out.println("ChatClientPresenter.openConnection() - 2");
-    
-    // start message handler
-    messageHandler = new MessageHandler();
-    messageHandler.start();   
-    
     // send to server enter command
     try {
-      outputStream.writeObject(new ChatCommand(CommandName.CMDENTER, "", username));
+
+      new ChatCommand(CommandName.CMDENTER, "", username).send(outputStream);
+      System.out.println("ChatClientPresenter.openConnection() - enter command sended");
+
+      inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
+
+      System.out.println("ChatClientPresenter.openConnection() input stream created");
+
+      // start message handler
+      messageHandler = new MessageHandler();
+      messageHandler.start();
+
+      System.out.println("ChatClientPresenter.openConnection() - messag ehandler started");
+
     } catch (IOException e1) {
       // TODO Auto-generated catch block
       e1.printStackTrace();
@@ -154,13 +162,7 @@ public class ChatClientPresenter implements Presenter {
     if (serverSocket != null && serverSocket.isConnected()) {
 
       // send to server exit command
-      try {
-        outputStream.writeObject(new ChatCommand(CommandName.CMDEXIT, ""));
-      } catch (IOException e1) {
-        // TODO Auto-generated catch block
-        e1.printStackTrace();
-      }
-      
+      new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
 
       try {
         serverSocket.close();
@@ -173,29 +175,18 @@ public class ChatClientPresenter implements Presenter {
 
   @Override
   public void sendMsg(String message) {
-    //ChatUtils.sendCommand(new ChatCommand(CommandName.CMDMSG, message), outputStream);
-    try {
-      outputStream.writeObject(new ChatCommand(CommandName.CMDMSG, message));
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    new ChatCommand(CommandName.CMDMSG, message).send(outputStream);
     getViewSwing().clearEnterTextField();
   }
 
   @Override
   public void sendPrvMsg(String message, String userList) {
-    //ChatUtils.sendCommand(
-    //    new ChatCommand(CommandName.CMDPRVMSG, message, userList), outputStream);
-    try {
-      outputStream.writeObject(new ChatCommand(CommandName.CMDPRVMSG, message, userList));
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }  
+    // ChatUtils.sendCommand(
+    // new ChatCommand(CommandName.CMDPRVMSG, message, userList), outputStream);
+    new ChatCommand(CommandName.CMDPRVMSG, message, userList).send(outputStream);
   }
 
-  
+
   class MessageHandler extends WorkerThread {
 
     @Override
@@ -205,14 +196,22 @@ public class ChatClientPresenter implements Presenter {
       ChatCommand chatCommand;
       // getViewSwing().showMsgChatPane(message);
       try {
+
+        System.out.println("ChatClientPresenter.MessageHandler.run() enter empty while");
+        while (inputStream == null) {
+
+        }
+
+        System.out.println("ChatClientPresenter.MessageHandler.run() exit empty while");
+
         while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
           System.out.println(chatCommand);
-          //ChatCommand cmd = ChatUtils.parseMessage(inputString);
+          // ChatCommand cmd = ChatUtils.parseMessage(inputString);
 
           switch (chatCommand.getCommand()) {
             case CMDOK:
-              if (chatCommand.getMessage().equals(CommandName.CMDENTER.toString())) {
+              if (chatCommand.getPayload().equals(CommandName.CMDENTER.toString())) {
                 isConnectionOpen.set(true);
               }
               break;
@@ -220,7 +219,7 @@ public class ChatClientPresenter implements Presenter {
             case CMDUSRLST:
               // Update userList
               getViewSwing().clearChatUserList();
-              getViewSwing().updateChatUserList(chatCommand.getMessage().split(" "));;
+              getViewSwing().updateChatUserList(chatCommand.getPayload().split(" "));;
               break;
 
             case CMDEXIT:
@@ -229,12 +228,12 @@ public class ChatClientPresenter implements Presenter {
               break;
             case CMDPRVMSG:
             case CMDMSG:
-              System.out.println("ChatClientPresenter.MessageHandler.run()");
               getViewSwing().showMsgChatPane(chatCommand.getMessage());
               break;
 
             default:
-              chatCommand = new ChatCommand(CommandName.CMDERR, "Unknow command " + chatCommand);
+              chatCommand =
+                  new ChatCommand(CommandName.CMDERR, "", "Unknow command " + chatCommand);
           }
 
         }
@@ -261,12 +260,7 @@ public class ChatClientPresenter implements Presenter {
     System.out.println("Closing client...");
 
     System.out.println("Send exit command");
-    try {
-      outputStream.writeObject(new ChatCommand(CommandName.CMDEXIT, ""));
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
 
     System.out.println("Stopping message handler thread, closing ServerSocket");
     closeConnection();

@@ -2,7 +2,7 @@ package chat.client.mvp.swing;
 
 public interface Presenter {
 
-  void setView(ChatClientSwingView view);
+  void setView(ViewSwing view);
 
   void stop();
 

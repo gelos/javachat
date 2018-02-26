@@ -24,7 +24,7 @@ public class ChatClientSwing {
           
           // Initialize ViewSwing and Presenter
           final ChatClientPresenter presenter = new ChatClientPresenter();
-          final ChatClientSwingView mainWindow = new ChatClientSwingView();
+          final ChatClientViewSwing mainWindow = new ChatClientViewSwing();
           presenter.setView(mainWindow);
           mainWindow.setPresenter(presenter);
           

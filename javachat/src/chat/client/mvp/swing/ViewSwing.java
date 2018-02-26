@@ -11,8 +11,11 @@ public interface ViewSwing {
   void showWarningWindow(Object message, String title);
   void showErrorWindow(Object message, String title);
 
+  public void onSendMsg();
+  public void onReceiveMsg(String message);
+    
   // Chat text pane
-  void showMsgChatPane(String message);
+  void showMsgOnChatPane(String message);
   void clearChatPane();
   
   // Message text field

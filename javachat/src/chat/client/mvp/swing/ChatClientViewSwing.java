@@ -19,9 +19,9 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
 
 /**
- * The Class ChatClientSwingView. Realize swing GUI view with chat client logic.
+ * The Class ChatClientViewSwing. Realize swing GUI view with chat client logic.
  */
-public class ChatClientSwingView extends JFrame implements ViewSwing {
+public class ChatClientViewSwing extends JFrame implements ViewSwing {
 
   // Constant
 
@@ -51,7 +51,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
   /**
    * Initialize GUI components.
    */
-  public ChatClientSwingView() {
+  public ChatClientViewSwing() {
 
     initActions();
     initComponents();
@@ -71,7 +71,7 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
       public void actionPerformed(ActionEvent e) {
         
         //TODO remove it!!!
-        showMsgChatPane(chatTextField.getText());
+        showMsgOnChatPane(chatTextField.getText());
         
         getPresenter().sendMsg(chatTextField.getText());
         
@@ -153,9 +153,9 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
 
   // TODO where we must catch exceptions, in view or in presenter?
   @Override
-  public void showMsgChatPane(String message) {
+  public void showMsgOnChatPane(String message) {
 
-    // System.out.println("ChatClientSwingView.showMsgChatPane(" + message + ")");
+    System.out.println("ChatClientViewSwing.showMsgChatPane(" + message + ")");
 
     StyledDocument doc = chatTextPane.getStyledDocument();
     try {
@@ -268,6 +268,18 @@ public class ChatClientSwingView extends JFrame implements ViewSwing {
   @Override
   public void onSessionClosing(String title) {
     // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void onSendMsg() {
+    // TODO Auto-generated method stub
+    clearEnterTextField();
+  }
+
+  @Override
+  public void onReceiveMsg(String message) {
+    // TODO Auto-generated method stub
+    showMsgOnChatPane(message);
   }
 
 

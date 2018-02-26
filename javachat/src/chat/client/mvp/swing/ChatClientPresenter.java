@@ -60,9 +60,6 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public boolean openConnection(String username) {
 
-    // getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
-
-
     isConnectionOpen.set(false);
 
     boolean res = false;
@@ -71,16 +68,8 @@ public class ChatClientPresenter implements Presenter {
       // try to open server connection
       serverSocket = new Socket(ChatServer.SERVER_IP, ChatServer.SERVER_PORT);
 
-      // System.out.println("ChatClientPresenter.openConnection("+ username + ")");
-
-      // format streams
-
-      // inputStream = new ObjectInputStream(new
-      // BufferedInputStream(serverSocket.getInputStream()));
-      // System.out.println("ChatClientPresenter.openConnection("+ username + ")");
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
-      System.out.println("ChatClientPresenter.openConnection(" + username + ")");
 
     } catch (UnknownHostException uhe) {
 
@@ -98,17 +87,12 @@ public class ChatClientPresenter implements Presenter {
     try {
 
       new ChatCommand(CommandName.CMDENTER, "", username).send(outputStream);
-      System.out.println("ChatClientPresenter.openConnection() - enter command sended");
 
       inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
-
-      System.out.println("ChatClientPresenter.openConnection() input stream created");
 
       // start message handler
       messageHandler = new MessageHandler();
       messageHandler.start();
-
-      System.out.println("ChatClientPresenter.openConnection() - messag ehandler started");
 
     } catch (IOException e1) {
       // TODO Auto-generated catch block
@@ -176,14 +160,13 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public void sendMsg(String message) {
     new ChatCommand(CommandName.CMDMSG, message).send(outputStream);
-    getViewSwing().clearEnterTextField();
+    getViewSwing().onSendMsg();
   }
 
   @Override
   public void sendPrvMsg(String message, String userList) {
-    // ChatUtils.sendCommand(
-    // new ChatCommand(CommandName.CMDPRVMSG, message, userList), outputStream);
     new ChatCommand(CommandName.CMDPRVMSG, message, userList).send(outputStream);
+    getViewSwing().onSendMsg();
   }
 
 
@@ -194,46 +177,46 @@ public class ChatClientPresenter implements Presenter {
 
       // TODO Auto-generated method stub
       ChatCommand chatCommand;
-      // getViewSwing().showMsgChatPane(message);
       try {
-
-        System.out.println("ChatClientPresenter.MessageHandler.run() enter empty while");
-        while (inputStream == null) {
-
-        }
-
-        System.out.println("ChatClientPresenter.MessageHandler.run() exit empty while");
 
         while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
-          System.out.println(chatCommand);
-          // ChatCommand cmd = ChatUtils.parseMessage(inputString);
+          System.out.println("ChatClientPresenter.MessageHandler.run()" + chatCommand);
 
           switch (chatCommand.getCommand()) {
+            
+            case CMDERR:
+              //TODO complete
+                break;
+            
+            case CMDEXIT:
+              closeConnection();
+              break;
+                
+            case CMDHLP:
+              //TODO complete
+              break;
+              
             case CMDOK:
               if (chatCommand.getPayload().equals(CommandName.CMDENTER.toString())) {
                 isConnectionOpen.set(true);
               }
               break;
 
+            case CMDMSG:
+            case CMDPRVMSG:
+              getViewSwing().onReceiveMsg(chatCommand.getMessage());
+              break;
+              
             case CMDUSRLST:
               // Update userList
               getViewSwing().clearChatUserList();
               getViewSwing().updateChatUserList(chatCommand.getPayload().split(" "));;
               break;
 
-            case CMDEXIT:
-              // TODO change it
-
-              break;
-            case CMDPRVMSG:
-            case CMDMSG:
-              getViewSwing().showMsgChatPane(chatCommand.getMessage());
-              break;
-
             default:
-              chatCommand =
-                  new ChatCommand(CommandName.CMDERR, "", "Unknow command " + chatCommand);
+              // TODO save unknown commands to log file
+              getViewSwing().showWarningWindow(chatCommand.toString(), "Unknow command");
           }
 
         }
@@ -252,7 +235,7 @@ public class ChatClientPresenter implements Presenter {
    */
   public void onClientStart() {
     getViewSwing().onConnectionOpening(DEFAULT_WINDOW_NAME);
-    getViewSwing().showMsgChatPane(MSG_ASK_FOR_USERNAME);
+    getViewSwing().showMsgOnChatPane(MSG_ASK_FOR_USERNAME);
   }
 
   public void stop() {
@@ -269,7 +252,7 @@ public class ChatClientPresenter implements Presenter {
   }
 
   @Override
-  public void setView(ChatClientSwingView view) {
+  public void setView(ViewSwing view) {
     this.viewSwing = view;
 
   }

@@ -14,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
@@ -21,7 +22,7 @@ import javax.swing.text.StyledDocument;
 /**
  * The Class ChatClientViewSwing. Realize swing GUI view with chat client logic.
  */
-public class ChatClientViewSwing extends JFrame implements ViewSwing {
+public class ChatClientViewSwing extends JFrame implements View {
 
   // Constant
 
@@ -69,12 +70,7 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        
-        //TODO remove it!!!
-        showMsgOnChatPane(chatTextField.getText());
-        
         getPresenter().sendMsg(chatTextField.getText());
-        
       }
     };
 
@@ -107,6 +103,7 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
     panel_left.setLayout(new BorderLayout(0, 0));
 
     chatUserList = new JList<String>();
+    chatUserList.setModel(new DefaultListModel());
     chatUserList.setFocusable(false);
 
     JScrollPane scrollChatUserList = new JScrollPane(chatUserList);
@@ -152,8 +149,7 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
   }
 
   // TODO where we must catch exceptions, in view or in presenter?
-  @Override
-  public void showMsgOnChatPane(String message) {
+  private void showMsgOnChatPane(String message) {
 
     System.out.println("ChatClientViewSwing.showMsgChatPane(" + message + ")");
 
@@ -172,37 +168,32 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
 
   }
 
-  @Override
-  public void clearChatPane() {
+  // @Override
+  private void clearChatPane() {
     // TODO Auto-generated method stub
     chatTextPane.setText("");
   }
 
   @Override
-  public void updateChatUserList(String[] usrList) {
-    // TODO Auto-generated method stub
-    // chatUserList.setT
-    DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();
+  public void onUpdateChatUserList(String[] usrList) {
+     DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();
+    listModel.clear();
     for (String username : usrList) {
       listModel.addElement(username);
     }
-    // chatUserList.setModel(listModel);
   }
 
-  @Override
-  public void clearChatUserList() {
+  private void clearChatUserList() {
     DefaultListModel model = new DefaultListModel();
     model.clear();
     chatUserList.setModel(model);
   }
 
-  @Override
-  public String getEnterTextField() {
+  private String getEnterTextField() {
     return chatTextField.getText();
   }
 
-  @Override
-  public void clearEnterTextField() {
+  private void clearEnterTextField() {
     // TODO Auto-generated method stub
     chatTextField.setText("");
   }
@@ -266,13 +257,12 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
   }
 
   @Override
-  public void onSessionClosing(String title) {
+  public void onConnectionClosing(String title) {
     // TODO Auto-generated method stub
   }
 
   @Override
-  public void onSendMsg() {
-    // TODO Auto-generated method stub
+  public void onSendMsg(String message) {
     clearEnterTextField();
   }
 
@@ -281,7 +271,5 @@ public class ChatClientViewSwing extends JFrame implements ViewSwing {
     // TODO Auto-generated method stub
     showMsgOnChatPane(message);
   }
-
-
 
 }

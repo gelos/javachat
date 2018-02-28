@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import chat.base.ChatCommand;
 import chat.base.ChatUser;
 import chat.base.CommandName;
@@ -46,22 +47,26 @@ public class ChatHandler extends WorkerThread {
   /** The outputStream. */
   private ObjectOutputStream outputStream = null;
 
-  /** The client session handlers storage. */
-  //private CopyOnWriteArrayList<ChatHandler> handlers = new CopyOnWriteArrayList<ChatHandler>();
-  private CopyOnWriteArrayList<ChatHandler> handlers;
+  /** The client session handlerStorage storage. */
+  // private CopyOnWriteArrayList<ChatHandler> handlerStorage = new
+  // CopyOnWriteArrayList<ChatHandler>();
+  private CopyOnWriteArrayList<ChatHandler> handlerStorage;
 
   /** The chat user. */
   private ChatUser chatUser;
+
+  private AtomicBoolean isSessionOpened;
 
   /**
    * Instantiates a new chat handler.
    *
    * @param clientSocket the client socket
-   * @param handlers the handlers storage
+   * @param handlerStorage the handlerStorage storage
    */
   public ChatHandler(Socket s, CopyOnWriteArrayList<ChatHandler> handlers) {
     this.clientSocket = s;
-    this.handlers = handlers;
+    this.handlerStorage = handlers;
+    this.isSessionOpened = new AtomicBoolean(false);
   }
 
 
@@ -76,7 +81,7 @@ public class ChatHandler extends WorkerThread {
   public void run() {
 
     // Add current handler to handler storage
-    handlers.add(this);
+    handlerStorage.add(this);
 
     try {
 
@@ -85,99 +90,109 @@ public class ChatHandler extends WorkerThread {
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
 
-      // check for enter command and read username
-      String userName = waitForEnterCmd(inputStream);
+      ChatCommand chatCommand;
 
-      // if username not empty
-      if (!userName.isEmpty()) {
-
-        // TODO check for username uniquety
-
-        // create new user
-        chatUser = new ChatUser(userName);
-
-        // Send ok enter command to confirm session opening
-        new ChatCommand(CommandName.CMDOK, "", CommandName.CMDENTER.toString()).send(outputStream);
-
-        // Send to all users usrlst command
-        sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
+      // Read all strings from current client socket input
+      while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
         String currentTime =
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        // Send to all welcome message
-        sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
-            currentTime + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
+        System.out.println("ChatHandler.run() " + chatCommand);
+        System.out.println((!isSessionOpened.get()));
 
-        ChatCommand chatCommand;
+        if (!isSessionOpened.get() && chatCommand.getCommand() != CommandName.CMDENTER) {
+          // TODO log command and ignore it
+          System.out.println("ChatHandler.run() ignoring " + chatCommand);
+          System.out.println((!isSessionOpened.get()));
+          System.out.println((chatCommand.getCommand() != CommandName.CMDENTER));
+          continue;
+        }
 
-        // Read all strings from current client socket input
-        while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
+        switch (chatCommand.getCommand()) {
 
-          currentTime =
-              LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+          case CMDERR:
+            // TODO complete
+            break;
 
-          switch (chatCommand.getCommand()) {
+          case CMDEXIT:
 
-            case CMDERR:
-              //TODO complete
-                break;
-            
-            case CMDEXIT:
+            // Send to all users usrlst command
+            HashSet<ChatHandler> excludeChatHandler = new HashSet<>();
+            excludeChatHandler.add(this);
+            sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()),
+                excludeChatHandler);
 
-              // Send to all exit message
-              sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
-                  currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
+            // Send to all exit message
+            sendToAllChatClients(
+                new ChatCommand(CommandName.CMDMSG,
+                    currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG),
+                excludeChatHandler);
+
+            stop();
+            break;
+
+          case CMDENTER:
+            // TODO check for username uniquely
+
+            String userName = chatCommand.getPayload();
+
+            if (!userName.isEmpty()) {
+
+              isSessionOpened.set(true);
+              
+              // create new user
+              chatUser = new ChatUser(userName);
+
+              // Send ok enter command to confirm session opening
+              new ChatCommand(CommandName.CMDOK, "", CommandName.CMDENTER.toString())
+                  .send(outputStream);
 
               // Send to all users usrlst command
               sendToAllChatClients(
                   new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
 
-              break;
-                         
-            case CMDENTER:
-              //TODO remove wait for Enter command method
-              break;
-                
-            case CMDHLP:
-              //TODO complete
-              break;
-                         
-            case CMDMSG:
-            case CMDPRVMSG:
+              // Send to all welcome message
+              sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+                  currentTime + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
+              
+            } else {
+              new ChatCommand(CommandName.CMDERR, "", NAME_ERR_MSG).send(outputStream);
+              System.out.println(NAME_ERR_MSG);
+            }
 
-              // get user list from payload
-              String[] usrList = chatCommand.getPayload().split(" ");
-              Set<String> set = new HashSet<String>(Arrays.asList(usrList));
+            break;
 
-              // Write pre-read string to all clients output using handler storage
-              for (ChatHandler chatHandler : handlers) {
-                if ((set.size() == 0) // send message to all user or only to users in private
-                                      // message user list
-                    || (set.size() > 0 && set.contains(chatHandler.chatUser.getUsername()))) {
+          case CMDHLP:
+            // TODO complete
+            break;
 
-                  String message =
-                      currentTime + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();
-                  new ChatCommand(chatCommand.getCommand(), message).send(chatHandler.outputStream);
-                }
+          case CMDMSG:
+          case CMDPRVMSG:
+
+            // get user list from payload
+            String[] usrList = chatCommand.getPayload().split(" ");
+            Set<String> set = new HashSet<String>(Arrays.asList(usrList));
+
+            // Write pre-read string to all clients output using handler storage
+            for (ChatHandler chatHandler : handlerStorage) {
+              if ((set.size() == 1) // send message to all user or only to users in private
+                                    // message user list
+                  || (set.size() > 1 && set.contains(chatHandler.chatUser.getUsername()))) {
+
+                String message =
+                    currentTime + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();
+                new ChatCommand(chatCommand.getCommand(), message).send(chatHandler.outputStream);
               }
+            }
 
-              break;
-            default:
-              // TODO write uncnown command to log file;
-              System.out.println("Unknown command " + chatCommand.toString());  
-          }
+            break;
+
+          default:
+            // TODO write unknown command to log file;
+            System.out.println("Unknown command " + chatCommand.toString());
         }
-      } else if (isRuning()) { // if username empty send to client error message and exit command
-
-        // ChatUtils.sendCommand(new ChatCommand(CommandName.CMDERR, NAME_ERR_MSG), outputStream);
-        new ChatCommand(CommandName.CMDERR, "", NAME_ERR_MSG).send(outputStream);
-
-        System.out.println(NAME_ERR_MSG);
       }
-
-      // ChatUtils.sendCommand(new ChatCommand(CommandName.CMDEXIT, NAME_ERR_MSG), outputStream);
-      new ChatCommand(CommandName.CMDERR, "", NAME_ERR_MSG).send(outputStream);
 
     } catch (IOException ioe) {
 
@@ -195,16 +210,25 @@ public class ChatHandler extends WorkerThread {
       closeOutputStream();
       closeSocket();
 
-      // Remove this handler from handlers storage
-      handlers.remove(this);
+      // Remove this handler from handlerStorage storage
+      handlerStorage.remove(this);
+    }
+  }
+
+  private void sendToAllChatClients(ChatCommand command, Set<ChatHandler> excludeChatHandlerList) {
+    for (ChatHandler chatHandler : handlerStorage) {
+      if (!excludeChatHandlerList.contains(chatHandler)) {
+        command.send(chatHandler.outputStream);
+      }
     }
   }
 
   private void sendToAllChatClients(ChatCommand command) {
-    for (ChatHandler chatHandler : handlers) {
+    for (ChatHandler chatHandler : handlerStorage) {
       command.send(chatHandler.outputStream);
     }
   }
+
 
   private boolean closeInputStream() {
     boolean res = true;
@@ -256,48 +280,14 @@ public class ChatHandler extends WorkerThread {
    */
   private String getUserNamesInString() {
     String res = "";
-    for (ChatHandler chatHandler : handlers) {
+    for (ChatHandler chatHandler : handlerStorage) {
       res += " " + chatHandler.chatUser.getUsername();
     }
     return res.trim();
   }
 
-  /**
-   * Read input stream while not received {@link CommandParser#CMD_ENTER enter} command from chat
-   * client command.
-   *
-   * @param inputStream the BufferedReader of input chat client stream
-   * @return the user name or empty string if an error occurred
-   */
-  private String waitForEnterCmd(ObjectInputStream inputStream) {
-
-    String userName = "";
-
-    try {
-
-      ChatCommand chatCommand;
-
-      while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
-
-        System.out.println(
-            "ChatHandler.waitForEnterCmd() read command " + chatCommand.getCommand().toString());
-
-        if (chatCommand.getCommand() == CommandName.CMDENTER) {
-          userName = chatCommand.getPayload();
-          break;
-        }
-
-      }
-
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    return userName;
+  private void sendExitCmdToClient(ChatHandler chatHandler) {
+    new ChatCommand(CommandName.CMDEXIT, "");
 
   }
 

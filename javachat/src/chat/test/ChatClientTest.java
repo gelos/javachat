@@ -72,7 +72,7 @@ class ChatClientTest {
     final ChatClientPresenter chatClientPresenter = new ChatClientPresenter();
 
     // ChatClientViewSwing chatClientView = new ChatClientViewSwing();
-    // ViewSwing chatClientView = new ViewSwing();
+    // View chatClientView = new View();
 
     // ChatClientViewSwing chatClientSwingView = new ChatClientViewSwing();
 
@@ -82,10 +82,10 @@ class ChatClientTest {
       {
         // chatClientView.getPresenter(); result = chatClientPresenter;
         // chatClientView.getEnterTextField(); result = "this is test";
-        chatClientView.showMsgOnChatPane(anyString); // result = null;
-        chatClientView.clearChatUserList();
-        result = null;
-        chatClientView.updateChatUserList((String[]) any);
+        //chatClientView.showMsgOnChatPane(anyString); // result = null;
+        //chatClientView.clearChatUserList();
+        //result = null;
+        chatClientView.onUpdateChatUserList((String[]) any);
         result = null;
         chatClientView.onConnectionOpened(anyString);
       }
@@ -152,7 +152,7 @@ class ChatClientTest {
       @Override
       public void uncaughtException(final Thread t, final Throwable e) {
         exception.compareAndSet(null, e);
-      }
+      } 
     });
 
     final ChatClientPresenter chatClientPresenter1 = new ChatClientPresenter();
@@ -166,13 +166,18 @@ class ChatClientTest {
       {
         // chatClientView.getPresenter(); result = chatClientPresenter;
         // chatClientView.getEnterTextField(); result = "this is test";
-        chatClientView.onSendMsg(); result = null; times = 3;
-        chatClientView.showMsgOnChatPane(anyString); // result = null;
-        chatClientView.clearChatUserList();
+        //chatClientView.onSendMsg(); result = null; times = 3;
+        //chatClientView.showMsgOnChatPane(anyString); // result = null;
+        /*chatClientView.clearChatUserList();
         result = null;
         chatClientView.updateChatUserList((String[]) any);
-        result = null;
+        result = null;*/
         chatClientView.onConnectionOpened(anyString);
+        //chatClientView.onConnectionClosed(anyString);
+        //chatClientView.showErrorWindow(anyString, anyString);
+        chatClientView.onUpdateChatUserList((String[]) any);
+        chatClientView.onSendMsg(anyString);
+        chatClientView.onReceiveMsg(anyString); 
       }
     };
 
@@ -205,12 +210,17 @@ class ChatClientTest {
       e.printStackTrace();
     }
 
-    new Verifications() {};
-    
-    // if we get other thread exception throw it in current thread
+ // if we get other thread exception throw it in current thread
     if (exception.get() != null) {
       throw exception.get();
-    } 
+    }
+    
+    new Verifications() {{
+      chatClientView.onConnectionOpened(anyString); times = 3;
+      chatClientView.onUpdateChatUserList((String[]) any); times = 9;
+      chatClientView.onSendMsg(anyString); times = 3;
+      chatClientView.onReceiveMsg(anyString); times = 9;
+    }};  
 
   }
 

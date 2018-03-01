@@ -1,21 +1,65 @@
 package chat.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import chat.base.ChatCommand;
 import chat.base.CommandName;
-import javafx.util.converter.CharacterStringConverter;
 
 class ChatClientUnitTest {
 
-  @BeforeEach
-  void setUp() throws Exception {}
+  static class ChatCommandCompare extends ChatCommand {
+    private static final long serialVersionUID = 1L;
 
-  @AfterEach
-  void tearDown() throws Exception {}
+    public ChatCommandCompare(String string) {
+      super(string);
+    }
+
+    public ChatCommandCompare(CommandName cmdmsg, String string) {
+      super(cmdmsg, string);
+    }
+
+    public ChatCommandCompare(CommandName cmdenter, String string, String string2) {
+      super(cmdenter, string, string2);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      ChatCommand other = (ChatCommand) obj;
+      if (this.getCommand() == other.getCommand() && this.getPayload().equals(other.getPayload())
+          && this.getMessage().equals(other.getMessage()))
+        return true;
+      return false;
+    }
+  }
+
+  @DisplayName("Parametrized test.")
+  @ParameterizedTest
+  @MethodSource("chatCommandProvider")
+  void chatTestParametrized(ChatCommandCompare expected, ChatCommandCompare actual) {
+    assertEquals(expected, actual);
+  }
+
+  static Stream<Arguments> chatCommandProvider() {
+    return Stream.of(
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "test "),
+            new ChatCommandCompare(" /msg test ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
+            new ChatCommandCompare(" /enTer ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " /stRing ", ""),
+            new ChatCommandCompare(" /msg  /stRing ")));
+  }
 
   @Test
   @DisplayName("ChatCommand constructor with message string test.")
@@ -96,7 +140,7 @@ class ChatClientUnitTest {
       assertEquals("", actual.getMessage());
       assertEquals(" Test ", actual.getPayload());
     });
-    
+
     assertAll("msg command", () -> {
       ChatCommand actual = new ChatCommand(" /string ");
       assertEquals(CommandName.CMDMSG, actual.getCommand());
@@ -134,8 +178,8 @@ class ChatClientUnitTest {
       assertEquals("  /err test1 test2 ", actual.getMessage());
       assertEquals("", actual.getPayload());
     });
-    
-    
+
+
     /*
      * assertEquals(new ChatCommand(CommandName.CMDMSG, " /string "), new ChatCommand(" /string "));
      * assertEquals(new ChatCommand(CommandName.CMDMSG, "  /string "), new

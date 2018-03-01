@@ -15,7 +15,7 @@ import mockit.Capturing;
 import mockit.Expectations;
 import mockit.Verifications;
 
-class ChatClientTest {
+class ChatClientIntegrationTest {
 
   private ChatServer chatServer;
   // private ChatClientPresenter chatClientPresenter;

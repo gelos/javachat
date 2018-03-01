@@ -5,7 +5,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- * The Class Chat Command. 
+ * The Class Chat Command.
  */
 public class ChatCommand implements Serializable {
 
@@ -16,20 +16,69 @@ public class ChatCommand implements Serializable {
 
   /** The command name. */
   private CommandName cmdName;
-  
+
   /** The message. */
   private String message;
 
   private String payload;
 
+
+  // Constructors
+
   public ChatCommand() {
-    this(CommandName.CMDERR,"");
+    this(CommandName.CMDERR, "");
   }
-  
+
+  public ChatCommand(String message) {
+
+    // left trim, lowercase string and split by space in two piece
+    String[] strArrayLowerCase = message.replaceAll("^\\s+","").toLowerCase().split(CommandName.CMDDLM.toString(), 2);
+    // left trim string and split by space in two piece
+    String[] strArray = message.replaceAll("^\\s+","").split(CommandName.CMDDLM.toString(), 2);
+
+    CommandName command = CommandName.get(strArrayLowerCase[0]);
+    String payload = "";
+    
+    if (command == null) {
+
+      if (message.length() != 0) {
+        command = CommandName.CMDMSG;
+      } else {
+        command = CommandName.CMDERR;
+      }
+
+    } else {
+      switch (command) {
+
+        case CMDENTER:
+        case CMDEXIT:
+          message = "";
+          if (strArray.length > 1) {
+            payload = strArray[1];
+          }
+          break;
+
+        case CMDMSG:
+          if (strArrayLowerCase.length > 1) {
+            message = strArray[1];
+          } 
+          break;
+          
+        default:
+          command = CommandName.CMDERR;
+          break;
+      }
+    }
+
+    this.cmdName = command;
+    this.message = message;
+    this.payload = payload;
+  }
+
   public ChatCommand(CommandName cmdName, String message) {
     this(cmdName, message, "");
   }
-  
+
   /**
    * Instantiates a new chat command.
    *
@@ -51,7 +100,7 @@ public class ChatCommand implements Serializable {
       e.printStackTrace();
     }
   }
-  
+
   public final String getPayload() {
     return payload;
   }
@@ -74,7 +123,9 @@ public class ChatCommand implements Serializable {
     return this.message;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see java.lang.Object#hashCode()
    */
   @Override
@@ -91,7 +142,9 @@ public class ChatCommand implements Serializable {
         + "]";
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see java.lang.Object#equals(java.lang.Object)
    */
   @Override

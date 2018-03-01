@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -171,14 +172,20 @@ public class ChatHandler extends WorkerThread {
           case CMDPRVMSG:
 
             // get user list from payload
-            String[] usrList = chatCommand.getPayload().split(" ");
+            //String[] usrList = chatCommand.getPayload().split(" ", 1);
+            
+            String[] usrList = new String[0];
+            
+            if (!chatCommand.getPayload().isEmpty()) {
+              usrList = chatCommand.getPayload().split(" ", 1);
+            }
             Set<String> set = new HashSet<String>(Arrays.asList(usrList));
 
             // Write pre-read string to all clients output using handler storage
             for (ChatHandler chatHandler : handlerStorage) {
-              if ((set.size() == 1) // send message to all user or only to users in private
+              if ((set.size() == 0) // send message to all user or only to users in private
                                     // message user list
-                  || (set.size() > 1 && set.contains(chatHandler.chatUser.getUsername()))) {
+                  || (set.size() > 0 && set.contains(chatHandler.chatUser.getUsername()))) {
 
                 String message =
                     currentTime + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();

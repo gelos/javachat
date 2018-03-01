@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * The Enum CommandName. Command format <command name> <command delimiter> <command payload>
  */
-public enum CommandName implements Serializable{
+public enum CommandName implements Serializable {
 
   /**  The command delimiter. */
   CMDDLM(" "),
@@ -63,14 +63,15 @@ public enum CommandName implements Serializable{
    * Reverse lookup. String value of command name to command name.
    *
    * @param key the command name string
-   * @return the command name or err command if command not found
+   * @return the command name or msg command if command not found
    */
   public static CommandName get(String key) {
-    CommandName res = CommandName.CMDERR;
+    /*CommandName res = CommandName.CMDMSG;
     if (lookup.get(key) != null) {
       res = lookup.get(key);
     };
-    return res;
+    return res;*/
+    return lookup.get(key);
   }
   
   /**

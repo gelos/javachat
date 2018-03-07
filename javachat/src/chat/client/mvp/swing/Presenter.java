@@ -10,7 +10,7 @@ public interface Presenter {
 
   void closeConnection();
 
-  void sendMsg(String message);
+  void parseMessage(String message);
 
   void sendPrvMsg(String message, String userList);
 

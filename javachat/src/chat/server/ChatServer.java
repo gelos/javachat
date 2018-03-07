@@ -221,11 +221,7 @@ public class ChatServer {
           clientSocket = serverSocket.accept();
 
           // Create new ChatHandler with existing client handlers and new client socket as thread
-          new ChatHandler(clientSocket, chatHandlers).start();
-
-          String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
-              .toString().replace("/", "");
-          System.out.println("Accepted client connection from " + ip);
+          new ChatHandler(clientSocket, chatHandlers).start();;
 
         } catch (SocketException e) { // Throws when calling ServerSocket.close
 

@@ -70,7 +70,7 @@ public class ChatClientViewSwing extends JFrame implements View {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        getPresenter().sendMsg(chatTextField.getText());
+        getPresenter().parseMessage(chatTextField.getText());
       }
     };
 
@@ -176,7 +176,7 @@ public class ChatClientViewSwing extends JFrame implements View {
 
   @Override
   public void onUpdateChatUserList(String[] usrList) {
-     DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();
+    DefaultListModel<String> listModel = (DefaultListModel<String>) chatUserList.getModel();
     listModel.clear();
     for (String username : usrList) {
       listModel.addElement(username);

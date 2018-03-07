@@ -1,10 +1,8 @@
 package chat.test;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,142 +51,43 @@ class ChatClientUnitTest {
 
   static Stream<Arguments> chatCommandProvider() {
     return Stream.of(
-        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "test "),
-            new ChatCommandCompare(" /msg test ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, ""), new ChatCommandCompare("")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /usrlst test1 test2 "),
+            new ChatCommandCompare("  /usrlst test1 test2 ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /err test1 test2 ", ""),
+            new ChatCommandCompare("  /err test1 test2 ")),
+
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " "), new ChatCommandCompare(" ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "  "),
+            new ChatCommandCompare("  ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " /string "),
+            new ChatCommandCompare(" /string ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " /stRing "),
+            new ChatCommandCompare(" /msg  /stRing ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " /string1  string2 "),
+            new ChatCommandCompare(" /string1  string2 ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "  1/string1  string2  /enter  "),
+            new ChatCommandCompare("  /msg   1/string1  string2  /enter  ")),
+
+        Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
+            new ChatCommandCompare("/enTer")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
+            new ChatCommandCompare("/enTer ")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
             new ChatCommandCompare(" /enTer ")),
-        Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " /stRing ", ""),
-            new ChatCommandCompare(" /msg  /stRing ")));
-  }
+        Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, "", " "),
+            new ChatCommandCompare(" /enTer  ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, "", " oLeg "),
+            new ChatCommandCompare(" /enTer  oLeg ")),
 
-  @Test
-  @DisplayName("ChatCommand constructor with message string test.")
-  void chatCommandTest() {
-
-    assertAll("empty string", () -> {
-      ChatCommand actual = new ChatCommand("");
-      assertEquals(CommandName.CMDERR, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-
-    assertAll("one space", () -> {
-      ChatCommand actual = new ChatCommand(" ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals(" ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("two space", () -> {
-      ChatCommand actual = new ChatCommand("  ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals("  ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-
-    assertAll("enter command", () -> {
-      ChatCommand actual = new ChatCommand("/enTer");
-      assertEquals(CommandName.CMDENTER, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("enter command", () -> {
-      ChatCommand actual = new ChatCommand("/enTer ");
-      assertEquals(CommandName.CMDENTER, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("enter command", () -> {
-      ChatCommand actual = new ChatCommand(" /eNter ");
-      assertEquals(CommandName.CMDENTER, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("enter command", () -> {
-      ChatCommand actual = new ChatCommand(" /eNter  ");
-      assertEquals(CommandName.CMDENTER, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals(" ", actual.getPayload());
-    });
-    assertAll("enter command", () -> {
-      ChatCommand actual = new ChatCommand(" /enter  oLeg");
-      assertEquals(CommandName.CMDENTER, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals(" oLeg", actual.getPayload());
-    });
-
-    assertAll("exit command", () -> {
-      ChatCommand actual = new ChatCommand("/eXIT");
-      assertEquals(CommandName.CMDEXIT, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("exit command", () -> {
-      ChatCommand actual = new ChatCommand("/eXit ");
-      assertEquals(CommandName.CMDEXIT, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("exit command", () -> {
-      ChatCommand actual = new ChatCommand("/eXit ");
-      assertEquals(CommandName.CMDEXIT, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("exit command", () -> {
-      ChatCommand actual = new ChatCommand(" /eXit  Test ");
-      assertEquals(CommandName.CMDEXIT, actual.getCommand());
-      assertEquals("", actual.getMessage());
-      assertEquals(" Test ", actual.getPayload());
-    });
-
-    assertAll("msg command", () -> {
-      ChatCommand actual = new ChatCommand(" /string ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals(" /string ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("msg command", () -> {
-      ChatCommand actual = new ChatCommand(" /msg  /stRing ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals(" /stRing ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("msg command", () -> {
-      ChatCommand actual = new ChatCommand(" /string1  string2 ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals(" /string1  string2 ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("msg command", () -> {
-      ChatCommand actual = new ChatCommand("  /msg   1/string1  string2  /enter  ");
-      assertEquals(CommandName.CMDMSG, actual.getCommand());
-      assertEquals("  1/string1  string2  /enter  ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-
-    assertAll("other command", () -> {
-      ChatCommand actual = new ChatCommand("  /usrlst test1 test2 ");
-      assertEquals(CommandName.CMDERR, actual.getCommand());
-      assertEquals("  /usrlst test1 test2 ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-    assertAll("other command", () -> {
-      ChatCommand actual = new ChatCommand("  /err test1 test2 ");
-      assertEquals(CommandName.CMDERR, actual.getCommand());
-      assertEquals("  /err test1 test2 ", actual.getMessage());
-      assertEquals("", actual.getPayload());
-    });
-
-
-    /*
-     * assertEquals(new ChatCommand(CommandName.CMDMSG, " /string "), new ChatCommand(" /string "));
-     * assertEquals(new ChatCommand(CommandName.CMDMSG, "  /string "), new
-     * ChatCommand(" /msg  /string ")); assertEquals(new ChatCommand(CommandName.CMDMSG,
-     * " string1    string2 "), new ChatCommand(" string1    string2 ")); assertEquals(new
-     * ChatCommand(CommandName.CMDMSG, " string1    string2 "), new
-     * ChatCommand(" /msg string1    string2 "));
-     */
-
+        Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
+            new ChatCommandCompare("/eXIT")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
+            new ChatCommandCompare("/eXIT ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
+            new ChatCommandCompare(" /eXIT ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, "", "  Test "),
+            new ChatCommandCompare(" /eXIT   Test ")));
   }
 
 }

@@ -45,6 +45,10 @@ public class ChatClientPresenter implements Presenter {
 
   private AtomicBoolean isSessionOpened;
 
+  public final Boolean getIsSessionOpened() {
+    return isSessionOpened.get();
+  }
+
   private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
 
   public ChatClientPresenter() {
@@ -158,9 +162,21 @@ public class ChatClientPresenter implements Presenter {
   }
 
   @Override
-  public void sendMsg(String message) {
-    new ChatCommand(CommandName.CMDMSG, message).send(outputStream);
-    getView().onSendMsg(message);
+  public void parseMessage(String message) {
+    ChatCommand command = new ChatCommand(message);
+    switch (command.getCommand()) {
+      case CMDENTER:
+      case CMDEXIT:
+        command.send(outputStream);
+        break;
+      case CMDMSG:
+        command.send(outputStream);
+        getView().onSendMsg(command.getMessage());
+        break;
+      default:
+        getView().showWarningWindow(command.getMessage(), "Command not supported");
+        break;
+    }
   }
 
   @Override

@@ -1,6 +1,8 @@
 package chat.test;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
@@ -10,9 +12,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import chat.client.mvp.swing.ChatClientPresenter;
 import chat.client.mvp.swing.ChatClientViewSwing;
+import chat.client.mvp.swing.View;
 import chat.server.ChatServer;
 import mockit.Capturing;
 import mockit.Expectations;
+import mockit.Mocked;
 import mockit.Verifications;
 
 class ChatClientIntegrationTest {
@@ -82,9 +86,9 @@ class ChatClientIntegrationTest {
       {
         // chatClientView.getPresenter(); result = chatClientPresenter;
         // chatClientView.getEnterTextField(); result = "this is test";
-        //chatClientView.showMsgOnChatPane(anyString); // result = null;
-        //chatClientView.clearChatUserList();
-        //result = null;
+        // chatClientView.showMsgOnChatPane(anyString); // result = null;
+        // chatClientView.clearChatUserList();
+        // result = null;
         chatClientView.onUpdateChatUserList((String[]) any);
         result = null;
         chatClientView.onConnectionOpened(anyString);
@@ -107,7 +111,7 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }
 
-    chatClientPresenter.sendMsg("hello");
+    chatClientPresenter.parseMessage("hello");
 
     // assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
     // (chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
@@ -145,63 +149,109 @@ class ChatClientIntegrationTest {
 
   @Test
   @DisplayName("Test for sending message for three clients.")
-  void sendMsgTest(@Capturing ChatClientViewSwing chatClientView) throws Throwable {
+  void sendMsgTest(@Capturing View chatClientView1, @Capturing View chatClientView2)
+      throws Throwable {
 
+    //TODO test names with spaces
+    
+    final String CLIENT_NAME1 = "client1";
+    final String CLIENT_NAME2 = "client2";
+    final String MSG1 = "hello 1";
+    final String MSG2 = "hello 2";
+    
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override
       public void uncaughtException(final Thread t, final Throwable e) {
         exception.compareAndSet(null, e);
-      } 
+      }
     });
 
     final ChatClientPresenter chatClientPresenter1 = new ChatClientPresenter();
-    chatClientPresenter1.setView(chatClientView);
     final ChatClientPresenter chatClientPresenter2 = new ChatClientPresenter();
-    chatClientPresenter2.setView(chatClientView);
-    final ChatClientPresenter chatClientPresenter3 = new ChatClientPresenter();
-    chatClientPresenter3.setView(chatClientView);
 
-    new Expectations(ChatClientViewSwing.class) {
-      {
-        // chatClientView.getPresenter(); result = chatClientPresenter;
-        // chatClientView.getEnterTextField(); result = "this is test";
-        //chatClientView.onSendMsg(); result = null; times = 3;
-        //chatClientView.showMsgOnChatPane(anyString); // result = null;
-        /*chatClientView.clearChatUserList();
-        result = null;
-        chatClientView.updateChatUserList((String[]) any);
-        result = null;*/
-        chatClientView.onConnectionOpened(anyString);
-        //chatClientView.onConnectionClosed(anyString);
-        //chatClientView.showErrorWindow(anyString, anyString);
-        chatClientView.onUpdateChatUserList((String[]) any);
-        chatClientView.onSendMsg(anyString);
-        chatClientView.onReceiveMsg(anyString); 
-      }
-    };
+    /*
+     * new Expectations(View.class) { { chatClientView1.onConnectionOpened(anyString);
+     * chatClientView1.onUpdateChatUserList((String[]) any); chatClientView1.onSendMsg(anyString);
+     * chatClientView1.onReceiveMsg(anyString); chatClientView2.onConnectionOpened(anyString);
+     * chatClientView2.onUpdateChatUserList((String[]) any); chatClientView2.onSendMsg(anyString);
+     * chatClientView2.onReceiveMsg(anyString); } };
+     */
 
-    chatClientPresenter1.setView(chatClientView);
-    chatClientPresenter2.setView(chatClientView);
-    chatClientPresenter3.setView(chatClientView);
+    chatClientPresenter1.setView(chatClientView1);
+    chatClientPresenter2.setView(chatClientView2);
 
-    chatClientPresenter1.openConnection("client1");
-    chatClientPresenter2.openConnection("client2");
-    chatClientPresenter3.openConnection("client3");
+    chatClientPresenter1.openConnection(CLIENT_NAME1);
 
     try {
-      TimeUnit.SECONDS.sleep(5);
+      TimeUnit.SECONDS.sleep(3);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-
-    chatClientPresenter1.sendMsg("hello1");
-    chatClientPresenter2.sendMsg("hello2");
-    chatClientPresenter3.sendMsg("hello3");  
     
+    new Verifications() {{
+      assertTrue(chatClientPresenter1.getIsSessionOpened());
+      
+      String [] usrList;
+      chatClientView1.onUpdateChatUserList(usrList = withCapture());
+      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
+      
+      String message;
+      chatClientView1.onReceiveMsg(message = withCapture());
+      assertTrue(message.contains(CLIENT_NAME1 + " login"));
+    }};
+    
+    chatClientPresenter2.openConnection(CLIENT_NAME2);
+    
+    try {
+      TimeUnit.SECONDS.sleep(3);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
+    new Verifications() {{
+      assertTrue(chatClientPresenter2.getIsSessionOpened());
+      
+      String [] usrList;
+      chatClientView1.onUpdateChatUserList(usrList = withCapture());
+      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
+      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
+      chatClientView2.onUpdateChatUserList(usrList = withCapture());
+      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
+      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
+      
+      String message;
+      chatClientView1.onReceiveMsg(message = withCapture());
+      assertTrue(message.contains(CLIENT_NAME2 + " login"));
+      chatClientView2.onReceiveMsg(message = withCapture());
+      assertTrue(message.contains(CLIENT_NAME2 + " login"));
+    }};
+    
+    chatClientPresenter1.parseMessage(MSG1);
+    new Verifications() {
+      {
+        String message;
+        chatClientView1.onReceiveMsg(message = withCapture());
+        assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
+        chatClientView2.onReceiveMsg(message = withCapture());
+        assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
+      }
+    };
+
+    chatClientPresenter2.parseMessage("hello2");
+    new Verifications() {
+      {
+        String message;
+        chatClientView1.onReceiveMsg(message = withCapture());
+        assertTrue(message.contains("client2: hello2"));
+        chatClientView2.onReceiveMsg(message = withCapture());
+        assertTrue(message.contains("client2: hello2"));
+      }
+    };
+
+
     chatClientPresenter1.stop();
     chatClientPresenter2.stop();
-    chatClientPresenter3.stop();
 
     try {
       TimeUnit.SECONDS.sleep(3);
@@ -210,17 +260,22 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }
 
- // if we get other thread exception throw it in current thread
+    // if we get other thread exception throw it in current thread
     if (exception.get() != null) {
       throw exception.get();
     }
-    
-    new Verifications() {{
-      chatClientView.onConnectionOpened(anyString); times = 3;
-      chatClientView.onUpdateChatUserList((String[]) any); times = 9;
-      chatClientView.onSendMsg(anyString); times = 3;
-      chatClientView.onReceiveMsg(anyString); times = 9;
-    }};  
+
+    new Verifications() {
+      {
+        chatClientView2.onConnectionOpened(anyString);
+        times = 2;
+        // chatClientView.onUpdateChatUserList((String[]) any); times = 9;
+        chatClientView1.onSendMsg(anyString);
+        times = 2;
+        chatClientView2.onReceiveMsg(anyString);
+        times = 6;
+      }
+    };
 
   }
 

@@ -8,6 +8,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.LocalDateTime;
@@ -56,6 +57,10 @@ public class ChatHandler extends WorkerThread {
   /** The chat user. */
   private ChatUser chatUser;
 
+  public final String getChatUserName() {
+    return chatUser.getUsername();
+  }
+
   private AtomicBoolean isSessionOpened;
 
   /**
@@ -90,7 +95,11 @@ public class ChatHandler extends WorkerThread {
       inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-
+      
+      String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
+          .toString().replace("/", "");
+      System.out.println("Accepted client connection from " + ip);
+      
       ChatCommand chatCommand;
 
       // Read all strings from current client socket input
@@ -99,14 +108,14 @@ public class ChatHandler extends WorkerThread {
         String currentTime =
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        System.out.println("ChatHandler.run() " + chatCommand);
-        System.out.println((!isSessionOpened.get()));
+        /*System.out.println("ChatHandler.run() " + chatCommand);
+        System.out.println((!isSessionOpened.get()));*/
 
         if (!isSessionOpened.get() && chatCommand.getCommand() != CommandName.CMDENTER) {
           // TODO log command and ignore it
-          System.out.println("ChatHandler.run() ignoring " + chatCommand);
+          /*System.out.println("ChatHandler.run() ignoring " + chatCommand);
           System.out.println((!isSessionOpened.get()));
-          System.out.println((chatCommand.getCommand() != CommandName.CMDENTER));
+          System.out.println((chatCommand.getCommand() != CommandName.CMDENTER));*/
           continue;
         }
 
@@ -156,6 +165,8 @@ public class ChatHandler extends WorkerThread {
               // Send to all welcome message
               sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
                   currentTime + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
+         
+              System.out.println("Open chat session for user " + userName);
               
             } else {
               new ChatCommand(CommandName.CMDERR, "", NAME_ERR_MSG).send(outputStream);

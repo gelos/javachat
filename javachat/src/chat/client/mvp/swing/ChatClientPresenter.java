@@ -45,10 +45,6 @@ public class ChatClientPresenter implements Presenter {
 
   private AtomicBoolean isSessionOpened;
 
-  public final Boolean getIsSessionOpened() {
-    return isSessionOpened.get();
-  }
-
   private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
 
   public ChatClientPresenter() {
@@ -140,15 +136,11 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public void closeConnection() {
 
-    // stop message handler thread
-    if ((messageHandler != null) && (messageHandler.isRuning())) {
-      messageHandler.stop();
-    }
+    System.out.println("Closing client...");
 
-    // try to close serversocket
+    System.out.println("Send exit command and close connection");
 
     if (serverSocket != null && serverSocket.isConnected()) {
-
       // send to server exit command
       new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
 
@@ -159,10 +151,17 @@ public class ChatClientPresenter implements Presenter {
         e.printStackTrace();
       }
     }
+
+    // stop message handler thread
+    if ((messageHandler != null) && (messageHandler.isRuning())) {
+      messageHandler.stop();
+    }
+
+    System.out.println("Client stopped.");
   }
 
   @Override
-  public void parseMessage(String message) {
+  public void sendMessage(String message) {
     ChatCommand command = new ChatCommand(message);
     switch (command.getCommand()) {
       case CMDENTER:
@@ -179,11 +178,11 @@ public class ChatClientPresenter implements Presenter {
     }
   }
 
-  @Override
+  /*@Override
   public void sendPrvMsg(String message, String userList) {
     new ChatCommand(CommandName.CMDPRVMSG, message, userList).send(outputStream);
     getView().onSendMsg(message);
-  }
+  }*/
 
 
   class MessageHandler extends WorkerThread {
@@ -200,19 +199,19 @@ public class ChatClientPresenter implements Presenter {
           System.out.println("ChatClientPresenter.MessageHandler.run()" + chatCommand);
 
           switch (chatCommand.getCommand()) {
-            
+
             case CMDERR:
-              //TODO complete
-                break;
-            
+              // TODO complete
+              break;
+
             case CMDEXIT:
               closeConnection();
               break;
-                
+
             case CMDHLP:
-              //TODO complete
+              // TODO complete
               break;
-              
+
             case CMDOK:
               if (chatCommand.getPayload().equals(CommandName.CMDENTER.toString())) {
                 isSessionOpened.set(true);
@@ -223,7 +222,7 @@ public class ChatClientPresenter implements Presenter {
             case CMDPRVMSG:
               getView().onReceiveMsg(chatCommand.getMessage());
               break;
-              
+
             case CMDUSRLST:
               // Update userList
               getView().onUpdateChatUserList(chatCommand.getPayload().split(" "));
@@ -231,7 +230,7 @@ public class ChatClientPresenter implements Presenter {
 
             default:
               // TODO save unknown commands to log file
-              getView().showWarningWindow(chatCommand.toString(), "Unknow command");
+              getView().showWarningWindow(chatCommand.toString(), "Unknown command");
           }
 
         }
@@ -252,7 +251,7 @@ public class ChatClientPresenter implements Presenter {
     getView().onReceiveMsg(MSG_ASK_FOR_USERNAME);
   }
 
-  public void stop() {
+/*  public void stop() {
     // TODO Auto-generated method stub
     System.out.println("Closing client...");
 
@@ -263,7 +262,7 @@ public class ChatClientPresenter implements Presenter {
     closeConnection();
 
     System.out.println("Client stopped.");
-  }
+  }*/
 
   @Override
   public void setView(View view) {

@@ -57,9 +57,9 @@ public class ChatHandler extends WorkerThread {
   /** The chat user. */
   private ChatUser chatUser;
 
-  public final String getChatUserName() {
-    return chatUser.getUsername();
-  }
+  /*
+   * public final String getChatUserName() { return chatUser.getUsername(); }
+   */
 
   private AtomicBoolean isSessionOpened;
 
@@ -95,11 +95,11 @@ public class ChatHandler extends WorkerThread {
       inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-      
+
       String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
           .toString().replace("/", "");
       System.out.println("Accepted client connection from " + ip);
-      
+
       ChatCommand chatCommand;
 
       // Read all strings from current client socket input
@@ -108,14 +108,18 @@ public class ChatHandler extends WorkerThread {
         String currentTime =
             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        /*System.out.println("ChatHandler.run() " + chatCommand);
-        System.out.println((!isSessionOpened.get()));*/
+        /*
+         * System.out.println("ChatHandler.run() " + chatCommand);
+         * System.out.println((!isSessionOpened.get()));
+         */
 
         if (!isSessionOpened.get() && chatCommand.getCommand() != CommandName.CMDENTER) {
           // TODO log command and ignore it
-          /*System.out.println("ChatHandler.run() ignoring " + chatCommand);
-          System.out.println((!isSessionOpened.get()));
-          System.out.println((chatCommand.getCommand() != CommandName.CMDENTER));*/
+          /*
+           * System.out.println("ChatHandler.run() ignoring " + chatCommand);
+           * System.out.println((!isSessionOpened.get()));
+           * System.out.println((chatCommand.getCommand() != CommandName.CMDENTER));
+           */
           continue;
         }
 
@@ -127,17 +131,28 @@ public class ChatHandler extends WorkerThread {
 
           case CMDEXIT:
 
+            // Remove this handler from handlerStorage storage
+            // handlerStorage.remove(this);
+
             // Send to all users usrlst command
+
             HashSet<ChatHandler> excludeChatHandler = new HashSet<>();
             excludeChatHandler.add(this);
             sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()),
                 excludeChatHandler);
 
+            // sendToAllChatClients(
+            // new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
+
             // Send to all exit message
+
             sendToAllChatClients(
                 new ChatCommand(CommandName.CMDMSG,
                     currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG),
                 excludeChatHandler);
+
+            //sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+            //    currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
 
             stop();
             break;
@@ -150,7 +165,7 @@ public class ChatHandler extends WorkerThread {
             if (!userName.isEmpty()) {
 
               isSessionOpened.set(true);
-              
+
               // create new user
               chatUser = new ChatUser(userName);
 
@@ -165,9 +180,9 @@ public class ChatHandler extends WorkerThread {
               // Send to all welcome message
               sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
                   currentTime + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
-         
+
               System.out.println("Open chat session for user " + userName);
-              
+
             } else {
               new ChatCommand(CommandName.CMDERR, "", NAME_ERR_MSG).send(outputStream);
               System.out.println(NAME_ERR_MSG);
@@ -183,10 +198,10 @@ public class ChatHandler extends WorkerThread {
           case CMDPRVMSG:
 
             // get user list from payload
-            //String[] usrList = chatCommand.getPayload().split(" ", 1);
-            
+            // String[] usrList = chatCommand.getPayload().split(" ", 1);
+
             String[] usrList = new String[0];
-            
+
             if (!chatCommand.getPayload().isEmpty()) {
               usrList = chatCommand.getPayload().split(" ", 1);
             }
@@ -221,6 +236,9 @@ public class ChatHandler extends WorkerThread {
       e.printStackTrace();
     } finally {
 
+      // Remove this handler from handlerStorage storage
+      handlerStorage.remove(this);
+
       // dispose User object
       chatUser = null;
 
@@ -228,8 +246,6 @@ public class ChatHandler extends WorkerThread {
       closeOutputStream();
       closeSocket();
 
-      // Remove this handler from handlerStorage storage
-      handlerStorage.remove(this);
     }
   }
 
@@ -298,16 +314,26 @@ public class ChatHandler extends WorkerThread {
    */
   private String getUserNamesInString() {
     String res = "";
+    String username = "";
+
+    // TODO check for thread consistency in operation with ChatHandler
+
     for (ChatHandler chatHandler : handlerStorage) {
-      res += " " + chatHandler.chatUser.getUsername();
+      if ((chatHandler.chatUser != null)
+          && (username = chatHandler.chatUser.getUsername()) != null) {
+        // res += " " + chatHandler.chatUser.getUsername();
+        res += " " + username;
+      }
     }
     return res.trim();
   }
 
-  private void sendExitCmdToClient(ChatHandler chatHandler) {
-    new ChatCommand(CommandName.CMDEXIT, "");
-
-  }
+  /*
+   * private void sendExitCmdToClient(ChatHandler chatHandler) { new
+   * ChatCommand(CommandName.CMDEXIT, "");
+   * 
+   * }
+   */
 
 }
 

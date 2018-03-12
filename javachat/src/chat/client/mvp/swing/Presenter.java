@@ -4,14 +4,14 @@ public interface Presenter {
 
   void setView(View view);
 
-  void stop();
+  //void stop();
 
   boolean openConnection(String username);
 
   void closeConnection();
 
-  void parseMessage(String message);
+  void sendMessage(String message);
 
-  void sendPrvMsg(String message, String userList);
+  //void sendPrvMsg(String message, String userList);
 
 }

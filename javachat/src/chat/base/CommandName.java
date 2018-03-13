@@ -6,17 +6,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The Enum CommandName. Command format <command name> <command delimiter> <command payload>
+ * The Enum CommandName used in {@link ChatCommand}. Command names that can be used:
+ * <li>{@link #CMDDLM}</li>
+ * <li>{@link #CMDEXIT}</li>
+ * <li>{@link #CMDENTER}</li>
+ * <li>{@link #CMDUSRLST}</li>
+ * <li>{@link #CMDPRVMSG}</li>
+ * <li>{@link #CMDMSG}</li>
+ * <li>{@link #CMDERR}</li>
+ * <li>{@link #CMDHLP}</li>
+ * <li>{@link #CMDOK}</li>
  */
 public enum CommandName implements Serializable {
 
-  /**  The command delimiter. */
+  /** The space character as command delimiter. */
   CMDDLM(" "),
 
   /** The command to close chat session. Initiated by client or server. */
   CMDEXIT("/exit"),
 
-  /** The command to start chat session. Initiated by client, processed by server. */
+  /**
+   * The command to start chat session. Initiated by client, processed by server. Payload must
+   * contain user name.
+   */
   CMDENTER("/enter"),
 
   /**
@@ -25,7 +37,10 @@ public enum CommandName implements Serializable {
    */
   CMDUSRLST("/usrlst"),
 
-  /** The command to send private chat messages. Initiated by client, processed by server. */
+  /**
+   * The command to send private chat messages. Initiated by client, processed by server. Payload
+   * list of message recipients.
+   */
   CMDPRVMSG("/prvmsg"),
 
   /** The command to send chat messages. Initiated by client, processed by server. */
@@ -42,38 +57,44 @@ public enum CommandName implements Serializable {
 
   /**
    * The command to approve client chat session establishing. Initiated by server, processed by
-   * client.
+   * client. Payload is a approved command name.
    */
   CMDOK("/ok");
 
   /** The command name. */
   private String commandName;
-  
+
   /** The map. */
   private final static Map<String, CommandName> lookup = new HashMap<>();
-    
+
   /** Initialize map to reverse lookup */
   static {
     for (CommandName cn : EnumSet.allOf(CommandName.class)) {
       lookup.put(cn.toString(), cn);
     }
   }
-  
+
   /**
-   * Reverse lookup. String value of command name to command name.
+   * Reverse lookup. Return CommandName by its string name.
    *
    * @param key the command name string
-   * @return the command name or msg command if command not found
+   * @return the command name or null if command not found
    */
   public static CommandName get(String key) {
-    /*CommandName res = CommandName.CMDMSG;
-    if (lookup.get(key) != null) {
-      res = lookup.get(key);
-    };
-    return res;*/
     return lookup.get(key);
   }
-  
+
+  /**
+   *  
+   *
+   * @return the string
+   * @see java.lang.Enum#toString()
+   */
+  @Override
+  public String toString() {
+    return this.commandName;
+  }
+
   /**
    * Instantiates a new command name.
    *
@@ -81,13 +102,5 @@ public enum CommandName implements Serializable {
    */
   private CommandName(String commandName) {
     this.commandName = commandName;
-  }
-
-  /* (non-Javadoc)
-   * @see java.lang.Enum#toString()
-   */
-  @Override
-  public String toString() {
-    return this.commandName;
   }
 }

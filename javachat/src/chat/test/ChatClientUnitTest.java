@@ -35,7 +35,7 @@ class ChatClientUnitTest {
       if (getClass() != obj.getClass())
         return false;
       ChatCommand other = (ChatCommand) obj;
-      if (this.getCommand() == other.getCommand() && this.getPayload().equals(other.getPayload())
+      if (this.getCommandName() == other.getCommandName() && this.getPayload().equals(other.getPayload())
           && this.getMessage().equals(other.getMessage()))
         return true;
       return false;

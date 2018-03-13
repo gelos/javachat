@@ -113,7 +113,7 @@ public class ChatHandler extends WorkerThread {
          * System.out.println((!isSessionOpened.get()));
          */
 
-        if (!isSessionOpened.get() && chatCommand.getCommand() != CommandName.CMDENTER) {
+        if (!isSessionOpened.get() && chatCommand.getCommandName() != CommandName.CMDENTER) {
           // TODO log command and ignore it
           /*
            * System.out.println("ChatHandler.run() ignoring " + chatCommand);
@@ -123,7 +123,7 @@ public class ChatHandler extends WorkerThread {
           continue;
         }
 
-        switch (chatCommand.getCommand()) {
+        switch (chatCommand.getCommandName()) {
 
           case CMDERR:
             // TODO complete
@@ -215,7 +215,7 @@ public class ChatHandler extends WorkerThread {
 
                 String message =
                     currentTime + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();
-                new ChatCommand(chatCommand.getCommand(), message).send(chatHandler.outputStream);
+                new ChatCommand(chatCommand.getCommandName(), message).send(chatHandler.outputStream);
               }
             }
 

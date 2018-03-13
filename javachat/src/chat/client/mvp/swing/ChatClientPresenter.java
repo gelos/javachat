@@ -163,7 +163,7 @@ public class ChatClientPresenter implements Presenter {
   @Override
   public void sendMessage(String message) {
     ChatCommand command = new ChatCommand(message);
-    switch (command.getCommand()) {
+    switch (command.getCommandName()) {
       case CMDENTER:
       case CMDEXIT:
         command.send(outputStream);
@@ -198,7 +198,7 @@ public class ChatClientPresenter implements Presenter {
 
           System.out.println("ChatClientPresenter.MessageHandler.run()" + chatCommand);
 
-          switch (chatCommand.getCommand()) {
+          switch (chatCommand.getCommandName()) {
 
             case CMDERR:
               // TODO complete

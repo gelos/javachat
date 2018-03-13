@@ -42,7 +42,7 @@ public class ChatServer {
   private CopyOnWriteArrayList<ChatHandler> chatHandlers;
 
   /** The chat client communication thread. */
-  private ChatClientCommunicationThreadClass chatClientCommunicationThread;
+  private ClientCommunicationThreadClass clientCommunicationThread;
 
   /** The process console input thread. */
   private ProcessConsoleInputThreadClass processConsoleInputThread;
@@ -113,15 +113,15 @@ public class ChatServer {
     System.out.println("Connection socket on port " + port + " created.");
 
     // Start thread to process chat client communications
-    chatClientCommunicationThread = new ChatClientCommunicationThreadClass();
-    chatClientCommunicationThread.start();
+    clientCommunicationThread = new ClientCommunicationThreadClass();
+    clientCommunicationThread.start();
 
     // Start thread to process console command input
     processConsoleInputThread = new ProcessConsoleInputThreadClass();
     processConsoleInputThread.start();
 
     // Check that both thread successfully running
-    if (chatClientCommunicationThread.isRuning() && processConsoleInputThread.isRuning()) {
+    if (clientCommunicationThread.isRuning() && processConsoleInputThread.isRuning()) {
 
       // support to close, using the command line.
       System.out.println("Type stop in console to shutdown server.");
@@ -159,13 +159,13 @@ public class ChatServer {
 
       System.out.println("Stopping server thread...");
 
-      if (chatClientCommunicationThread != null) {
+      if (clientCommunicationThread != null) {
         // Try to stop thread, set running flag to false
-        chatClientCommunicationThread.stop();
+        clientCommunicationThread.stop();
       }
 
       if (serverSocket != null) {
-        // Close server socket to release blocking on while circle in chatClientCommunicationThread
+        // Close server socket to release blocking on while circle in clientCommunicationThread
         // on serverSocket.accept(). Throw SocketException and stop thread.
         serverSocket.close();
         serverSocket = null;
@@ -207,7 +207,7 @@ public class ChatServer {
   }
 
   /** The distinct thread to process chat client connections. */
-  private class ChatClientCommunicationThreadClass extends WorkerThread {
+  private class ClientCommunicationThreadClass extends WorkerThread {
 
     @Override
     public void run() {

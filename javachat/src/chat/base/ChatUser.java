@@ -1,18 +1,17 @@
 package chat.base;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class Chat User. 
+ * The User Name class for store chat user information. 
  */
 public class ChatUser {
 
-  /** The username. */
+  /** The user name. */
   private String username;
 
   /**
    * Instantiates a new chat user.
    *
-   * @param username the username
+   * @param username the user name String
    */
   public ChatUser(String username) {
     this.username = username;
@@ -21,7 +20,7 @@ public class ChatUser {
   /**
    * Gets the username.
    *
-   * @return the username
+   * @return the user name String
    */
   public String getUsername() {
     return username;

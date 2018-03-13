@@ -3,14 +3,14 @@ package chat.base;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * The Class WorkerThread. Class with implemented basic thread methods.
+ * The Class with implemented basic thread methods.
  */
 public class WorkerThread implements Runnable {
 
   /** The worker. */
   private Thread worker;
 
-  /** The running. */
+  /** The running flag. */
   private AtomicBoolean running;
 
   /**
@@ -21,9 +21,9 @@ public class WorkerThread implements Runnable {
   }
 
   /**
-   * Checks if is runing.
+   * Checks if is running.
    *
-   * @return true, if is runing
+   * @return true, if is running
    */
   public boolean isRuning() {
     return running.get();

@@ -1,6 +1,7 @@
 package chat.client.mvp.swing;
 
 import javax.swing.SwingUtilities;
+import chat.base.ChatClientPresenter;
 
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
@@ -30,7 +31,7 @@ public class ChatClientSwing {
           
           // Show main window
           mainWindow.setVisible(true);
-          presenter.onClientStart();
+          presenter.onViewStart();
 
         } catch (Exception e) {
           e.printStackTrace();

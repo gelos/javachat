@@ -10,9 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import chat.client.mvp.swing.ChatClientPresenter;
+import chat.base.ChatClientPresenter;
+import chat.base.View;
 import chat.client.mvp.swing.ChatClientViewSwing;
-import chat.client.mvp.swing.View;
 import chat.server.ChatServer;
 import mockit.Capturing;
 import mockit.Expectations;
@@ -197,7 +197,7 @@ class ChatClientIntegrationTest {
         assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
 
         String message; // check for welcome user message
-        chatClientView1.onReceiveMsg(message = withCapture());
+        chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME1 + " " + LOGIN_MSG));
       }
     };
@@ -226,9 +226,9 @@ class ChatClientIntegrationTest {
         assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
 
         String message;
-        chatClientView1.onReceiveMsg(message = withCapture());
+        chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + " " + LOGIN_MSG));
-        chatClientView2.onReceiveMsg(message = withCapture());
+        chatClientView2.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + " " + LOGIN_MSG));
       }
     };
@@ -238,9 +238,9 @@ class ChatClientIntegrationTest {
     new Verifications() {
       {
         String message;
-        chatClientView1.onReceiveMsg(message = withCapture());
+        chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
-        chatClientView2.onReceiveMsg(message = withCapture());
+        chatClientView2.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
       }
     };
@@ -250,9 +250,9 @@ class ChatClientIntegrationTest {
     new Verifications() {
       {
         String message;
-        chatClientView1.onReceiveMsg(message = withCapture());
+        chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
-        chatClientView2.onReceiveMsg(message = withCapture());
+        chatClientView2.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
       }
     };
@@ -265,7 +265,7 @@ class ChatClientIntegrationTest {
       assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
 
       String message; // check for welcome user message
-      chatClientView2.onReceiveMsg(message = withCapture());
+      chatClientView2.onReceiveMessage(message = withCapture());
       assertTrue(message.contains(CLIENT_NAME1 + " " + LOGOUT_MSG));
 
     }};

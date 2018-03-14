@@ -1,4 +1,4 @@
-package chat.client.mvp.swing;
+package chat.base;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -9,9 +9,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import chat.base.ChatCommand;
-import chat.base.CommandName;
-import chat.base.WorkerThread;
 import chat.server.ChatServer;
 
 /**
@@ -22,20 +19,28 @@ public class ChatClientPresenter implements Presenter {
   /** The Constant _GREETING_MESSAGE. */
   private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
 
+  /** The Constant MSG_EMPTY_USRENAME. */
   private final static String MSG_EMPTY_USRENAME = "Username cannot be empty.";
 
+  /** The Constant MSG_CANT_CON_SRV. */
   private final static String MSG_CANT_CON_SRV = "Can't connect to server " + ChatServer.SERVER_IP
       + ":" + ChatServer.SERVER_PORT + ". Server not started.";
 
+  /** The Constant DEFAULT_WINDOW_NAME. */
+  private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
+
+  /** The Constant TIMEOUT_SESSION_OPEN. */
   private final static int TIMEOUT_SESSION_OPEN = 3;
 
+  /** The view. */
   private View view;
 
   /** The sever socket. */
   private Socket serverSocket = null;
 
-  // private MessageHandler messageHandler = null;
-  private MessageHandler messageHandler = null;
+  /** The message handler. */
+  // private CommandHandler commandHandler = null;
+  private CommandHandler commandHandler = null;
 
   /** The out stream. */
   private ObjectOutputStream outputStream = null;
@@ -43,13 +48,24 @@ public class ChatClientPresenter implements Presenter {
   /** The in stream. */
   private ObjectInputStream inputStream = null;
 
+  /** The is session opened flag. */
   private AtomicBoolean isSessionOpened;
 
-  private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
-
+  /**
+   * Instantiates a new chat client presenter.
+   */
   public ChatClientPresenter() {
     isSessionOpened = new AtomicBoolean(false);
   }
+
+  /**
+   * Print greeting message to enter field.
+   */
+  public void onViewStart() {
+    getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
+    getView().onReceiveMessage(MSG_ASK_FOR_USERNAME);
+  }
+  
 
   /**
    * Connect to chat server. Open socket, prepare input/output streams, create new thread to data
@@ -58,11 +74,12 @@ public class ChatClientPresenter implements Presenter {
    * @param username the user name
    */
   @Override
-  public boolean openConnection(String username) {
+  public void openConnection(String username) {
 
+    getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
     isSessionOpened.set(false);
 
-    boolean res = false;
+    // boolean res = false;
     try {
 
       // try to open server connection
@@ -74,12 +91,12 @@ public class ChatClientPresenter implements Presenter {
     } catch (UnknownHostException uhe) {
 
       System.out.println(uhe.getMessage());
-      return res;
+      // return res;
 
     } catch (IOException ioe) {
 
       System.out.println(ioe.getMessage());
-      return res;
+      // return res;
 
     }
 
@@ -91,8 +108,8 @@ public class ChatClientPresenter implements Presenter {
       inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
 
       // start message handler
-      messageHandler = new MessageHandler();
-      messageHandler.start();
+      commandHandler = new CommandHandler();
+      commandHandler.start();
 
     } catch (IOException e1) {
       // TODO Auto-generated catch block
@@ -115,27 +132,32 @@ public class ChatClientPresenter implements Presenter {
       // do that we must do in View on session open
       getView().onConnectionOpened(username);
 
-      res = true;
+      // res = true;
 
     } else {
-
+      getView().onConnectionClosed(DEFAULT_WINDOW_NAME);
       // stop message handler
-      messageHandler.stop();
+      commandHandler.stop();
       String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
           + ". Check server, try again or increase open session timeout.";
       System.out.println(msg);
       getView().showErrorWindow(msg, "Open session timeout.");
-      getView().onConnectionClosed(DEFAULT_WINDOW_NAME);
+     
     }
 
-    return res;
+    // return res;
 
   }
 
 
+  /**
+   * @see chat.client.mvp.swing.Presenter#closeConnection()
+   */
   @Override
   public void closeConnection() {
 
+    getView().onConnectionClosing(DEFAULT_WINDOW_NAME);
+    
     System.out.println("Closing client...");
 
     System.out.println("Send exit command and close connection");
@@ -153,24 +175,26 @@ public class ChatClientPresenter implements Presenter {
     }
 
     // stop message handler thread
-    if ((messageHandler != null) && (messageHandler.isRuning())) {
-      messageHandler.stop();
+    if ((commandHandler != null) && (commandHandler.isRuning())) {
+      commandHandler.stop();
     }
 
     System.out.println("Client stopped.");
+    getView().onConnectionClosed(DEFAULT_WINDOW_NAME);
   }
 
+  /**
+   * @see chat.client.mvp.swing.Presenter#sendMessage(java.lang.String)
+   */
   @Override
   public void sendMessage(String message) {
     ChatCommand command = new ChatCommand(message);
     switch (command.getCommandName()) {
       case CMDENTER:
       case CMDEXIT:
-        command.send(outputStream);
-        break;
       case CMDMSG:
         command.send(outputStream);
-        getView().onSendMsg(command.getMessage());
+        getView().onSendMessage();
         break;
       default:
         getView().showWarningWindow(command.getMessage(), "Command not supported");
@@ -178,61 +202,70 @@ public class ChatClientPresenter implements Presenter {
     }
   }
 
-  /*@Override
-  public void sendPrvMsg(String message, String userList) {
+  /**
+   * @see chat.client.mvp.swing.Presenter#sendPrivateMessage(java.lang.String, java.lang.String)
+   */
+  @Override
+  public void sendPrivateMessage(String message, String userList) {
     new ChatCommand(CommandName.CMDPRVMSG, message, userList).send(outputStream);
-    getView().onSendMsg(message);
-  }*/
+    getView().onSendMessage();
+  }
+  
 
-
-  class MessageHandler extends WorkerThread {
-
+  /**
+   * The Class CommandHandler.
+   */
+  class CommandHandler extends WorkerThread {
+  
+    /* (non-Javadoc)
+     * @see chat.base.WorkerThread#run()
+     */
     @Override
     public void run() {
-
+  
       // TODO Auto-generated method stub
       ChatCommand chatCommand;
       try {
-
+  
         while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
-
-          System.out.println("ChatClientPresenter.MessageHandler.run()" + chatCommand);
-
+  
+          System.out.println("ChatClientPresenter.CommandHandler.run()" + chatCommand);
+  
           switch (chatCommand.getCommandName()) {
-
+  
             case CMDERR:
-              // TODO complete
+              getView().showErrorWindow(chatCommand.getMessage(), "Error");
               break;
-
+  
             case CMDEXIT:
               closeConnection();
               break;
-
+  
             case CMDHLP:
               // TODO complete
               break;
-
+  
             case CMDOK:
               if (chatCommand.getPayload().equals(CommandName.CMDENTER.toString())) {
                 isSessionOpened.set(true);
               }
               break;
-
+  
             case CMDMSG:
             case CMDPRVMSG:
-              getView().onReceiveMsg(chatCommand.getMessage());
+              getView().onReceiveMessage(chatCommand.getMessage());
               break;
-
+  
             case CMDUSRLST:
               // Update userList
               getView().onUpdateChatUserList(chatCommand.getPayload().split(" "));
               break;
-
+  
             default:
               // TODO save unknown commands to log file
               getView().showWarningWindow(chatCommand.toString(), "Unknown command");
           }
-
+  
         }
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
@@ -243,34 +276,21 @@ public class ChatClientPresenter implements Presenter {
     }
   }
 
-  /**
-   * Print greeting message to enter field.
+  /* (non-Javadoc)
+   * @see chat.client.mvp.swing.Presenter#setView(chat.client.mvp.swing.View)
    */
-  public void onClientStart() {
-    getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
-    getView().onReceiveMsg(MSG_ASK_FOR_USERNAME);
-  }
-
-/*  public void stop() {
-    // TODO Auto-generated method stub
-    System.out.println("Closing client...");
-
-    System.out.println("Send exit command");
-    new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
-
-    System.out.println("Stopping message handler thread, closing ServerSocket");
-    closeConnection();
-
-    System.out.println("Client stopped.");
-  }*/
-
   @Override
   public void setView(View view) {
     this.view = view;
-
+  
   }
 
-  public View getView() {
+  /**
+   * Gets the view.
+   *
+   * @return the view
+   */
+  private View getView() {
     if (view == null) {
       throw new IllegalStateException("The view is not set.");
     } else {

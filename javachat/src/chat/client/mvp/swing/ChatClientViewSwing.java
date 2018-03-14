@@ -18,6 +18,8 @@ import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
+import chat.base.Presenter;
+import chat.base.View;
 
 /**
  * The Class ChatClientViewSwing. Realize swing GUI view with chat client logic.
@@ -135,43 +137,43 @@ public class ChatClientViewSwing extends JFrame implements View {
     chatTextField.requestFocusInWindow();
   }
 
-  public Presenter getPresenter() {
-    if (presenter == null) {
-      throw new IllegalStateException("The presenter is not set");
-    } else {
-      return presenter;
-    }
+  @Override
+  public void onConnectionOpening(String title) {
+    chatTextPane.setText("");
+    chatTextField.setText("");
+    // chatTextField.setEditable(true);
+  
+    chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.removeActionListener(openConnectionListenerAction);
+    chatTextField.addActionListener(openConnectionListenerAction);
+  
+    setTitle(title);
+  
   }
 
   @Override
-  public void setPresenter(Presenter presenter) {
-    this.presenter = presenter;
-  }
-
-  // TODO where we must catch exceptions, in view or in presenter?
-  private void showMsgOnChatPane(String message) {
-
-    System.out.println("ChatClientViewSwing.showMsgChatPane(" + message + ")");
-
-    StyledDocument doc = chatTextPane.getStyledDocument();
-    try {
-      if (doc.getLength() == 0) {
-
-        doc.insertString(doc.getLength(), message, null);
-      } else {
-        doc.insertString(doc.getLength(), "\n" + message, null);
-      }
-    } catch (BadLocationException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
-    }
-
-  }
-
-  // @Override
-  private void clearChatPane() {
-    // TODO Auto-generated method stub
+  public void onConnectionOpened(String title) {
     chatTextPane.setText("");
+    chatTextField.setText("");
+    chatTextField.removeActionListener(openConnectionListenerAction);
+    chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.addActionListener(enterKeyListenerAction);
+    setTitle(title);
+  }
+
+  @Override
+  public void onConnectionClosing(String title) {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public void onConnectionClosed(String title) {
+    // TODO Auto-generated method stub
+    chatTextField.removeActionListener(enterKeyListenerAction);
+    chatTextField.removeActionListener(openConnectionListenerAction);
+    chatTextField.addActionListener(openConnectionListenerAction);
+    // chatTextField.setEditable(true);
+    setTitle(title);
   }
 
   @Override
@@ -183,19 +185,42 @@ public class ChatClientViewSwing extends JFrame implements View {
     }
   }
 
-  private void clearChatUserList() {
-    DefaultListModel model = new DefaultListModel();
-    model.clear();
-    chatUserList.setModel(model);
-  }
-
-  private String getEnterTextField() {
-    return chatTextField.getText();
-  }
-
-  private void clearEnterTextField() {
+  @Override
+  public void onSendMessage() {
     // TODO Auto-generated method stub
     chatTextField.setText("");
+  }
+
+  @Override
+  public void onReceiveMessage(String message) {
+    // TODO Auto-generated method stub
+    System.out.println("ChatClientViewSwing.showMsgChatPane(" + message + ")");
+    
+    StyledDocument doc = chatTextPane.getStyledDocument();
+    try {
+      if (doc.getLength() == 0) {
+    
+        doc.insertString(doc.getLength(), message, null);
+      } else {
+        doc.insertString(doc.getLength(), "\n" + message, null);
+      }
+    } catch (BadLocationException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+  }
+
+  private Presenter getPresenter() {
+    if (presenter == null) {
+      throw new IllegalStateException("The presenter is not set");
+    } else {
+      return presenter;
+    }
+  }
+
+  @Override
+  public void setPresenter(Presenter presenter) {
+    this.presenter = presenter;
   }
 
   @Override
@@ -222,54 +247,5 @@ public class ChatClientViewSwing extends JFrame implements View {
     JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
   }
 
-  @Override
-  public void onConnectionOpened(String title) {
-    chatTextPane.setText("");
-    chatTextField.setText("");
-    chatTextField.removeActionListener(openConnectionListenerAction);
-    chatTextField.removeActionListener(enterKeyListenerAction);
-    chatTextField.addActionListener(enterKeyListenerAction);
-    setTitle(title);
-  }
-
-  @Override
-  public void onConnectionClosed(String title) {
-    // TODO Auto-generated method stub
-    chatTextField.removeActionListener(enterKeyListenerAction);
-    chatTextField.removeActionListener(openConnectionListenerAction);
-    chatTextField.addActionListener(openConnectionListenerAction);
-    // chatTextField.setEditable(true);
-    setTitle(title);
-  }
-
-  @Override
-  public void onConnectionOpening(String title) {
-    chatTextPane.setText("");
-    chatTextField.setText("");
-    // chatTextField.setEditable(true);
-
-    chatTextField.removeActionListener(enterKeyListenerAction);
-    chatTextField.removeActionListener(openConnectionListenerAction);
-    chatTextField.addActionListener(openConnectionListenerAction);
-
-    setTitle(title);
-
-  }
-
-  @Override
-  public void onConnectionClosing(String title) {
-    // TODO Auto-generated method stub
-  }
-
-  @Override
-  public void onSendMsg(String message) {
-    clearEnterTextField();
-  }
-
-  @Override
-  public void onReceiveMsg(String message) {
-    // TODO Auto-generated method stub
-    showMsgOnChatPane(message);
-  }
 
 }

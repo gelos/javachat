@@ -162,6 +162,11 @@ public class ChatClientPresenter implements Presenter {
 
     System.out.println("Send exit command and close connection");
 
+    // stop message handler thread BEFORE closing server socket and associated streams
+    if ((commandHandler != null) && (commandHandler.isRuning())) {
+      commandHandler.stop();
+    }
+    
     if (serverSocket != null && serverSocket.isConnected()) {
       // send to server exit command
       new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
@@ -172,11 +177,6 @@ public class ChatClientPresenter implements Presenter {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
-    }
-
-    // stop message handler thread
-    if ((commandHandler != null) && (commandHandler.isRuning())) {
-      commandHandler.stop();
     }
 
     System.out.println("Client stopped.");

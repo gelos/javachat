@@ -1,6 +1,3 @@
-/*
- * 
- */
 package chat.server;
 
 import java.io.BufferedInputStream;
@@ -10,7 +7,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -25,8 +21,8 @@ import chat.base.WorkerThread;
 
 // TODO: Auto-generated Javadoc
 /**
- * Implements server side part of chat application. Handle input/output streams of client socket
- * connection. Maintain handler storage.
+ * Implements server side part of chat application. Handle input/output streams of client
+ * connection. Maintain handler storage and user lists.
  * 
  * @see ChatServer
  */
@@ -36,45 +32,33 @@ public class ChatHandler extends WorkerThread {
   private static final String NAME_ERR_MSG =
       "Client connection failed. Username already exists or wrong.";
 
+  /** The Constant WLC_USR_MSG. */
   private static final String WLC_USR_MSG = "login";
 
+  /** The Constant EXT_USR_MSG. */
   private static final String EXT_USR_MSG = "logout";
 
   /** The client socket. */
   private Socket clientSocket;
 
-  /** The Buffer to cache client input stream. */
   private ObjectInputStream inputStream = null;
 
-  /** The outputStream. */
   private ObjectOutputStream outputStream = null;
 
-  /** The client session handlerStorage storage. */
-  // private CopyOnWriteArrayList<ChatHandler> handlerStorage = new
-  // CopyOnWriteArrayList<ChatHandler>();
+  /** The client session handler storage. */
   private CopyOnWriteArrayList<ChatHandler> handlerStorage;
 
   /** The chat user. */
   private ChatUser chatUser;
 
-  /*
-   * public final String getChatUserName() { return chatUser.getUsername(); }
-   */
-
+  /** The is session opened flag. */
   private AtomicBoolean isSessionOpened;
 
-  /**
-   * Instantiates a new chat handler.
-   *
-   * @param clientSocket the client socket
-   * @param handlerStorage the handlerStorage storage
-   */
-  public ChatHandler(Socket s, CopyOnWriteArrayList<ChatHandler> handlers) {
-    this.clientSocket = s;
-    this.handlerStorage = handlers;
+  public ChatHandler(Socket clientSocket, CopyOnWriteArrayList<ChatHandler> handlerStorage) {
+    this.clientSocket = clientSocket;
+    this.handlerStorage = handlerStorage;
     this.isSessionOpened = new AtomicBoolean(false);
   }
-
 
   /**
    * Override {@link java.lang.Thread#run run()} method Run while open current socket input stream.
@@ -91,7 +75,7 @@ public class ChatHandler extends WorkerThread {
 
     try {
 
-      // Prepare and use input and output client socket flows
+      // Prepare and use input and output client socket streams
       inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
@@ -102,16 +86,10 @@ public class ChatHandler extends WorkerThread {
 
       ChatCommand chatCommand;
 
-      // Read all strings from current client socket input
+      // Read commands from current client socket input until handler running
       while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
-        String currentTime =
-            LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-        /*
-         * System.out.println("ChatHandler.run() " + chatCommand);
-         * System.out.println((!isSessionOpened.get()));
-         */
+        //String currentTime = getCurrentDateTime();
 
         if (!isSessionOpened.get() && chatCommand.getCommandName() != CommandName.CMDENTER) {
           // TODO log command and ignore it
@@ -126,34 +104,13 @@ public class ChatHandler extends WorkerThread {
         switch (chatCommand.getCommandName()) {
 
           case CMDERR:
-            // TODO complete
+            System.out.println(chatUser.getUsername() + ": error: " + chatCommand.getMessage());
+            // TODO save to log
             break;
 
           case CMDEXIT:
 
-            // Remove this handler from handlerStorage storage
-            // handlerStorage.remove(this);
-
-            // Send to all users usrlst command
-
-            HashSet<ChatHandler> excludeChatHandler = new HashSet<>();
-            excludeChatHandler.add(this);
-            sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()),
-                excludeChatHandler);
-
-            // sendToAllChatClients(
-            // new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
-
-            // Send to all exit message
-
-            sendToAllChatClients(
-                new ChatCommand(CommandName.CMDMSG,
-                    currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG),
-                excludeChatHandler);
-
-            //sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
-            //    currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
-
+            // stopping current thread (set isRuning() to false)
             stop();
             break;
 
@@ -179,7 +136,7 @@ public class ChatHandler extends WorkerThread {
 
               // Send to all welcome message
               sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
-                  currentTime + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
+                  getCurrentDateTime() + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
 
               System.out.println("Open chat session for user " + userName);
 
@@ -214,8 +171,9 @@ public class ChatHandler extends WorkerThread {
                   || (set.size() > 0 && set.contains(chatHandler.chatUser.getUsername()))) {
 
                 String message =
-                    currentTime + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();
-                new ChatCommand(chatCommand.getCommandName(), message).send(chatHandler.outputStream);
+                    getCurrentDateTime() + " " + chatUser.getUsername() + ": " + chatCommand.getMessage();
+                new ChatCommand(chatCommand.getCommandName(), message)
+                    .send(chatHandler.outputStream);
               }
             }
 
@@ -239,72 +197,72 @@ public class ChatHandler extends WorkerThread {
       // Remove this handler from handlerStorage storage
       handlerStorage.remove(this);
 
+      // Send to all users except current updated usrlst command
+      /*
+       * HashSet<ChatHandler> excludeChatHandler = new HashSet<>(); excludeChatHandler.add(this);
+       * sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()),
+       * excludeChatHandler);
+       */
+
+      sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
+
+      // Send to all exit message
+
+      /*sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+          currentTime + " " + chatUser.getUsername() + " " + EXT_USR_MSG), excludeChatHandler);*/
+
+      sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+       getCurrentDateTime() + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
+
       // dispose User object
       chatUser = null;
 
-      closeInputStream();
-      closeOutputStream();
-      closeSocket();
+      // close client socket and associated streams
+      if (clientSocket != null) {
+        try {
+          clientSocket.close();
+          clientSocket = null;
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
 
     }
   }
 
-  private void sendToAllChatClients(ChatCommand command, Set<ChatHandler> excludeChatHandlerList) {
+
+  private String getCurrentDateTime() {
+    String currentTime =
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    return currentTime;
+  }
+
+  /**
+   * Send to all chat clients.
+   *
+   * @param command the command
+   * @param excludeChatHandlerList the exclude chat handler list
+   */
+  /*private void sendToAllChatClients(ChatCommand command, Set<ChatHandler> excludeChatHandlerList) {
     for (ChatHandler chatHandler : handlerStorage) {
       if (!excludeChatHandlerList.contains(chatHandler)) {
         command.send(chatHandler.outputStream);
       }
     }
-  }
+  }*/
 
+  /**
+   * Send to all chat clients.
+   *
+   * @param command the command
+   */
   private void sendToAllChatClients(ChatCommand command) {
     for (ChatHandler chatHandler : handlerStorage) {
       command.send(chatHandler.outputStream);
     }
   }
 
-
-  private boolean closeInputStream() {
-    boolean res = true;
-    if (inputStream != null) {
-      try {
-        inputStream.close();
-        inputStream = null;
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-        res = false;
-      }
-    }
-    return res;
-  }
-
-  private void closeOutputStream() {
-    if (outputStream != null) {
-      try {
-        outputStream.close();
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-      outputStream = null;
-    }
-  }
-
-  private boolean closeSocket() {
-    boolean res = true;
-    if (clientSocket != null) {
-      try {
-        clientSocket.close();
-        clientSocket = null;
-      } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-        res = false;
-      }
-    }
-    return res;
-  }
 
   /**
    * Return the all chat user names in one string. Used in {@link CommandParser#CMD_USRLST usrlst}
@@ -327,13 +285,6 @@ public class ChatHandler extends WorkerThread {
     }
     return res.trim();
   }
-
-  /*
-   * private void sendExitCmdToClient(ChatHandler chatHandler) { new
-   * ChatCommand(CommandName.CMDEXIT, "");
-   * 
-   * }
-   */
 
 }
 

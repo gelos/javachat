@@ -16,13 +16,13 @@ import chat.client.mvp.swing.ChatClientViewSwing;
 import chat.server.ChatServer;
 import mockit.Capturing;
 import mockit.Expectations;
+import mockit.FullVerifications;
 import mockit.Mocked;
 import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
   private ChatServer chatServer;
-  // private ChatClientPresenter chatClientPresenter;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -37,21 +37,13 @@ class ChatClientIntegrationTest {
       timeout++;
     }
 
-    // create client
-    // chatClientPresenter = new ChatClientPresenter();
-
   }
 
   @AfterEach
   void tearDown() throws Exception {
 
-    // stop client
-    // chatClientPresenter.closeConnection();
-    // chatClientPresenter = null;
-
     // stop server
     chatServer.stop();
-    // chatServer = null;
 
   }
 
@@ -148,7 +140,7 @@ class ChatClientIntegrationTest {
   }
 
   @Test
-  @DisplayName("Testing send messages between two clients.")
+  @DisplayName("Test for sending messages between two clients.")
   void sendMessageTwoClientsTest(@Mocked View chatClientView1, @Mocked View chatClientView2) throws Throwable {
 
     // TODO test names with spaces
@@ -185,9 +177,11 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }*/
 
-    new Verifications() {
+    new FullVerifications() {
       { // check for normal session opening command sequence for client 1
 
+        chatClientView1.onConnectionOpening(anyString);
+        
         String username; // check onConnectionOpened after ok command received
         chatClientView1.onConnectionOpened(username = withCapture());
         assertTrue(username.equalsIgnoreCase(CLIENT_NAME1));
@@ -211,8 +205,10 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }*/
 
-    new Verifications() {
+    new FullVerifications() {
       {
+        chatClientView2.onConnectionOpening(anyString);
+        
         String username;
         chatClientView2.onConnectionOpened(username = withCapture());
         assertTrue(username.equalsIgnoreCase(CLIENT_NAME2));
@@ -235,8 +231,10 @@ class ChatClientIntegrationTest {
 
     // send message from client1
     chatClientPresenter1.sendMessage(MSG1);
-    new Verifications() {
+    new FullVerifications() {
       {
+        chatClientView1.onSendMessage();
+        
         String message;
         chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
@@ -247,8 +245,10 @@ class ChatClientIntegrationTest {
 
     // send message from client2
     chatClientPresenter2.sendMessage(MSG2);
-    new Verifications() {
+    new FullVerifications() {
       {
+        chatClientView2.onSendMessage();
+        
         String message;
         chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
@@ -259,7 +259,10 @@ class ChatClientIntegrationTest {
 
     chatClientPresenter1.closeConnection();
 
-    new Verifications() {{
+    new FullVerifications() {{
+      chatClientView1.onConnectionClosing(anyString);
+      chatClientView1.onConnectionClosed(anyString);
+      
       String[] usrList; // check for user list update
       chatClientView2.onUpdateChatUserList(usrList = withCapture());
       assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
@@ -272,6 +275,11 @@ class ChatClientIntegrationTest {
     
     chatClientPresenter2.closeConnection();
 
+    new FullVerifications() {{
+      chatClientView2.onConnectionClosing(anyString);
+      chatClientView2.onConnectionClosed(anyString);
+    }};
+    
 /*    try {
       TimeUnit.SECONDS.sleep(3);
     } catch (InterruptedException e) {

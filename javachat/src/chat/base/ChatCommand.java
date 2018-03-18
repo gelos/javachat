@@ -5,8 +5,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 /**
- * The Class Chat Command to communicate between clients and chat server. Used serialization for
- * transfer command object on network.
+ * The Class Chat Command. Commands to communicate between clients and chat server. Used
+ * serialization for transfer command object on network.
  */
 public class ChatCommand implements Serializable {
 

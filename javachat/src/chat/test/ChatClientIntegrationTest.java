@@ -144,6 +144,7 @@ class ChatClientIntegrationTest {
   void sendMessageTwoClientsTest(@Mocked View chatClientView1, @Mocked View chatClientView2) throws Throwable {
 
     // TODO test names with spaces
+    // TODO test opening session in already opened session
 
     //final int SRV_TIMEOUT = 1;
     final String CLIENT_NAME1 = "client1";

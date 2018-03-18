@@ -11,40 +11,46 @@ public interface View {
    * @param title the title
    */
   void onConnectionOpening(String title);
-  
+
   /**
    * On connection opened.
    *
    * @param title the title
    */
   void onConnectionOpened(String title);
-  
+
   /**
    * On connection closing.
    *
    * @param title the title
    */
-  void onConnectionClosing(String title);  
-  
+  void onConnectionClosing(String title);
+
   /**
    * On connection closed.
    *
    * @param title the title
    */
-  void onConnectionClosed(String title); 
-  
+  void onConnectionClosed(String title);
+
   /**
    * On update chat user list.
    *
    * @param userList the user list
    */
   void onUpdateChatUserList(String[] userList);
-  
+
   /**
    * On send message.
    */
   public void onSendMessage();
-  
+
+
+  /**
+   * On view close.
+   */
+ // public void onViewClose();
+
   /**
    * On receive message.
    *

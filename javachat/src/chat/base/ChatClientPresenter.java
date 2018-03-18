@@ -59,11 +59,12 @@ public class ChatClientPresenter implements Presenter {
   }
 
   /**
-   * Print greeting message to enter field.
+   * Refresh View to start new session.
    */
   public void onViewStart() {
-    getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
-    getView().onReceiveMessage(MSG_ASK_FOR_USERNAME);
+    getView().onConnectionOpening(DEFAULT_WINDOW_NAME); // prepare new connection
+    getView().onUpdateChatUserList(new String[0]); // clear user list
+    getView().onReceiveMessage(MSG_ASK_FOR_USERNAME); // ask for username
   }
   
 
@@ -190,8 +191,11 @@ public class ChatClientPresenter implements Presenter {
   public void sendMessage(String message) {
     ChatCommand command = new ChatCommand(message);
     switch (command.getCommandName()) {
-      case CMDENTER:
       case CMDEXIT:
+        closeConnection();
+        onViewStart();
+        break;
+      case CMDENTER:
       case CMDMSG:
         command.send(outputStream);
         getView().onSendMessage();

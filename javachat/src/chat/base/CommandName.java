@@ -32,8 +32,8 @@ public enum CommandName implements Serializable {
   CMDENTER("/enter"),
 
   /**
-   * The command to update user list on client View, payload is a string of the user names with
-   * space character delimiter. Initiated by server, processed by client.
+   * The command to update user list on client View. Payload is a string of the user names with
+   * {@link CMDDLM} as delimiter. Initiated by server, processed by client.
    */
   CMDUSRLST("/usrlst"),
 
@@ -41,14 +41,18 @@ public enum CommandName implements Serializable {
    * The command to send private chat messages. Initiated by client, processed by server. Payload
    * list of message recipients.
    */
+  // TODO complete
   CMDPRVMSG("/prvmsg"),
 
-  /** The command to send chat messages. Initiated by client, processed by server. */
+  /**
+   * The command to send chat messages. Initiated by client, processed by server. Message contain
+   * chat message, payload is empty.
+   */
   CMDMSG("/msg"),
 
   /**
    * The error command, using if something going wrong. Example client or server receive unknown
-   * command. Initiated by client or server.
+   * command. Initiated by client or server, message contains error message.
    */
   CMDERR("/err"),
 
@@ -85,7 +89,7 @@ public enum CommandName implements Serializable {
   }
 
   /**
-   *  
+   * 
    *
    * @return the string
    * @see java.lang.Enum#toString()

@@ -22,7 +22,7 @@ import chat.base.Presenter;
 import chat.base.View;
 
 /**
- * The Class ChatClientViewSwing. Realize swing GUI view with chat client logic.
+ * The Class ChatClientViewSwing. Realize swing GUI view.
  */
 public class ChatClientViewSwing extends JFrame implements View {
 
@@ -222,6 +222,19 @@ public class ChatClientViewSwing extends JFrame implements View {
   public void setPresenter(Presenter presenter) {
     this.presenter = presenter;
   }
+
+  
+/*  @Override
+  public void dispose() {
+      onViewClose();
+      super.dispose();
+  }
+  
+  @Override
+  public void onViewClose() {
+    getPresenter().closeConnection();
+  }*/
+  
 
   @Override
   public void showMessageWindow(Object message, String title) {

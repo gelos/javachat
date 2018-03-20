@@ -19,8 +19,14 @@ import java.util.Map;
  */
 public enum CommandName implements Serializable {
 
-  /** The space character as command delimiter. */
+  /** The space character as delimiter of command parts in string command representation. */
   CMDDLM(" "),
+
+  /**
+   * The single quote character (') as delimiter of recipient user list in {@link CMDPRVMSG} from over command
+   * parts in string command representation.
+   */
+  CMDUDLM("\'"),
 
   /** The command to close chat session. Initiated by client or server. */
   CMDEXIT("/exit"),
@@ -41,7 +47,6 @@ public enum CommandName implements Serializable {
    * The command to send private chat messages. Initiated by client, processed by server. Payload
    * list of message recipients.
    */
-  // TODO complete
   CMDPRVMSG("/prvmsg"),
 
   /**
@@ -79,7 +84,7 @@ public enum CommandName implements Serializable {
   }
 
   /**
-   * Reverse lookup. Return CommandName by its string name.
+   * Reverse lookup. Return {@link CommandName} by string name.
    *
    * @param key the command name string
    * @return the command name or null if command not found

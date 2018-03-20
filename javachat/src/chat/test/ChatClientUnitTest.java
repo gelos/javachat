@@ -35,7 +35,8 @@ class ChatClientUnitTest {
       if (getClass() != obj.getClass())
         return false;
       ChatCommand other = (ChatCommand) obj;
-      if (this.getCommandName() == other.getCommandName() && this.getPayload().equals(other.getPayload())
+      if (this.getCommandName() == other.getCommandName()
+          && this.getPayload().equals(other.getPayload())
           && this.getMessage().equals(other.getMessage()))
         return true;
       return false;
@@ -51,11 +52,20 @@ class ChatClientUnitTest {
 
   static Stream<Arguments> chatCommandProvider() {
     return Stream.of(
+
+        // WRONG message tests
+
         Arguments.of(new ChatCommandCompare(CommandName.CMDERR, ""), new ChatCommandCompare("")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /usrlst test1 test2 "),
             new ChatCommandCompare("  /usrlst test1 test2 ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /prvMSG 'test1 test2 "),
+            new ChatCommandCompare("  /prvMSG 'test1 test2 ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /prvMSG 'test1' "),
+            new ChatCommandCompare("  /prvMSG 'test1' ")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /err test1 test2 ", ""),
             new ChatCommandCompare("  /err test1 test2 ")),
+
+        // MSG command tests
 
         Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, " "), new ChatCommandCompare(" ")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "  "),
@@ -69,6 +79,8 @@ class ChatClientUnitTest {
         Arguments.of(new ChatCommandCompare(CommandName.CMDMSG, "  1/string1  string2  /enter  "),
             new ChatCommandCompare("  /msg   1/string1  string2  /enter  ")),
 
+        // ENTER command test
+
         Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
             new ChatCommandCompare("/enTer")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, ""),
@@ -80,6 +92,8 @@ class ChatClientUnitTest {
         Arguments.of(new ChatCommandCompare(CommandName.CMDENTER, "", " oLeg "),
             new ChatCommandCompare(" /enTer  oLeg ")),
 
+        // EXIT command tests
+
         Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
             new ChatCommandCompare("/eXIT")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
@@ -87,7 +101,19 @@ class ChatClientUnitTest {
         Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, ""),
             new ChatCommandCompare(" /eXIT ")),
         Arguments.of(new ChatCommandCompare(CommandName.CMDEXIT, "", "  Test "),
-            new ChatCommandCompare(" /eXIT   Test ")));
+            new ChatCommandCompare(" /eXIT   Test ")),
+
+        // PRVMSG command tests
+
+        Arguments.of(
+            new ChatCommandCompare(CommandName.CMDPRVMSG, " mesaage 2 + message три   ",
+                "user11 user1013"),
+            new ChatCommandCompare("  /prvMsg ' user11  user1013 '  mesaage 2 + message три   ")),
+        Arguments.of(
+            new ChatCommandCompare(CommandName.CMDPRVMSG, " mesaage 2 + message три   ",
+                "user11 user1013 test"),
+            new ChatCommandCompare("  /prvMsg ' user11  user1013 test'  mesaage 2 + message три   ")));
+
   }
 
 }

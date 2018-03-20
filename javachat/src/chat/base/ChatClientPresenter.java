@@ -66,7 +66,7 @@ public class ChatClientPresenter implements Presenter {
     getView().onUpdateChatUserList(new String[0]); // clear user list
     getView().onReceiveMessage(MSG_ASK_FOR_USERNAME); // ask for username
   }
-  
+
 
   /**
    * Connect to chat server. Open socket, prepare input/output streams, create new thread to data
@@ -143,7 +143,7 @@ public class ChatClientPresenter implements Presenter {
           + ". Check server, try again or increase open session timeout.";
       System.out.println(msg);
       getView().showErrorWindow(msg, "Open session timeout.");
-     
+
     }
 
     // return res;
@@ -158,7 +158,7 @@ public class ChatClientPresenter implements Presenter {
   public void closeConnection() {
 
     getView().onConnectionClosing(DEFAULT_WINDOW_NAME);
-    
+
     System.out.println("Closing client...");
 
     System.out.println("Send exit command and close connection");
@@ -167,7 +167,7 @@ public class ChatClientPresenter implements Presenter {
     if ((commandHandler != null) && (commandHandler.isRuning())) {
       commandHandler.stop();
     }
-    
+
     if (serverSocket != null && serverSocket.isConnected()) {
       // send to server exit command
       new ChatCommand(CommandName.CMDEXIT, "").send(outputStream);
@@ -185,6 +185,12 @@ public class ChatClientPresenter implements Presenter {
   }
 
   /**
+   * Processes client console input messages as chat command. Supported commands:
+   * <li>{@link CommandName#CMDENTER}
+   * <li>{@link CommandName#CMDEXIT}
+   * <li>{@link CommandName#CMDMSG}
+   * <li>{@link CommandName#CMDPRVMSG}
+   * 
    * @see chat.client.mvp.swing.Presenter#sendMessage(java.lang.String)
    */
   @Override
@@ -195,13 +201,20 @@ public class ChatClientPresenter implements Presenter {
         closeConnection();
         onViewStart();
         break;
+      case CMDPRVMSG:
       case CMDENTER:
       case CMDMSG:
         command.send(outputStream);
         getView().onSendMessage();
         break;
+      case CMDERR:
+        getView().showErrorWindow(
+            "Wrong format or command \"" + command.getMessage() + "\" not supported.", "Error");
+        getView().onSendMessage();
+        break;
       default:
-        getView().showWarningWindow(command.getMessage(), "Command not supported");
+        new ChatCommand(CommandName.CMDMSG, message).send(outputStream);
+        getView().onSendMessage();
         break;
     }
   }
@@ -214,62 +227,64 @@ public class ChatClientPresenter implements Presenter {
     new ChatCommand(CommandName.CMDPRVMSG, message, userList).send(outputStream);
     getView().onSendMessage();
   }
-  
+
 
   /**
    * The Class CommandHandler.
    */
   class CommandHandler extends WorkerThread {
-  
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     * 
      * @see chat.base.WorkerThread#run()
      */
     @Override
     public void run() {
-  
+
       // TODO Auto-generated method stub
       ChatCommand chatCommand;
       try {
-  
+
         while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
-  
+
           System.out.println("ChatClientPresenter.CommandHandler.run()" + chatCommand);
-  
+
           switch (chatCommand.getCommandName()) {
-  
+
             case CMDERR:
               getView().showErrorWindow(chatCommand.getMessage(), "Error");
               break;
-  
+
             case CMDEXIT:
               closeConnection();
               break;
-  
+
             case CMDHLP:
               // TODO complete
               break;
-  
+
             case CMDOK:
               if (chatCommand.getPayload().equals(CommandName.CMDENTER.toString())) {
                 isSessionOpened.set(true);
               }
               break;
-  
+
             case CMDMSG:
             case CMDPRVMSG:
               getView().onReceiveMessage(chatCommand.getMessage());
               break;
-  
+
             case CMDUSRLST:
               // Update userList
               getView().onUpdateChatUserList(chatCommand.getPayload().split(" "));
               break;
-  
+
             default:
               // TODO save unknown commands to log file
               getView().showWarningWindow(chatCommand.toString(), "Unknown command");
           }
-  
+
         }
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
@@ -280,13 +295,15 @@ public class ChatClientPresenter implements Presenter {
     }
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see chat.client.mvp.swing.Presenter#setView(chat.client.mvp.swing.View)
    */
   @Override
   public void setView(View view) {
     this.view = view;
-  
+
   }
 
   /**

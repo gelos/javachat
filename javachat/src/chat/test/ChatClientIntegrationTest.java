@@ -141,12 +141,13 @@ class ChatClientIntegrationTest {
 
   @Test
   @DisplayName("Test for sending messages between two clients.")
-  void sendMessageTwoClientsTest(@Mocked View chatClientView1, @Mocked View chatClientView2) throws Throwable {
+  void sendMessageTwoClientsTest(@Mocked View chatClientView1, @Mocked View chatClientView2)
+      throws Throwable {
 
     // TODO test names with spaces
     // TODO test opening session in already opened session
 
-    //final int SRV_TIMEOUT = 1;
+    // final int SRV_TIMEOUT = 1;
     final String CLIENT_NAME1 = "client1";
     final String CLIENT_NAME2 = "client2";
     final String MSG1 = "hello 1";
@@ -172,17 +173,16 @@ class ChatClientIntegrationTest {
     chatClientPresenter1.openConnection(CLIENT_NAME1);
 
     // wait timeout for server processing
-    /*try {
-      TimeUnit.SECONDS.sleep(SRV_TIMEOUT);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }*/
+    /*
+     * try { TimeUnit.SECONDS.sleep(SRV_TIMEOUT); } catch (InterruptedException e) {
+     * e.printStackTrace(); }
+     */
 
     new FullVerifications() {
       { // check for normal session opening command sequence for client 1
 
         chatClientView1.onConnectionOpening(anyString);
-        
+
         String username; // check onConnectionOpened after ok command received
         chatClientView1.onConnectionOpened(username = withCapture());
         assertTrue(username.equalsIgnoreCase(CLIENT_NAME1));
@@ -200,16 +200,15 @@ class ChatClientIntegrationTest {
     // connect client 2 and check normal command sequence for client1 and client2
     chatClientPresenter2.openConnection(CLIENT_NAME2);
 
- /*   try {
-      TimeUnit.SECONDS.sleep(SRV_TIMEOUT);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }*/
+    /*
+     * try { TimeUnit.SECONDS.sleep(SRV_TIMEOUT); } catch (InterruptedException e) {
+     * e.printStackTrace(); }
+     */
 
     new FullVerifications() {
       {
         chatClientView2.onConnectionOpening(anyString);
-        
+
         String username;
         chatClientView2.onConnectionOpened(username = withCapture());
         assertTrue(username.equalsIgnoreCase(CLIENT_NAME2));
@@ -230,12 +229,20 @@ class ChatClientIntegrationTest {
       }
     };
 
+    try {
+      TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+
     // send message from client1
     chatClientPresenter1.sendMessage(MSG1);
     new FullVerifications() {
       {
         chatClientView1.onSendMessage();
-        
+
         String message;
         chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
@@ -249,7 +256,7 @@ class ChatClientIntegrationTest {
     new FullVerifications() {
       {
         chatClientView2.onSendMessage();
-        
+
         String message;
         chatClientView1.onReceiveMessage(message = withCapture());
         assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
@@ -260,39 +267,40 @@ class ChatClientIntegrationTest {
 
     chatClientPresenter1.closeConnection();
 
-    new FullVerifications() {{
-      chatClientView1.onConnectionClosing(anyString);
-      chatClientView1.onConnectionClosed(anyString);
-      
-      String[] usrList; // check for user list update
-      chatClientView2.onUpdateChatUserList(usrList = withCapture());
-      assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
+    new FullVerifications() {
+      {
+        chatClientView1.onConnectionClosing(anyString);
+        chatClientView1.onConnectionClosed(anyString);
 
-      String message; // check for welcome user message
-      chatClientView2.onReceiveMessage(message = withCapture());
-      assertTrue(message.contains(CLIENT_NAME1 + " " + LOGOUT_MSG));
+        String[] usrList; // check for user list update
+        chatClientView2.onUpdateChatUserList(usrList = withCapture());
+        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
 
-    }};
-    
+        String message; // check for welcome user message
+        chatClientView2.onReceiveMessage(message = withCapture());
+        assertTrue(message.contains(CLIENT_NAME1 + " " + LOGOUT_MSG));
+
+      }
+    };
+
     chatClientPresenter2.closeConnection();
 
-    new FullVerifications() {{
-      chatClientView2.onConnectionClosing(anyString);
-      chatClientView2.onConnectionClosed(anyString);
-    }};
-    
-/*    try {
-      TimeUnit.SECONDS.sleep(3);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-*/
+    new FullVerifications() {
+      {
+        chatClientView2.onConnectionClosing(anyString);
+        chatClientView2.onConnectionClosed(anyString);
+      }
+    };
+
+    /*
+     * try { TimeUnit.SECONDS.sleep(3); } catch (InterruptedException e) { // TODO Auto-generated
+     * catch block e.printStackTrace(); }
+     */
     // if we get other thread exception throw it in current thread
     if (exception.get() != null) {
       throw exception.get();
     }
-    
+
   }
 
 }

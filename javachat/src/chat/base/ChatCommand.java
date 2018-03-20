@@ -1,5 +1,6 @@
 package chat.base;
 
+import static chat.base.CommandName.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -32,27 +33,32 @@ public class ChatCommand implements Serializable {
   }
 
   /**
-   * Instantiates a new chat command, parsed from message. Default command type is MSG, also parse
-   * ENTER and EXIT. If message empty or command not MSG, ENTER or EXIT when return ERR command.
+   * Instantiates a new chat command, parsed from command string. Command parsed:
+   * <li>{@link CommandName#CMDMSG}
+   * <li>{@link CommandName#CMDENTER}
+   * <li>{@link CommandName#CMDEXIT}
+   * <li>{@link CommandName#CMDPRVMSG}
+   * <p>
+   * If message empty or command not in list return {@link CommandName#CMDERR} command.
    *
-   * @param message the message
+   * @param commandString the command string
    */
-  public ChatCommand(String message) {
+  public ChatCommand(String commandString) {
 
     // left trim, lowercase string and split by first left space in two piece
     String[] strArrayLowerCase =
-        message.replaceAll("^\\s+", "").toLowerCase().split(CommandName.CMDDLM.toString(), 2);
+        commandString.replaceAll("^\\s+", "").toLowerCase().split(CMDDLM.toString(), 2);
 
     // left trim string and split by first left space in two piece
-    String[] strArray = message.replaceAll("^\\s+", "").split(CommandName.CMDDLM.toString(), 2);
+    String[] strArray = commandString.replaceAll("^\\s+", "").split(CMDDLM.toString(), 2);
 
-    // try to resolve first piece of string as valid command tag
+    // try to resolve first piece of string as valid command tag, return null if can't
     CommandName command = CommandName.get(strArrayLowerCase[0]);
     String payload = "";
 
-    if (command == null) {
+    if (command == null) { // string can't resolved to command
 
-      if (message.length() != 0) {
+      if (commandString.length() != 0) {
         command = CommandName.CMDMSG;
       } else {
         command = CommandName.CMDERR;
@@ -61,17 +67,51 @@ public class ChatCommand implements Serializable {
     } else {
       switch (command) {
 
+        // save payload for ENTER and EXIT commands
         case CMDENTER:
         case CMDEXIT:
-          message = "";
+          commandString = "";
           if (strArray.length > 1) {
             payload = strArray[1];
           }
           break;
 
+        // save message for MSG command
         case CMDMSG:
           if (strArrayLowerCase.length > 1) {
-            message = strArray[1];
+            commandString = strArray[1];
+          }
+          break;
+
+        case CMDPRVMSG: // process /PRVMSG DLM UDLM username list UDLM DLM message
+                        // where username list used DLM to separate usernames
+                        // else return error command
+          strArray = commandString.split(CMDUDLM.toString(), 3);
+          if (strArray.length > 2 && (strArray[2].length() > CMDDLM.toString().length())) {
+
+            // remove if necessary first CMDDLM in command string
+            if (strArray[2].substring(0, CMDDLM.toString().length())
+                .equalsIgnoreCase(CMDDLM.toString())) {
+              commandString = strArray[2].substring(CMDDLM.toString().length()); // get private
+                                                                                 // message
+            } else {
+              commandString = strArray[2]; // get private message
+            }
+
+            payload = strArray[1].trim(); // get recipient username list
+
+            // remove duplicated continuous CMDDLM
+            strArray = payload.split(CMDDLM.toString());
+            payload = "";
+            for (String string : strArray) {
+              if (!string.isEmpty()) {
+                payload += (payload.length() == 0) ? string : CMDDLM.toString() + string;
+              }
+            }
+
+
+          } else {
+            command = CommandName.CMDERR;
           }
           break;
 
@@ -82,7 +122,7 @@ public class ChatCommand implements Serializable {
     }
 
     this.commandName = command;
-    this.message = message;
+    this.message = commandString;
     this.payload = payload;
   }
 

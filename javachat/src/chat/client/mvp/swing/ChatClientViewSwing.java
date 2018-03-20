@@ -187,7 +187,6 @@ public class ChatClientViewSwing extends JFrame implements View {
 
   @Override
   public void onSendMessage() {
-    // TODO Auto-generated method stub
     chatTextField.setText("");
   }
 

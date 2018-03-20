@@ -3,6 +3,7 @@ package chat.server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import chat.base.WorkerThread;
@@ -32,7 +33,8 @@ public class ChatServer {
   private Socket clientSocket;
 
   /** The client session handlers thread-safe storage. */
-  private CopyOnWriteArrayList<ChatHandler> chatHandlers;
+  //private CopyOnWriteArrayList<ChatHandler> chatHandlers;
+  private ConcurrentHashMap<String, ChatHandler> chatHandlers;
 
   /** The chat client communication thread. */
   private ProcessChatHandlerThreadClass processChatHandlerThread;
@@ -75,7 +77,8 @@ public class ChatServer {
     System.out.println("Chat server starting...");
 
     // initialize client session handlers storage
-    chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
+    //chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
+    chatHandlers = new ConcurrentHashMap<String, ChatHandler>();
 
     // initialize server socket with port
     try {
@@ -178,7 +181,10 @@ public class ChatServer {
 
       if (chatHandlers != null) {
         // stop all ChatHadnlers
-        for (ChatHandler chatHandler : chatHandlers) {
+        /*for (ChatHandler chatHandler : chatHandlers) {
+          chatHandler.stop();
+        }*/
+        for (ChatHandler chatHandler : chatHandlers.values()) {
           chatHandler.stop();
         }
       }

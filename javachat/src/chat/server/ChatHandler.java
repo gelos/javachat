@@ -1,5 +1,6 @@
 package chat.server;
 
+import static chat.base.CommandName.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import chat.base.ChatCommand;
@@ -47,7 +49,8 @@ public class ChatHandler extends WorkerThread {
   private ObjectOutputStream outputStream = null;
 
   /** The client session handler storage. */
-  private CopyOnWriteArrayList<ChatHandler> handlerStorage;
+  // private CopyOnWriteArrayList<ChatHandler> handlerStorage;
+  private ConcurrentHashMap<String, ChatHandler> handlerStorage;
 
   /** The chat user. */
   private ChatUser chatUser = null;
@@ -59,11 +62,11 @@ public class ChatHandler extends WorkerThread {
    * Instantiates a new chat handler.
    *
    * @param clientSocket the client socket
-   * @param handlerStorage the handler storage
+   * @param chatHandlers the handler storage
    */
-  public ChatHandler(Socket clientSocket, CopyOnWriteArrayList<ChatHandler> handlerStorage) {
+  public ChatHandler(Socket clientSocket, ConcurrentHashMap<String, ChatHandler> chatHandlers) {
     this.clientSocket = clientSocket;
-    this.handlerStorage = handlerStorage;
+    this.handlerStorage = chatHandlers;
     this.isSessionOpened = new AtomicBoolean(false);
   }
 
@@ -79,7 +82,7 @@ public class ChatHandler extends WorkerThread {
   public void run() {
 
     // add current handler to handler storage
-    handlerStorage.add(this);
+    // handlerStorage.add(this);
 
     try {
 
@@ -99,7 +102,7 @@ public class ChatHandler extends WorkerThread {
       while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
         // ignore all command except CMDENTER while session not opened
-        if (!isSessionOpened.get() && chatCommand.getCommandName() != CommandName.CMDENTER) {
+        if (!isSessionOpened.get() && chatCommand.getCommandName() != CMDENTER) {
           // TODO log command and ignore it
           continue;
         }
@@ -117,12 +120,18 @@ public class ChatHandler extends WorkerThread {
             break;
 
           case CMDENTER:
-            // TODO check for username uniquely
 
             // get username
             String userName = chatCommand.getPayload();
 
+            // TODO check for username uniquely
+
             if (!userName.isEmpty()) { // check for empty username
+
+              // add current handler to handler storage and now we can communicate with other chat
+              // clients
+              // using user name as a key
+              handlerStorage.put(userName, this);
 
               isSessionOpened.set(true); // set flag that current session is opened
 
@@ -130,17 +139,15 @@ public class ChatHandler extends WorkerThread {
               chatUser = new ChatUser(userName);
 
               // send ok enter command to confirm session opening
-              new ChatCommand(CommandName.CMDOK, "", CommandName.CMDENTER.toString())
-                  .send(outputStream);
+              new ChatCommand(CMDOK, "", CMDENTER.toString()).send(outputStream);
 
               // TODO what if isSessionOpened set to true but we cant send ok enter command to
               // client
               // send to all users usrlst command
-              sendToAllChatClients(
-                  new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
+              sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()));
 
               // send to all welcome message
-              sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+              sendToAllChatClients(new ChatCommand(CMDMSG,
                   getCurrentDateTime() + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
 
               // print to server console
@@ -149,7 +156,7 @@ public class ChatHandler extends WorkerThread {
             } else {
 
               // if username is empty send err to client and print to console
-              new ChatCommand(CommandName.CMDERR, NAME_ERR_MSG).send(outputStream);
+              new ChatCommand(CMDERR, NAME_ERR_MSG).send(outputStream);
               System.out.println(NAME_ERR_MSG);
             }
             break;
@@ -161,36 +168,45 @@ public class ChatHandler extends WorkerThread {
           case CMDMSG:
           case CMDPRVMSG:
 
-            // TODO complete send PRVMSG
+
             // get user list from payload
-            // String[] usrList = chatCommand.getPayload().split(" ", 1);
-
             String[] usrList = new String[0];
-
             if (!chatCommand.getPayload().isEmpty()) {
-              usrList = chatCommand.getPayload().split(" ", 1);
+              usrList = chatCommand.getPayload().split(CMDDLM.toString(), 1);
             }
-            Set<String> set = new HashSet<String>(Arrays.asList(usrList));
+            Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
-            // Write pre-read string to all clients output using handler storage
-            for (ChatHandler chatHandler : handlerStorage) {
-              if ((set.size() == 0) // send message to all user or only to users in private
-                                    // message user list
-                  || (set.size() > 0 && set.contains(chatHandler.chatUser.getUsername()))) {
+            // prepare message
+            String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
+                + chatCommand.getMessage();
 
-                String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
-                    + chatCommand.getMessage();
-                new ChatCommand(chatCommand.getCommandName(), message)
-                    .send(chatHandler.outputStream);
+            if (usrSet.size() == 0) { // send message to all clients
+              sendToAllChatClients(new ChatCommand(CMDMSG, message));
+            } else { // send only for recipient user list
+              for (String username : usrSet) {
+
               }
             }
+
+            /*
+             * // send private message for (ChatHandler chatHandler : handlerStorage) { if
+             * ((usrSet.size() == 0) // send message to all user or only to users in private //
+             * message user list || (usrSet.size() > 0 &&
+             * usrSet.contains(chatHandler.chatUser.getUsername()))) {
+             * 
+             * String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": " +
+             * chatCommand.getMessage(); new ChatCommand(chatCommand.getCommandName(), message)
+             * .send(chatHandler.outputStream); } else { // username not found print message to
+             * server console System.out.println("Command \"" + chatCommand.toString() +
+             * "\". Username " + chatHandler.chatUser.getUsername() + " not found"); } }
+             */
             break;
 
           default:
             // TODO write unknown command to log file;
             // send client unknown command error message and print to console
             String errMessage = "Unknown command " + chatCommand.toString();
-            new ChatCommand(CommandName.CMDERR, errMessage).send(outputStream);
+            new ChatCommand(CMDERR, errMessage).send(outputStream);
             System.out.println(errMessage);
         }
       }
@@ -203,23 +219,26 @@ public class ChatHandler extends WorkerThread {
     } catch (ClassNotFoundException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    
+
     } finally {
 
       // remove this handler from handlerStorage storage to prevent receiving messages
-      handlerStorage.remove(this);
-
-      // print console message about closing connection 
+      //handlerStorage.remove(this);
+      if (chatUser != null) {
+        handlerStorage.remove(chatUser.getUsername());  
+      }
+      
+      // print console message about closing connection
       String msg = (chatUser != null) ? " from " + chatUser.getUsername() : "";
       System.out.println(msg);
-      
-      // send message to all available clients that current user logout 
-      sendToAllChatClients(new ChatCommand(CommandName.CMDMSG,
+
+      // send message to all available clients that current user logout
+      sendToAllChatClients(new ChatCommand(CMDMSG,
           getCurrentDateTime() + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
 
       // update user list on available clients
-      sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()));
-      
+      sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()));
+
       // dispose User object
       chatUser = null;
 
@@ -254,7 +273,7 @@ public class ChatHandler extends WorkerThread {
    * @param command the command to send
    */
   private void sendToAllChatClients(ChatCommand command) {
-    for (ChatHandler chatHandler : handlerStorage) {
+    for (ChatHandler chatHandler : handlerStorage.values()) {
       command.send(chatHandler.outputStream);
     }
   }
@@ -266,14 +285,16 @@ public class ChatHandler extends WorkerThread {
    * @return the string of user names
    */
   private String getUserNamesInString() {
+    
+    // TODO refactor to return key set from hashmap
     String res = "";
     String username = "";
 
-    for (ChatHandler chatHandler : handlerStorage) {
+    for (ChatHandler chatHandler : handlerStorage.values()) {
       // if we can't get chatUser object ignore it
       if ((chatHandler.chatUser != null)
           && (username = chatHandler.chatUser.getUsername()) != null) {
-        res += (res.length() == 0) ? username : CommandName.CMDDLM + username;
+        res += (res.length() == 0) ? username : CMDDLM + username;
       }
     }
     return res;
@@ -283,15 +304,15 @@ public class ChatHandler extends WorkerThread {
   // Send to all users except current updated usrlst command
   /*
    * HashSet<ChatHandler> excludeChatHandler = new HashSet<>(); excludeChatHandler.add(this);
-   * sendToAllChatClients(new ChatCommand(CommandName.CMDUSRLST, "", getUserNamesInString()),
+   * sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()),
    * excludeChatHandler);
    */
 
   // Send to all exit message
 
   /*
-   * sendToAllChatClients(new ChatCommand(CommandName.CMDMSG, currentTime + " " +
-   * chatUser.getUsername() + " " + EXT_USR_MSG), excludeChatHandler);
+   * sendToAllChatClients(new ChatCommand(CMDMSG, currentTime + " " + chatUser.getUsername() + " " +
+   * EXT_USR_MSG), excludeChatHandler);
    */
 
   /**

@@ -41,89 +41,125 @@ public class ChatCommand implements Serializable {
    * <p>
    * If message empty or command not in list return {@link CommandName#CMDERR} command.
    *
-   * @param commandString the command string
+   * @param messageSubString the command string
    */
   public ChatCommand(String commandString) {
 
-    // left trim, lowercase string and split by first left space in two piece
-    String[] strArrayLowerCase =
-        commandString.replaceAll("^\\s+", "").toLowerCase().split(CMDDLM.toString(), 2);
+    // Initialize variables with their default values
+    CommandName commandName = (commandString.length() == 0) ? CMDERR : CMDMSG;
+    // String commandSubString = "";
 
-    // left trim string and split by first left space in two piece
+    String payloadSubString = "";
+
+    // left trim, lower case string and split by first left space in two piece
+    // String[] strArrayLowerCase =
+    // commandString.replaceAll("^\\s+", "").toLowerCase().split(CMDDLM.toString(), 2);
+
+    // Left trim string and split by first left space in two piece by CMDDLM
     String[] strArray = commandString.replaceAll("^\\s+", "").split(CMDDLM.toString(), 2);
 
-    // try to resolve first piece of string as valid command tag, return null if can't
-    CommandName command = CommandName.get(strArrayLowerCase[0]);
-    String payload = "";
+    // Try to resolve first piece of string as valid command tag ignoring letter case, return null
+    // if can't
+    String commandSubString = strArray[0].toLowerCase();
+    commandName = CommandName.get(commandSubString);
 
-    if (command == null) { // string can't resolved to command
+    String messageSubString = (strArray.length > 1) ? strArray[1] : "";
+    /*
+     * if (strArray.length > 1) { messageSubString = strArray[1]; }
+     */
 
+    // If first sub string can't resolved to command
+    if (commandName == null) {
+
+      messageSubString = commandString;
+      // And command string not empty, try it as CMDMSG
       if (commandString.length() != 0) {
-        command = CommandName.CMDMSG;
+        commandName = CommandName.CMDMSG;
       } else {
-        command = CommandName.CMDERR;
+        commandName = CommandName.CMDERR;
       }
 
     } else {
-      switch (command) {
+      switch (commandName) {
 
-        // save payload for ENTER and EXIT commands
+        // Save payload for ENTER and EXIT commands
         case CMDENTER:
         case CMDEXIT:
-          commandString = "";
-          if (strArray.length > 1) {
-            payload = strArray[1];
-          }
+          // messageSubString = "";
+          /*
+           * if (strArray.length > 1) { payloadSubString = strArray[1]; }
+           */
+          payloadSubString = messageSubString;
+          messageSubString = "";
           break;
 
-        // save message for MSG command
+        // Save message for MSG command
         case CMDMSG:
-          if (strArrayLowerCase.length > 1) {
-            commandString = strArray[1];
-          }
+          /*
+           * if (strArray.length > 1) { commandString = strArray[1]; }
+           */
           break;
 
         case CMDPRVMSG: // process /PRVMSG DLM UDLM username list UDLM DLM message
                         // where username list used DLM to separate usernames
                         // else return error command
-          strArray = commandString.split(CMDUDLM.toString(), 3);
-          if (strArray.length > 2 && (strArray[2].length() > CMDDLM.toString().length())) {
 
-            // remove if necessary first CMDDLM in command string
+          // Split message to three parts: empty, username list and message by CMDUDLM
+          // strArray = commandString.trim().split(CMDUDLM.toString(), 3);
+
+          // strArray = messageSubString.trim().split(CMDUDLM.toString(), 3);
+
+          // Left trim string and split message to three parts: empty, username list and message by
+          // CMDUDLM
+          strArray = messageSubString.replaceAll("^\\s+", "").split(CMDUDLM.toString(), 3);
+
+
+
+          // Check that we split minimum on three parts, first part empty (see format) and user
+          // name list not empty
+          if (strArray.length > 2 && (strArray[2].length() > CMDDLM.toString().length())
+              && strArray[0].isEmpty()) {
+
+            // Remove if necessary first CMDDLM in command string
             if (strArray[2].substring(0, CMDDLM.toString().length())
                 .equalsIgnoreCase(CMDDLM.toString())) {
-              commandString = strArray[2].substring(CMDDLM.toString().length()); // get private
-                                                                                 // message
+              messageSubString = strArray[2].substring(CMDDLM.toString().length()); // get private
+              // message
             } else {
-              commandString = strArray[2]; // get private message
+              messageSubString = strArray[2]; // get private message
             }
 
-            payload = strArray[1].trim(); // get recipient username list
+            payloadSubString = strArray[1].trim(); // get recipient username list
 
             // remove duplicated continuous CMDDLM
-            strArray = payload.split(CMDDLM.toString());
-            payload = "";
+            strArray = payloadSubString.split(CMDDLM.toString());
+            payloadSubString = "";
             for (String string : strArray) {
               if (!string.isEmpty()) {
-                payload += (payload.length() == 0) ? string : CMDDLM.toString() + string;
+                payloadSubString +=
+                    (payloadSubString.length() == 0) ? string : CMDDLM.toString() + string;
               }
             }
 
 
           } else {
-            command = CommandName.CMDERR;
+            // Generate error command and with original command string in messages field
+            commandName = CommandName.CMDERR;
+            messageSubString = commandString;
           }
           break;
 
         default:
-          command = CommandName.CMDERR;
+          // Generate error command and with original command string in messages field
+          commandName = CommandName.CMDERR;
+          messageSubString = commandString;
           break;
       }
     }
 
-    this.commandName = command;
-    this.message = commandString;
-    this.payload = payload;
+    this.commandName = commandName;
+    this.message = messageSubString;
+    this.payload = payloadSubString;
   }
 
 

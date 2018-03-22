@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,8 @@ public class ChatHandler extends WorkerThread {
   /** The Constant NAME_ERR_MSG. */
   private static final String NAME_ERR_MSG =
       "Client connection failed. Username already exists or wrong.";
+
+  private static final String USR_NOT_FOUND_ERR_MSG = "User(s) not found. Username list: ";
 
   /** The Constant WLC_USR_MSG. */
   private static final String WLC_USR_MSG = "login";
@@ -168,24 +171,50 @@ public class ChatHandler extends WorkerThread {
           case CMDMSG:
           case CMDPRVMSG:
 
-
-            // get user list from payload
+            // Get user list from payload
             String[] usrList = new String[0];
             if (!chatCommand.getPayload().isEmpty()) {
               usrList = chatCommand.getPayload().split(CMDDLM.toString(), 1);
             }
             Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
-            // prepare message
+            // Prepare message
             String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
                 + chatCommand.getMessage();
 
-            if (usrSet.size() == 0) { // send message to all clients
+            // IF private message recipient list is empty, send message to all clients
+            if (usrSet.size() == 0) {
               sendToAllChatClients(new ChatCommand(CMDMSG, message));
-            } else { // send only for recipient user list
-              for (String username : usrSet) {
 
+              // Send only for recipient user list
+            } else {
+
+              // Create storage for not founded user names
+              ArrayList<String> notFoundUserList = new ArrayList<String>();
+
+              // Send message to users in list
+              for (String key : usrSet) {
+
+                // Search chatHandler by chat user name string
+                ChatHandler chatHandler = handlerStorage.get(key);
+
+                // If found send message
+                if (chatHandler != null) {
+                  new ChatCommand(CMDMSG, message).send(chatHandler.outputStream);;
+
+                  // If not found, add to list
+                } else {
+                  notFoundUserList.add(key);
+                }
               }
+
+              // If not found user list not empty, send error message back to client
+              if (!notFoundUserList.isEmpty()) {
+                String errMessage =
+                    notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\t");
+                new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
+              }
+
             }
 
             /*
@@ -223,11 +252,11 @@ public class ChatHandler extends WorkerThread {
     } finally {
 
       // remove this handler from handlerStorage storage to prevent receiving messages
-      //handlerStorage.remove(this);
+      // handlerStorage.remove(this);
       if (chatUser != null) {
-        handlerStorage.remove(chatUser.getUsername());  
+        handlerStorage.remove(chatUser.getUsername());
       }
-      
+
       // print console message about closing connection
       String msg = (chatUser != null) ? " from " + chatUser.getUsername() : "";
       System.out.println(msg);
@@ -285,7 +314,7 @@ public class ChatHandler extends WorkerThread {
    * @return the string of user names
    */
   private String getUserNamesInString() {
-    
+
     // TODO refactor to return key set from hashmap
     String res = "";
     String username = "";

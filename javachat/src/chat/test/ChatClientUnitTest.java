@@ -112,7 +112,15 @@ class ChatClientUnitTest {
         Arguments.of(
             new ChatCommandCompare(CommandName.CMDPRVMSG, " mesaage 2 + message три   ",
                 "user11 user1013 test"),
-            new ChatCommandCompare("  /prvMsg ' user11  user1013 test'  mesaage 2 + message три   ")));
+            new ChatCommandCompare(
+                "  /prvMsg ' user11  user1013 test'  mesaage 2 + message три   ")),
+        Arguments.of(new ChatCommandCompare(CommandName.CMDERR, "  /prvMsg '' "),
+            new ChatCommandCompare("  /prvMsg '' ")),
+        Arguments.of(
+            new ChatCommandCompare(CommandName.CMDERR,
+                "  /prvMsg ehvberuvberuyv '' user11  user1013 test'  mesaage 2 + message три   "),
+            new ChatCommandCompare(
+                "  /prvMsg ehvberuvberuyv '' user11  user1013 test'  mesaage 2 + message три   ")));
 
   }
 

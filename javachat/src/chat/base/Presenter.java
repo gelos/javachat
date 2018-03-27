@@ -39,4 +39,10 @@ public interface Presenter {
    */
   void setView(View view);
 
+  /**
+   * Gets the view.
+   *
+   * @return the view
+   */
+  View getView();
 }

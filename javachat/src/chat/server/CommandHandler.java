@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import chat.base.WorkerThread;
  * 
  * @see ChatServer
  */
-public class ChatHandler extends WorkerThread {
+public class CommandHandler extends WorkerThread {
 
   /** The Constant NAME_ERR_MSG. */
   private static final String NAME_ERR_MSG =
@@ -52,8 +53,8 @@ public class ChatHandler extends WorkerThread {
   private ObjectOutputStream outputStream = null;
 
   /** The client session handler storage. */
-  // private CopyOnWriteArrayList<ChatHandler> handlerStorage;
-  private ConcurrentHashMap<String, ChatHandler> handlerStorage;
+  // private CopyOnWriteArrayList<CommandHandler> handlerStorage;
+  private ConcurrentHashMap<String, CommandHandler> handlerStorage;
 
   /** The chat user. */
   private ChatUser chatUser = null;
@@ -65,11 +66,11 @@ public class ChatHandler extends WorkerThread {
    * Instantiates a new chat handler.
    *
    * @param clientSocket the client socket
-   * @param chatHandlers the handler storage
+   * @param commandHandlers the handler storage
    */
-  public ChatHandler(Socket clientSocket, ConcurrentHashMap<String, ChatHandler> chatHandlers) {
+  public CommandHandler(Socket clientSocket, ConcurrentHashMap<String, CommandHandler> commandHandlers) {
     this.clientSocket = clientSocket;
-    this.handlerStorage = chatHandlers;
+    this.handlerStorage = commandHandlers;
     this.isSessionOpened = new AtomicBoolean(false);
   }
 
@@ -119,7 +120,7 @@ public class ChatHandler extends WorkerThread {
             break;
 
           case CMDEXIT:
-            stop(); // stop current ChatHandler thread (set isRuning() to false)
+            stop(); // stop current CommandHandler thread (set isRuning() to false)
             break;
 
           case CMDENTER:
@@ -174,10 +175,13 @@ public class ChatHandler extends WorkerThread {
             // Get user list from payload
             String[] usrList = new String[0];
             if (!chatCommand.getPayload().isEmpty()) {
-              usrList = chatCommand.getPayload().split(CMDDLM.toString(), 1);
+              usrList = chatCommand.getPayload().split(CMDULDLM.toString());
             }
+            
             Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
+            System.out.println(usrSet.toString());
+            
             // Prepare message
             String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
                 + chatCommand.getMessage();
@@ -196,11 +200,11 @@ public class ChatHandler extends WorkerThread {
               for (String key : usrSet) {
 
                 // Search chatHandler by chat user name string
-                ChatHandler chatHandler = handlerStorage.get(key);
+                CommandHandler commandHandler = handlerStorage.get(key);
 
                 // If found send message
-                if (chatHandler != null) {
-                  new ChatCommand(CMDMSG, message).send(chatHandler.outputStream);;
+                if (commandHandler != null) {
+                  new ChatCommand(CMDMSG, message).send(commandHandler.outputStream);;
 
                   // If not found, add to list
                 } else {
@@ -218,7 +222,7 @@ public class ChatHandler extends WorkerThread {
             }
 
             /*
-             * // send private message for (ChatHandler chatHandler : handlerStorage) { if
+             * // send private message for (CommandHandler chatHandler : handlerStorage) { if
              * ((usrSet.size() == 0) // send message to all user or only to users in private //
              * message user list || (usrSet.size() > 0 &&
              * usrSet.contains(chatHandler.chatUser.getUsername()))) {
@@ -302,8 +306,8 @@ public class ChatHandler extends WorkerThread {
    * @param command the command to send
    */
   private void sendToAllChatClients(ChatCommand command) {
-    for (ChatHandler chatHandler : handlerStorage.values()) {
-      command.send(chatHandler.outputStream);
+    for (CommandHandler commandHandler : handlerStorage.values()) {
+      command.send(commandHandler.outputStream);
     }
   }
 
@@ -319,10 +323,10 @@ public class ChatHandler extends WorkerThread {
     String res = "";
     String username = "";
 
-    for (ChatHandler chatHandler : handlerStorage.values()) {
+    for (CommandHandler commandHandler : handlerStorage.values()) {
       // if we can't get chatUser object ignore it
-      if ((chatHandler.chatUser != null)
-          && (username = chatHandler.chatUser.getUsername()) != null) {
+      if ((commandHandler.chatUser != null)
+          && (username = commandHandler.chatUser.getUsername()) != null) {
         res += (res.length() == 0) ? username : CMDDLM + username;
       }
     }
@@ -332,7 +336,7 @@ public class ChatHandler extends WorkerThread {
 
   // Send to all users except current updated usrlst command
   /*
-   * HashSet<ChatHandler> excludeChatHandler = new HashSet<>(); excludeChatHandler.add(this);
+   * HashSet<CommandHandler> excludeChatHandler = new HashSet<>(); excludeChatHandler.add(this);
    * sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()),
    * excludeChatHandler);
    */
@@ -351,8 +355,8 @@ public class ChatHandler extends WorkerThread {
    * @param excludeChatHandlerList the exclude chat handler list
    */
   /*
-   * private void sendToAllChatClients(ChatCommand command, Set<ChatHandler> excludeChatHandlerList)
-   * { for (ChatHandler chatHandler : handlerStorage) { if
+   * private void sendToAllChatClients(ChatCommand command, Set<CommandHandler> excludeChatHandlerList)
+   * { for (CommandHandler chatHandler : handlerStorage) { if
    * (!excludeChatHandlerList.contains(chatHandler)) { command.send(chatHandler.outputStream); } } }
    */
 

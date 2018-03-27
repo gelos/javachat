@@ -311,7 +311,7 @@ public class ChatClientPresenter implements Presenter {
    *
    * @return the view
    */
-  private View getView() {
+  public View getView() {
     if (view == null) {
       throw new IllegalStateException("The view is not set.");
     } else {

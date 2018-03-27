@@ -15,7 +15,7 @@ import chat.base.WorkerThread;
  * create new thread as ChartHandler object for every new client connection. Use stop command from
  * console to shutdown server.
  * 
- * @see ChatHandler
+ * @see CommandHandler
  */
 
 public class ChatServer {
@@ -33,8 +33,8 @@ public class ChatServer {
   private Socket clientSocket;
 
   /** The client session handlers thread-safe storage. */
-  //private CopyOnWriteArrayList<ChatHandler> chatHandlers;
-  private ConcurrentHashMap<String, ChatHandler> chatHandlers;
+  //private CopyOnWriteArrayList<CommandHandler> commandHandlers;
+  private ConcurrentHashMap<String, CommandHandler> commandHandlers;
 
   /** The chat client communication thread. */
   private ProcessChatHandlerThreadClass processChatHandlerThread;
@@ -77,8 +77,8 @@ public class ChatServer {
     System.out.println("Chat server starting...");
 
     // initialize client session handlers storage
-    //chatHandlers = new CopyOnWriteArrayList<ChatHandler>();
-    chatHandlers = new ConcurrentHashMap<String, ChatHandler>();
+    //commandHandlers = new CopyOnWriteArrayList<CommandHandler>();
+    commandHandlers = new ConcurrentHashMap<String, CommandHandler>();
 
     // initialize server socket with port
     try {
@@ -179,13 +179,13 @@ public class ChatServer {
 
       System.out.println("Stopping all client handlers...");
 
-      if (chatHandlers != null) {
+      if (commandHandlers != null) {
         // stop all ChatHadnlers
-        /*for (ChatHandler chatHandler : chatHandlers) {
+        /*for (CommandHandler chatHandler : commandHandlers) {
           chatHandler.stop();
         }*/
-        for (ChatHandler chatHandler : chatHandlers.values()) {
-          chatHandler.stop();
+        for (CommandHandler commandHandler : commandHandlers.values()) {
+          commandHandler.stop();
         }
       }
 
@@ -228,8 +228,8 @@ public class ChatServer {
           // accept client connection and return new client socket
           clientSocket = serverSocket.accept();
 
-          // create new ChatHandler with existing client handlers and new client socket as thread
-          new ChatHandler(clientSocket, chatHandlers).start();;
+          // create new CommandHandler with existing client handlers and new client socket as thread
+          new CommandHandler(clientSocket, commandHandlers).start();;
 
         } catch (SocketException e) { // Throws when calling ServerSocket.close
 

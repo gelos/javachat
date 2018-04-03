@@ -180,7 +180,7 @@ public class CommandHandler extends WorkerThread {
             
             Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
-            System.out.println(usrSet.toString());
+            //System.out.println(usrSet.toString());
             
             // Prepare message
             String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "

@@ -31,7 +31,7 @@ public enum CommandName implements Serializable {
   /**
    * The delimiter inside recipient user list in {@link CMDPRVMSG} in string command representation.
    */
-  CMDULDLM(" "),
+  CMDULDLM(","),
 
   /** The command to close chat session. Initiated by client or server. */
   CMDEXIT("/exit"),

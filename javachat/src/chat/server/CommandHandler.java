@@ -35,7 +35,7 @@ public class CommandHandler extends WorkerThread {
   private static final String NAME_ERR_MSG =
       "Client connection failed. Username already exists or wrong.";
 
-  private static final String USR_NOT_FOUND_ERR_MSG = "User(s) not found. Username list: ";
+  public static final String USR_NOT_FOUND_ERR_MSG = "User(s) not found. Username list: ";
 
   /** The Constant WLC_USR_MSG. */
   private static final String WLC_USR_MSG = "login";
@@ -192,6 +192,9 @@ public class CommandHandler extends WorkerThread {
 
               // Send only for recipient user list
             } else {
+              
+              // Add sender to recepient list
+              usrSet.add(chatUser.getUsername());
 
               // Create storage for not founded user names
               ArrayList<String> notFoundUserList = new ArrayList<String>();
@@ -215,7 +218,7 @@ public class CommandHandler extends WorkerThread {
               // If not found user list not empty, send error message back to client
               if (!notFoundUserList.isEmpty()) {
                 String errMessage =
-                    notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\t");
+                    notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ", CMDULDLM.toString());
                 new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
               }
 

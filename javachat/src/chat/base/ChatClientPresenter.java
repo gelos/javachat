@@ -253,6 +253,7 @@ public class ChatClientPresenter implements Presenter {
           switch (chatCommand.getCommandName()) {
 
             case CMDERR:
+              System.out.println("ChatClientPresenter.CommandHandler.run()" + chatCommand.getMessage());
               getView().showErrorWindow(chatCommand.getMessage(), "Error");
               break;
 

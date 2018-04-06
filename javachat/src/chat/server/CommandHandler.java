@@ -196,6 +196,8 @@ public class CommandHandler extends WorkerThread {
               // Add sender to recepient list
               usrSet.add(chatUser.getUsername());
 
+              System.out.println("CommandHandler.run()" + usrSet.toString());
+              
               // Create storage for not founded user names
               ArrayList<String> notFoundUserList = new ArrayList<String>();
 
@@ -219,6 +221,7 @@ public class CommandHandler extends WorkerThread {
               if (!notFoundUserList.isEmpty()) {
                 String errMessage =
                     notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ", CMDULDLM.toString());
+                System.out.println("CommandHandler.run()" + notFoundUserList.toString());
                 new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
               }
 

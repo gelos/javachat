@@ -102,7 +102,15 @@ class SendPrivateMessageIntegrationTest {
 
   }
 
-  @Disabled
+  private String getFullPrivateMessageRecepientList() {
+    String privateMessageRecepientList = "";
+    for (int i = 1; i < MAX_NUMBERS_OF_USERS; i++) {
+      String userName = USER_NAME_PREFIX + i;
+      privateMessageRecepientList += ((i != 1) ? CMDULDLM : "") + userName;
+    }
+    return privateMessageRecepientList;
+  }
+
   @Nested
   @DisplayName("with normal message")
   class Normal {
@@ -112,52 +120,39 @@ class SendPrivateMessageIntegrationTest {
     @Test
     void testNormalMessage() throws InterruptedException {
 
-      // Run test only if number of clients >= 4
       // client 0 send message, clients 1-(n-2) must receive it, client n-1 must not receive
       assumeTrue(MAX_NUMBERS_OF_USERS >= 4, "Client number must be >= 4.");
 
-      String clientListString = "";
-
-      // Create user name recipient list
+      String privateMessageRecepientList = "";
       for (int i = 1; i <= NUMBER_OF_PRIVATE_MSG_RECEPIENTS; i++) {
-        clientListString += (i == 1) ? USER_NAME_PREFIX + i : CMDULDLM + USER_NAME_PREFIX + i;
+        String userName = USER_NAME_PREFIX + i;
+        privateMessageRecepientList += ((i != 1) ? CMDULDLM : "") + userName;
       }
 
-      /*
-       * for (int i = 0; i < chatClients.length; i++) { System.out .println(i + " " + chatClients[i]
-       * + " " + chatClients[i].getView().getClass().getName() + "@" +
-       * Integer.toHexString(System.identityHashCode(chatClients[i].getView()))); }
-       */
-
-      // Send private message from client0 to all clients except last
-      String prvMessageString = "" + CMDPRVMSG + CMDDLM + CMDUDLM + clientListString + CMDUDLM
-          + CMDDLM + MESSAGE_PREFIX + 0;
-      chatClients[0].sendMessage(prvMessageString);
+      String chatMessage = MESSAGE_PREFIX + 0;
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      chatClients[0].sendMessage(privateCommand);
 
       new Verifications() {
         {
-          // Check that client 0 send private message
-          senderView.onSendMessage();
+          chatClients[0].getView().onSendMessage();
           times = 1;
 
-          // Check that recipient client receive it
+          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
-          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + MESSAGE_PREFIX + 0;
 
-          senderView.onReceiveMessage(actualMessage = withCapture());
-          assertTrue(actualMessage.contains(expectedMessage),
-              "Sender must receive private message.");
+          for (int i = 0; i <= NUMBER_OF_PRIVATE_MSG_RECEPIENTS; i++) {
+            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+            assertTrue(actualMessage.contains(expectedMessage),
+                "Clients in recepient list must receive private message.");
+          }
 
-          receiverView1.onReceiveMessage(actualMessage = withCapture());
-          assertTrue(actualMessage.contains(expectedMessage),
-              "Recepients must receive private message.");
-
-          receiverView2.onReceiveMessage(actualMessage = withCapture());
-          assertTrue(actualMessage.contains(expectedMessage),
-              "Recepients must receive private message.");
-
-          // Check that not recipient client not receive it
-          notReceiverView.onReceiveMessage(actualMessage = withCapture());
+          // Checking that last user not received the private message. The statement 'times = 1'
+          // means getting only one welcome login message initiated by sequential clients startup.
+          chatClients[MAX_NUMBERS_OF_USERS - 1].getView()
+              .onReceiveMessage(actualMessage = withCapture());
+          times = 1;
           assertFalse(actualMessage.contains(expectedMessage),
               "Last client must not receive private message.");
 
@@ -166,32 +161,27 @@ class SendPrivateMessageIntegrationTest {
     }
   }
 
-  @Disabled
   @Nested
   @DisplayName("with empty user list")
   class EmptyUserList {
     @Test
     void testEmptyUserList() {
 
-      // Send private message with empty user list
-      String clientListString = "";
-      String prvMessageString = "" + CMDPRVMSG + CMDDLM + CMDUDLM + clientListString + CMDUDLM
-          + CMDDLM + MESSAGE_PREFIX + 0;
-      chatClients[0].sendMessage(prvMessageString);
-
-      System.out.println();
+      String privateMessageRecepientList = "";
+      String chatMessage = MESSAGE_PREFIX + 0;
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      chatClients[0].sendMessage(privateCommand);
 
       new Verifications() {
         {
-          // Check that client 0 send private message
           senderView.onSendMessage();
           times = 1;
 
-          // Check that all clients receive it
+          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
-          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + MESSAGE_PREFIX + 0;
 
-          for (int i = 0; i < chatClients.length; i++) {
+          for (int i = 0; i < MAX_NUMBERS_OF_USERS; i++) {
             chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
             assertTrue(actualMessage.contains(expectedMessage),
                 "All client must receive private message.");
@@ -207,42 +197,40 @@ class SendPrivateMessageIntegrationTest {
     @Test
     void testDuplicateUserNames() {
 
-      String clientListString = "";
+      String privateMessageRecepientList = getFullPrivateMessageRecepientList();
 
-      // Create user name recipient list
-      for (int i = 1; i < chatClients.length; i++) {
-        clientListString += (i == 1) ? USER_NAME_PREFIX + i : CMDULDLM + USER_NAME_PREFIX + i;
-      }
+      String duplicateUser1 = USER_NAME_PREFIX + 1;
+      String duplicateUser3 = USER_NAME_PREFIX + 3;
+      privateMessageRecepientList += CMDULDLM + duplicateUser1 + CMDULDLM + duplicateUser3;
 
-      // Add duplicate username for client 1 nad client 3
-      clientListString += CMDULDLM + USER_NAME_PREFIX + 1 + CMDULDLM + USER_NAME_PREFIX + 3;
-
-      // Send private message from client0 to all clients
-      chatClients[0].sendMessage("" + CMDPRVMSG + CMDDLM + CMDUDLM + clientListString + CMDUDLM
-          + CMDDLM + MESSAGE_PREFIX + 0);
+      String chatMessage = MESSAGE_PREFIX + 0;
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      chatClients[0].sendMessage(privateCommand);
 
       new Verifications() {
         {
-          // Check that client 0 send private message
-          senderView.onSendMessage();
-          times = 1;
 
-          // Check that all clients receive it
+          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
-          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + MESSAGE_PREFIX + 0;
 
           for (int i = 0; i < chatClients.length; i++) {
             chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
-            System.out.println(actualMessage);
             assertTrue(actualMessage.contains(expectedMessage),
-                "All client must receive private message.");
-            if (i == 1) { // Check that client 1 receive private message only once, times = 4 equal
-                          // 3 welcome login message from client sequential startup + 1 private
-                          // message
+                "All client must receive private message only once.");
+            if (i == 1) {
+
+              // Checking that user1 received the private message only once. The statement 'times =
+              // 4' means getting three welcome login messages initiated by sequential clients
+              // startup plus one private message.
+
               times = 4;
-            } else if (i == 3) { // Check that client 3 receive private message only once, times = 2
-                                 // equal 1 welcome login message from client sequential startup + 1
-                                 // private message
+            } else if (i == 3) {
+
+              // Checking that user3 received the private message only once. The statement 'times =
+              // 2' means getting one welcome login messages initiated by sequential clients
+              // startup plus one private message.
+
               times = 2;
             }
           }
@@ -257,80 +245,119 @@ class SendPrivateMessageIntegrationTest {
     @Test
     void testUnknownUsers() {
 
-      String clientListString = "";
-      for (int i = 1; i < MAX_NUMBERS_OF_USERS; i++) {
-        clientListString += (i == 1) ? USER_NAME_PREFIX + i : CMDULDLM + USER_NAME_PREFIX + i;
-      }
+      String privateMessageRecepientList = getFullPrivateMessageRecepientList();
 
-      String unknowUserNamesString1 = USER_NAME_PREFIX + (MAX_NUMBERS_OF_USERS + 1);
-      String unknowUserNamesString2 = USER_NAME_PREFIX + (MAX_NUMBERS_OF_USERS + 100);
-      clientListString += CMDULDLM + unknowUserNamesString1 + CMDULDLM + unknowUserNamesString2;
-      clientListString = CMDUDLM + clientListString + CMDUDLM;
+      String unknowUser1 = USER_NAME_PREFIX + (MAX_NUMBERS_OF_USERS + 1);
+      String unknowUser2 = USER_NAME_PREFIX + (MAX_NUMBERS_OF_USERS + 100);
+      privateMessageRecepientList =
+          unknowUser1 + CMDULDLM + privateMessageRecepientList + CMDULDLM + unknowUser2;
 
       String chatMessage = MESSAGE_PREFIX + 0;
-      chatClients[0].sendMessage("" + CMDPRVMSG + CMDDLM + clientListString + CMDDLM + chatMessage);
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      chatClients[0].sendMessage(privateCommand);
 
       new Verifications() {
         {
-          String expectedMessage = CommandHandler.USR_NOT_FOUND_ERR_MSG + unknowUserNamesString1
-              + CMDULDLM + unknowUserNamesString2;
+          String expectedMessage =
+              CommandHandler.USR_NOT_FOUND_ERR_MSG + unknowUser1 + CMDULDLM + unknowUser2;
           Object actualObject = null;
 
           chatClients[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
           assertTrue(actualObject.toString().contains(expectedMessage),
-              "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received");
+              "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received.");
         }
       };
     }
   }
 
-  @Disabled
   @Nested
-  @DisplayName("with different case sensivity in user names")
-  class DifferentCaseSensitivity {
+  @DisplayName("with different case sensitivity in all usernames")
+  class withCaseSensitivity {
     @Test
-    void testDifferentCaseSensitivity() {
+    void testCaseSensitivity() {
 
-      fail("Not implemented yet.");
-      String clientListString = "";
-
-      // Create user name recipient list
-      for (int i = 1; i < chatClients.length; i++) {
-        clientListString += (i == 1) ? USER_NAME_PREFIX + i : CMDULDLM + USER_NAME_PREFIX + i;
+      String privateMessageRecepientList = "";
+      String privateMessageRecepientListCaseSensitivity = "";
+      for (int i = 1; i < MAX_NUMBERS_OF_USERS; i++) {
+        String userName = USER_NAME_PREFIX + i;
+        String userNameCaseSensitivity =
+            Character.toUpperCase(userName.charAt(0)) + userName.substring(1);
+        privateMessageRecepientList +=
+            ((i != 1) ? CMDULDLM : "") + userNameCaseSensitivity + CMDULDLM + userName;
+        privateMessageRecepientListCaseSensitivity +=
+            ((i != 1) ? CMDULDLM : "") + userNameCaseSensitivity;
       }
 
-      // Add duplicate username for client 1 nad client 3
-      clientListString += CMDULDLM + USER_NAME_PREFIX + 1 + CMDULDLM + USER_NAME_PREFIX + 3;
+      String chatMessage = MESSAGE_PREFIX + 0;
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      /*
+       * System.out
+       * .println("SendPrivateMessageIntegrationTest.withAdditionalSpaces.testwithCaseSensitivity()"
+       * + privateCommand);
+       */
+      chatClients[0].sendMessage(privateCommand);
 
-      // Send private message from client0 to all clients
-      chatClients[0].sendMessage("" + CMDPRVMSG + CMDDLM + CMDUDLM + clientListString + CMDUDLM
-          + CMDDLM + MESSAGE_PREFIX + 0);
+      final String innerPrivateMessageRecepientList = privateMessageRecepientListCaseSensitivity;
+      new Verifications() {
+        {
+          String expectedErrorMessage =
+              CommandHandler.USR_NOT_FOUND_ERR_MSG + innerPrivateMessageRecepientList;
+          Object actualObject = null;
+
+          chatClients[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
+          /*
+           * System.out.println(actualObject.toString()); System.out.println(expectedErrorMessage);
+           */
+          assertTrue(actualObject.toString().contains(expectedErrorMessage),
+              "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received.");
+
+          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
+          String actualMessage;
+
+          for (int i = 0; i < MAX_NUMBERS_OF_USERS; i++) {
+            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+            assertTrue(actualMessage.contains(expectedMessage),
+                "All client must receive private message.");
+          }
+        }
+      };
+    }
+  }
+
+  @Nested
+  @DisplayName("with additional spaces in usernames")
+  class withAdditionalSpaces {
+    @Test
+    void testAdditionalSpaces() {
+
+      String privateMessageRecepientList =
+          USER_NAME_PREFIX + 1 + CMDULDLM + CMDDLM + CMDDLM + USER_NAME_PREFIX + 3;
+
+      String chatMessage = MESSAGE_PREFIX + 0;
+      String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
+          + CMDUDLM + CMDDLM + chatMessage;
+      System.out.println(
+          "SendPrivateMessageIntegrationTest.withAdditionalSpaces.testwithCaseSensitivity()"
+              + privateCommand);
+      chatClients[0].sendMessage(privateCommand);
 
       new Verifications() {
         {
-          // Check that client 0 send private message
-          senderView.onSendMessage();
-          times = 1;
-
-          // Check that all clients receive it
+          // TODO Additional spaces in usernames must be removed
+          
+          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
-          String expectedMessage = USER_NAME_PREFIX + 0 + ": " + MESSAGE_PREFIX + 0;
 
-          for (int i = 0; i < chatClients.length; i++) {
-            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
-            System.out.println(actualMessage);
-            assertTrue(actualMessage.contains(expectedMessage),
-                "All client must receive private message.");
-            if (i == 1) { // Check that client 1 receive private message only once, times = 4 equal
-                          // 3 welcome login message from client sequential startup + 1 private
-                          // message
-              times = 4;
-            } else if (i == 3) { // Check that client 3 receive private message only once, times = 2
-                                 // equal 1 welcome login message from client sequential startup + 1
-                                 // private message
-              times = 2;
-            }
-          }
+          chatClients[1].getView().onReceiveMessage(actualMessage = withCapture());
+          assertTrue(actualMessage.contains(expectedMessage),
+              "All client must receive private message.");
+
+          chatClients[3].getView().onReceiveMessage(actualMessage = withCapture());
+          assertTrue(actualMessage.contains(expectedMessage),
+              "All client must receive private message.");
+
         }
       };
     }

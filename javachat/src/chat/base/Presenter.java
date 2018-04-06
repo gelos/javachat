@@ -1,5 +1,6 @@
 package chat.base;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface Presenter.
  */
@@ -18,11 +19,11 @@ public interface Presenter {
   void closeConnection();
 
   /**
-   * Send message.
+   * Send command.
    *
-   * @param message the message
+   * @param commandString the command string
    */
-  void sendMessage(String message);
+  void sendCommand(String commandString);
 
   /**
    * Send private message.

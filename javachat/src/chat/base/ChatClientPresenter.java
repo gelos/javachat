@@ -39,7 +39,6 @@ public class ChatClientPresenter implements Presenter {
   private Socket serverSocket = null;
 
   /** The message handler. */
-  // private CommandHandler commandHandler = null;
   private CommandHandler commandHandler = null;
 
   /** The out stream. */
@@ -62,9 +61,10 @@ public class ChatClientPresenter implements Presenter {
    * Refresh View to start new session.
    */
   public void onViewStart() {
-    getView().onConnectionOpening(DEFAULT_WINDOW_NAME); // prepare new connection
-    getView().onUpdateChatUserList(new String[0]); // clear user list
-    getView().onReceiveMessage(MSG_ASK_FOR_USERNAME); // ask for username
+    getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
+    String[] emptyUserList = new String[0];
+    getView().onUpdateChatUserList(emptyUserList);
+    getView().onReceiveMessage(MSG_ASK_FOR_USERNAME);
   }
 
 
@@ -80,28 +80,18 @@ public class ChatClientPresenter implements Presenter {
     getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
     isSessionOpened.set(false);
 
-    // boolean res = false;
     try {
 
-      // try to open server connection
       serverSocket = new Socket(ChatServer.SERVER_IP, ChatServer.SERVER_PORT);
-
       outputStream =
           new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
 
     } catch (UnknownHostException uhe) {
-
       System.out.println(uhe.getMessage());
-      // return res;
-
     } catch (IOException ioe) {
-
       System.out.println(ioe.getMessage());
-      // return res;
-
     }
 
-    // send to server enter command
     try {
 
       new ChatCommand(CommandName.CMDENTER, "", username).send(outputStream);
@@ -191,11 +181,11 @@ public class ChatClientPresenter implements Presenter {
    * <li>{@link CommandName#CMDMSG}
    * <li>{@link CommandName#CMDPRVMSG}
    * 
-   * @see chat.client.mvp.swing.Presenter#sendMessage(java.lang.String)
+   * @see chat.client.mvp.swing.Presenter#sendCommand(java.lang.String)
    */
   @Override
-  public void sendMessage(String message) {
-    ChatCommand command = new ChatCommand(message);
+  public void sendCommand(String commandString) {
+    ChatCommand command = new ChatCommand(commandString);
     switch (command.getCommandName()) {
       case CMDEXIT:
         closeConnection();
@@ -213,7 +203,7 @@ public class ChatClientPresenter implements Presenter {
         getView().onSendMessage();
         break;
       default:
-        new ChatCommand(CommandName.CMDMSG, message).send(outputStream);
+        new ChatCommand(CommandName.CMDMSG, commandString).send(outputStream);
         getView().onSendMessage();
         break;
     }
@@ -253,7 +243,8 @@ public class ChatClientPresenter implements Presenter {
           switch (chatCommand.getCommandName()) {
 
             case CMDERR:
-              System.out.println("ChatClientPresenter.CommandHandler.run()" + chatCommand.getMessage());
+              System.out
+                  .println("ChatClientPresenter.CommandHandler.run()" + chatCommand.getMessage());
               getView().showErrorWindow(chatCommand.getMessage(), "Error");
               break;
 

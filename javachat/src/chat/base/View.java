@@ -1,58 +1,53 @@
 package chat.base;
 
+// TODO: Auto-generated Javadoc
 /**
  * MVP passive View Interface.
  */
 public interface View {
 
   /**
-   * On connection opening.
+   * Implements all stuff what we need on the connection opening.
    *
-   * @param title the title
+   * @param windowTitle the window title
    */
-  void onConnectionOpening(String title);
+  void onConnectionOpening(String windowTitle);
 
   /**
-   * On connection opened.
+   * Implements all stuff what we need on the connection opened.
    *
-   * @param title the title
+   * @param windowTitle the window title
    */
-  void onConnectionOpened(String title);
+  void onConnectionOpened(String windowTitle);
 
   /**
-   * On connection closing.
+   * Implements all stuff what we need on the connection closing.
    *
-   * @param title the title
+   * @param windowTitle the window title
    */
-  void onConnectionClosing(String title);
+  void onConnectionClosing(String windowTitle);
 
   /**
-   * On connection closed.
+   * Implements all stuff what we need on the connection closed.
    *
-   * @param title the title
+   * @param windowTitle the window title
    */
-  void onConnectionClosed(String title);
+  void onConnectionClosed(String windowTitle);
 
   /**
-   * On update chat user list.
+   * Implements all stuff what we need on chat user list update.
    *
    * @param userList the user list
    */
   void onUpdateChatUserList(String[] userList);
 
   /**
-   * On send message.
+   * Implements all stuff what we need on the message send.
    */
   public void onSendMessage();
 
-
   /**
-   * On view close.
-   */
- // public void onViewClose();
-
-  /**
-   * On receive message.
+  * Implements all stuff what we need on the message received.
    *
    * @param message the message
    */
@@ -69,32 +64,32 @@ public interface View {
    * Show message window.
    *
    * @param message the message
-   * @param title the title
+   * @param windowTitle the windowTitle
    */
-  void showMessageWindow(Object message, String title);
+  void showMessageWindow(Object message, String windowTitle);
 
   /**
    * Show information window.
    *
    * @param message the message
-   * @param title the title
+   * @param windowTitle the windowTitle
    */
-  void showInformationWindow(Object message, String title);
+  void showInformationWindow(Object message, String windowTitle);
 
   /**
    * Show warning window.
    *
    * @param message the message
-   * @param title the title
+   * @param windowTitle the windowTitle
    */
-  void showWarningWindow(Object message, String title);
+  void showWarningWindow(Object message, String windowTitle);
 
   /**
    * Show error window.
    *
    * @param message the message
-   * @param title the title
+   * @param windowTitle the windowTitle
    */
-  void showErrorWindow(Object message, String title);
+  void showErrorWindow(Object message, String windowTitle);
 
 }

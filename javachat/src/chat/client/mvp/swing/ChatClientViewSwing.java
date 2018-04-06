@@ -72,7 +72,7 @@ public class ChatClientViewSwing extends JFrame implements View {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        getPresenter().sendMessage(chatTextField.getText());
+        getPresenter().sendCommand(chatTextField.getText());
       }
     };
 

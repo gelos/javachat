@@ -49,6 +49,8 @@ public class ChatClientViewSwing extends JFrame implements View {
   /** The user list. */
   private JList<?> chatUserList;
 
+  
+
   // Constructor
 
   /**

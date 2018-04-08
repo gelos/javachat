@@ -1,5 +1,6 @@
 package chat.base;
 
+import static chat.base.CommandName.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -11,54 +12,45 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import chat.server.ChatServer;
 
+// TODO: Auto-generated Javadoc
 /**
- * The Class ChatClientPresenter. Realize chat client logic.
+ * The Class ChatClientPresenter. Implementing chat client logic.
  */
 public class ChatClientPresenter implements Presenter {
 
-  /** The Constant _GREETING_MESSAGE. */
   private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
 
-  /** The Constant MSG_EMPTY_USRENAME. */
   private final static String MSG_EMPTY_USRENAME = "Username cannot be empty.";
 
-  /** The Constant MSG_CANT_CON_SRV. */
   private final static String MSG_CANT_CON_SRV = "Can't connect to server " + ChatServer.SERVER_IP
       + ":" + ChatServer.SERVER_PORT + ". Server not started.";
 
-  /** The Constant DEFAULT_WINDOW_NAME. */
-  private static final String DEFAULT_WINDOW_NAME = "Java Swing Chat Client";
+  private final static int MAX_TIMEOUT_SESSION_OPEN = 3;
 
-  /** The Constant TIMEOUT_SESSION_OPEN. */
-  private final static int TIMEOUT_SESSION_OPEN = 3;
-
-  /** The view. */
   private View view;
 
-  /** The sever socket. */
   private Socket serverSocket = null;
 
-  /** The message handler. */
   private CommandHandler commandHandler = null;
 
-  /** The out stream. */
   private ObjectOutputStream outputStream = null;
 
-  /** The in stream. */
   private ObjectInputStream inputStream = null;
 
-  /** The is session opened flag. */
   private AtomicBoolean isSessionOpened;
 
+  /** The Constant DEFAULT_WINDOW_NAME. */
+  public static final String DEFAULT_WINDOW_NAME = "Java Chat Client";
+
   /**
-   * Instantiates a new chat client presenter.
+   * Create an instance of a new chat client presenter.
    */
   public ChatClientPresenter() {
     isSessionOpened = new AtomicBoolean(false);
   }
 
   /**
-   * Refresh View to start new session.
+   * Updating view for a new session start.
    */
   public void onViewStart() {
     getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
@@ -72,7 +64,7 @@ public class ChatClientPresenter implements Presenter {
    * Connect to chat server. Open socket, prepare input/output streams, create new thread to data
    * transfer.
    *
-   * @param username the user name
+   * @param username the user name string
    */
   @Override
   public void openConnection(String username) {
@@ -87,6 +79,7 @@ public class ChatClientPresenter implements Presenter {
           new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
 
     } catch (UnknownHostException uhe) {
+      // TODO save to debug
       System.out.println(uhe.getMessage());
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
@@ -94,11 +87,12 @@ public class ChatClientPresenter implements Presenter {
 
     try {
 
-      new ChatCommand(CommandName.CMDENTER, "", username).send(outputStream);
+
+      // TODO create static create method, refactor command ChatCommand.create().send()
+      new ChatCommand(CMDENTER, "", username).send(outputStream);
 
       inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
 
-      // start message handler
       commandHandler = new CommandHandler();
       commandHandler.start();
 
@@ -107,15 +101,15 @@ public class ChatClientPresenter implements Presenter {
       e1.printStackTrace();
     }
 
-    int timeout = 1;
-    // wait for ok enter command from server
-    while (!isSessionOpened.get() && (timeout <= TIMEOUT_SESSION_OPEN)) {
+    // Waiting for the '/ok enter' command to be received from the server
+    int waitingForOKEnterTimeoutMiliseconds = 0;
+    while (!isSessionOpened.get() && (waitingForOKEnterTimeoutMiliseconds <= MAX_TIMEOUT_SESSION_OPEN)) {
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.MILLISECONDS.sleep(1);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      timeout++;
+      waitingForOKEnterTimeoutMiliseconds++;
     }
 
     if (isSessionOpened.get()) { // we receive ok enter command
@@ -126,10 +120,10 @@ public class ChatClientPresenter implements Presenter {
       // res = true;
 
     } else {
-      getView().onConnectionClosed(DEFAULT_WINDOW_NAME);
+      getView().onConnectionClosed(ChatClientPresenter.DEFAULT_WINDOW_NAME);
       // stop message handler
       commandHandler.stop();
-      String msg = "Can't connect to the server, timeout " + TIMEOUT_SESSION_OPEN
+      String msg = "Can't connect to the server, timeout " + MAX_TIMEOUT_SESSION_OPEN
           + ". Check server, try again or increase open session timeout.";
       System.out.println(msg);
       getView().showErrorWindow(msg, "Open session timeout.");
@@ -142,12 +136,14 @@ public class ChatClientPresenter implements Presenter {
 
 
   /**
+   * Close connection.
+   *
    * @see chat.client.mvp.swing.Presenter#closeConnection()
    */
   @Override
   public void closeConnection() {
 
-    getView().onConnectionClosing(DEFAULT_WINDOW_NAME);
+    getView().onConnectionClosing(ChatClientPresenter.DEFAULT_WINDOW_NAME);
 
     System.out.println("Closing client...");
 
@@ -171,7 +167,7 @@ public class ChatClientPresenter implements Presenter {
     }
 
     System.out.println("Client stopped.");
-    getView().onConnectionClosed(DEFAULT_WINDOW_NAME);
+    getView().onConnectionClosed(ChatClientPresenter.DEFAULT_WINDOW_NAME);
   }
 
   /**
@@ -180,7 +176,8 @@ public class ChatClientPresenter implements Presenter {
    * <li>{@link CommandName#CMDEXIT}
    * <li>{@link CommandName#CMDMSG}
    * <li>{@link CommandName#CMDPRVMSG}
-   * 
+   *
+   * @param commandString the command string
    * @see chat.client.mvp.swing.Presenter#sendCommand(java.lang.String)
    */
   @Override
@@ -210,6 +207,10 @@ public class ChatClientPresenter implements Presenter {
   }
 
   /**
+   * Send private message.
+   *
+   * @param message the message
+   * @param userList the user list
    * @see chat.client.mvp.swing.Presenter#sendPrivateMessage(java.lang.String, java.lang.String)
    */
   @Override

@@ -29,7 +29,7 @@ public class ChatCommand implements Serializable {
    * Default constructor, instantiates a new ERR chat command with empty message.
    */
   public ChatCommand() {
-    this(CommandName.CMDERR, "");
+    this(CMDERR, "");
   }
 
   /**
@@ -45,9 +45,8 @@ public class ChatCommand implements Serializable {
    */
   public ChatCommand(String commandString) {
 
-    // Initialize variables with their default values
-    CommandName commandName = (commandString.length() == 0) ? CMDERR : CMDMSG;
-    // String commandSubString = "";
+    CommandName defaultCommandName = (commandString.length() == 0) ? CMDERR : CMDMSG;
+    CommandName commandName = defaultCommandName;
 
     String payloadSubString = "";
 
@@ -56,17 +55,16 @@ public class ChatCommand implements Serializable {
     // commandString.replaceAll("^\\s+", "").toLowerCase().split(CMDDLM.toString(), 2);
 
     // Left trim string and split by first left space in two piece by CMDDLM
-    String[] strArray = commandString.replaceAll("^\\s+", "").split(CMDDLM.toString(), 2);
+    String leftTrimCommandString = commandString.replaceAll("^\\s+", "");
+    
+    String[] commandStringSplitedByCMDDLM = leftTrimCommandString.split(CMDDLM.toString(), 2);
 
     // Try to resolve first piece of string as valid command tag ignoring letter case, return null
     // if can't
-    String commandSubString = strArray[0].toLowerCase();
-    commandName = CommandName.get(commandSubString);
+    String commandNameStringLowerCase = commandStringSplitedByCMDDLM[0].toLowerCase();
+    commandName = CommandName.get(commandNameStringLowerCase);
 
-    String messageSubString = (strArray.length > 1) ? strArray[1] : "";
-    /*
-     * if (strArray.length > 1) { messageSubString = strArray[1]; }
-     */
+    String messageSubString = (commandStringSplitedByCMDDLM.length > 1) ? commandStringSplitedByCMDDLM[1] : "";
 
     // If first sub string can't resolved to command
     if (commandName == null) {
@@ -82,26 +80,17 @@ public class ChatCommand implements Serializable {
     } else {
       switch (commandName) {
 
-        // Save payload for ENTER and EXIT commands
         case CMDENTER:
         case CMDEXIT:
-          // messageSubString = "";
-          /*
-           * if (strArray.length > 1) { payloadSubString = strArray[1]; }
-           */
           payloadSubString = messageSubString;
           messageSubString = "";
           break;
 
-        // Save message for MSG command
         case CMDMSG:
-          /*
-           * if (strArray.length > 1) { commandString = strArray[1]; }
-           */
           break;
 
         case CMDPRVMSG: // process /PRVMSG DLM UDLM username list UDLM DLM message
-                        // where username list used DLM to separate usernames
+                        // where username list used ULDLM to separate usernames
                         // else return error command
 
           // Split message to three parts: empty, username list and message by CMDUDLM
@@ -111,33 +100,33 @@ public class ChatCommand implements Serializable {
 
           // Left trim string and split message to three parts: empty, username list and message by
           // CMDUDLM
-          strArray = messageSubString.replaceAll("^\\s+", "").split(CMDUDLM.toString(), 3);
+          commandStringSplitedByCMDDLM = messageSubString.replaceAll("^\\s+", "").split(CMDUDLM.toString(), 3);
 
 
 
           // Check that we split minimum on three parts, first part empty (see format) and user
           // name list not empty
-          if (strArray.length > 2 && (strArray[2].length() > CMDDLM.toString().length())
-              && strArray[0].isEmpty()) {
+          if (commandStringSplitedByCMDDLM.length > 2 && (commandStringSplitedByCMDDLM[2].length() > CMDDLM.toString().length())
+              && commandStringSplitedByCMDDLM[0].isEmpty()) {
 
             // Remove if necessary first CMDDLM in command string
-            if (strArray[2].substring(0, CMDDLM.toString().length())
+            if (commandStringSplitedByCMDDLM[2].substring(0, CMDDLM.toString().length())
                 .equalsIgnoreCase(CMDDLM.toString())) {
-              messageSubString = strArray[2].substring(CMDDLM.toString().length()); // get private
+              messageSubString = commandStringSplitedByCMDDLM[2].substring(CMDDLM.toString().length()); // get private
               // message
             } else {
-              messageSubString = strArray[2]; // get private message
+              messageSubString = commandStringSplitedByCMDDLM[2]; // get private message
             }
 
-            payloadSubString = strArray[1].trim(); // get recipient username list
+            payloadSubString = commandStringSplitedByCMDDLM[1].trim(); // get recipient username list
 
             // remove duplicated continuous CMDDLM
-            strArray = payloadSubString.split(CMDDLM.toString());
+            commandStringSplitedByCMDDLM = payloadSubString.split(CMDULDLM.toString());
             payloadSubString = "";
-            for (String string : strArray) {
+            for (String string : commandStringSplitedByCMDDLM) {
               if (!string.isEmpty()) {
                 payloadSubString +=
-                    (payloadSubString.length() == 0) ? string : CMDDLM.toString() + string;
+                    ((payloadSubString.length() != 0) ? CMDULDLM.toString() : "") + string.trim();
               }
             }
 
@@ -150,8 +139,7 @@ public class ChatCommand implements Serializable {
           break;
 
         default:
-          // Generate error command and with original command string in messages field
-          commandName = CommandName.CMDERR;
+          commandName = CMDERR;
           messageSubString = commandString;
           break;
       }
@@ -161,8 +149,6 @@ public class ChatCommand implements Serializable {
     this.message = messageSubString;
     this.payload = payloadSubString;
   }
-
-
 
   /**
    * Instantiates a new chat command.

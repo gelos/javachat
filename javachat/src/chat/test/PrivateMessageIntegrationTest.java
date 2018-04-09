@@ -4,14 +4,12 @@ import static chat.base.CommandName.CMDDLM;
 import static chat.base.CommandName.CMDPRVMSG;
 import static chat.base.CommandName.CMDUDLM;
 import static chat.base.CommandName.CMDULDLM;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,11 +19,10 @@ import chat.base.View;
 import chat.server.ChatServer;
 import chat.server.CommandHandler;
 import mockit.Capturing;
-import mockit.FullVerifications;
 import mockit.Verifications;
 
 @DisplayName("Send private message ")
-class SendPrivateMessageIntegrationTest {
+class PrivateMessageIntegrationTest {
 
   // MAX_NUMBER_OF_CLIENTS must be equal sum number of @Capturing View variables
   public static final int MAX_NUMBERS_OF_USERS = 4;
@@ -273,7 +270,7 @@ class SendPrivateMessageIntegrationTest {
 
   @Nested
   @DisplayName("with different case sensitivity in all usernames")
-  class CaseSensitivity {
+  class withCaseSensitivity {
     @Test
     void testCaseSensitivity() {
 
@@ -292,11 +289,6 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      /*
-       * System.out
-       * .println("SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
-       * + privateCommand);
-       */
       chatClients[0].sendCommand(privateCommand);
 
       final String innerPrivateMessageRecepientList = privateMessageRecepientListCaseSensitivity;
@@ -307,9 +299,6 @@ class SendPrivateMessageIntegrationTest {
           Object actualObject = null;
 
           chatClients[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
-          /*
-           * System.out.println(actualObject.toString()); System.out.println(expectedErrorMessage);
-           */
           assertTrue(actualObject.toString().contains(expectedErrorMessage),
               "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received.");
 
@@ -328,7 +317,7 @@ class SendPrivateMessageIntegrationTest {
 
   @Nested
   @DisplayName("with additional spaces in usernames")
-  class AdditionalSpaces {
+  class withAdditionalSpaces {
     @Test
     void testAdditionalSpaces() {
 
@@ -338,15 +327,10 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      System.out.println(
-          "SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
-              + privateCommand);
       chatClients[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
-          // TODO Additional spaces in usernames must be removed
-          
           String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
 

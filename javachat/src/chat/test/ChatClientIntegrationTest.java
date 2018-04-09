@@ -103,7 +103,7 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }
 
-    chatClientPresenter.sendMessage("hello");
+    chatClientPresenter.sendCommand("hello");
 
     // assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
     // (chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
@@ -238,7 +238,7 @@ class ChatClientIntegrationTest {
 
 
     // send message from client1
-    chatClientPresenter1.sendMessage(MSG1);
+    chatClientPresenter1.sendCommand(MSG1);
     new FullVerifications() {
       {
         chatClientView1.onSendMessage();
@@ -252,7 +252,7 @@ class ChatClientIntegrationTest {
     };
 
     // send message from client2
-    chatClientPresenter2.sendMessage(MSG2);
+    chatClientPresenter2.sendCommand(MSG2);
     new FullVerifications() {
       {
         chatClientView2.onSendMessage();

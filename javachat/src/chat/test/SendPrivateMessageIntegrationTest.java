@@ -273,7 +273,7 @@ class SendPrivateMessageIntegrationTest {
 
   @Nested
   @DisplayName("with different case sensitivity in all usernames")
-  class withCaseSensitivity {
+  class CaseSensitivity {
     @Test
     void testCaseSensitivity() {
 
@@ -294,7 +294,7 @@ class SendPrivateMessageIntegrationTest {
           + CMDUDLM + CMDDLM + chatMessage;
       /*
        * System.out
-       * .println("SendPrivateMessageIntegrationTest.withAdditionalSpaces.testwithCaseSensitivity()"
+       * .println("SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
        * + privateCommand);
        */
       chatClients[0].sendMessage(privateCommand);
@@ -328,7 +328,7 @@ class SendPrivateMessageIntegrationTest {
 
   @Nested
   @DisplayName("with additional spaces in usernames")
-  class withAdditionalSpaces {
+  class AdditionalSpaces {
     @Test
     void testAdditionalSpaces() {
 
@@ -339,7 +339,7 @@ class SendPrivateMessageIntegrationTest {
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
       System.out.println(
-          "SendPrivateMessageIntegrationTest.withAdditionalSpaces.testwithCaseSensitivity()"
+          "SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
               + privateCommand);
       chatClients[0].sendMessage(privateCommand);
 

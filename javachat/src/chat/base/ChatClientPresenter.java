@@ -239,7 +239,7 @@ public class ChatClientPresenter implements Presenter {
 
         while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
-          System.out.println("ChatClientPresenter.CommandHandler.run()" + chatCommand);
+          System.out.println(this.toString() + chatCommand);
 
           switch (chatCommand.getCommandName()) {
 

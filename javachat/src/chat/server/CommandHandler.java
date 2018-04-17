@@ -105,6 +105,8 @@ public class CommandHandler extends WorkerThread {
       // reads commands from current client socket input until handler running
       while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
+        System.out.println(((chatUser == null) ? "": chatUser.getUsername()) + chatCommand);
+        
         // ignore all command except CMDENTER while session not opened
         if (!isSessionOpened.get() && chatCommand.getCommandName() != CMDENTER) {
           // TODO log command and ignore it
@@ -137,6 +139,8 @@ public class CommandHandler extends WorkerThread {
               // using user name as a key
               handlerStorage.put(userName, this);
 
+              Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
+              
               isSessionOpened.set(true); // set flag that current session is opened
 
               // create new user
@@ -301,9 +305,12 @@ public class CommandHandler extends WorkerThread {
    * @return the current date time string
    */
   private String getCurrentDateTime() {
-    String currentTime =
+    /*String currentTime =
         LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    return currentTime;
+    return currentTime;*/
+    //return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    //return LocalDateTime.now().toString();
+    return "1";
   }
 
   /**
@@ -323,7 +330,7 @@ public class CommandHandler extends WorkerThread {
    *
    * @return the string of user names
    */
-  private String getUserNamesInString() {
+  private synchronized String getUserNamesInString() {
 
     // TODO refactor to return key set from hashmap
     String res = "";

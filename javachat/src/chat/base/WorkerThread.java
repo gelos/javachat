@@ -7,47 +7,56 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class WorkerThread implements Runnable {
 
-  /** The worker. */
-  private Thread worker;
+  /** The thread. */
+  private Thread thread;
 
-  /** The running flag. */
-  private AtomicBoolean running;
+  public final Thread getThread() {
+    return thread;
+  }
+
+  /** The runningFlag flag. */
+  private AtomicBoolean runningFlag;
 
   /**
-   * Instantiates a new worker thread.
+   * Instantiates a new thread thread.
    */
   public WorkerThread() {
-    running = new AtomicBoolean(false);
+    runningFlag = new AtomicBoolean(false);
   }
 
   /**
-   * Checks if is running.
+   * Checks if is runningFlag.
    *
-   * @return true, if is running
+   * @return true, if is runningFlag
    */
   public boolean isRuning() {
-    return running.get();
+    return runningFlag.get();
   }
 
   /**
    * Stop.
    */
   public void stop() {
-    running.set(false);
+    runningFlag.set(false);
   }
 
   /**
    * Start.
    */
   public void start() {
+    this.start("");
+  }
 
-    // Setting running flag for while circle
-    running.set(true);
-
-    // Start new thread
-    worker = new Thread(this);
-    worker.start();
-
+  /**
+   * Start.
+   */
+  public void start(String threadName) {
+  
+    runningFlag.set(true);
+  
+    thread = (threadName.isEmpty()) ? new Thread(this) : new Thread(null, this, threadName);
+    thread.start();
+  
   }
 
   /*

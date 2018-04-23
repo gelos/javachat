@@ -1,6 +1,8 @@
 package chat.server;
 
 import static chat.base.CommandName.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -68,7 +70,8 @@ public class CommandHandler extends WorkerThread {
    * @param clientSocket the client socket
    * @param commandHandlers the handler storage
    */
-  public CommandHandler(Socket clientSocket, ConcurrentHashMap<String, CommandHandler> commandHandlers) {
+  public CommandHandler(Socket clientSocket,
+      ConcurrentHashMap<String, CommandHandler> commandHandlers) {
     this.clientSocket = clientSocket;
     this.handlerStorage = commandHandlers;
     this.isSessionOpened = new AtomicBoolean(false);
@@ -105,8 +108,8 @@ public class CommandHandler extends WorkerThread {
       // reads commands from current client socket input until handler running
       while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
-        System.out.println(((chatUser == null) ? "": chatUser.getUsername()) + chatCommand);
-        
+        System.out.println(((chatUser == null) ? "" : chatUser.getUsername()) + chatCommand);
+
         // ignore all command except CMDENTER while session not opened
         if (!isSessionOpened.get() && chatCommand.getCommandName() != CMDENTER) {
           // TODO log command and ignore it
@@ -140,7 +143,7 @@ public class CommandHandler extends WorkerThread {
               handlerStorage.put(userName, this);
 
               Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
-              
+
               isSessionOpened.set(true); // set flag that current session is opened
 
               // create new user
@@ -152,7 +155,7 @@ public class CommandHandler extends WorkerThread {
               // TODO what if isSessionOpened set to true but we cant send ok enter command to
               // client
               // send to all users usrlst command
-              sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()));
+              sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesListInString()));
 
               // send to all welcome message
               sendToAllChatClients(new ChatCommand(CMDMSG,
@@ -181,11 +184,11 @@ public class CommandHandler extends WorkerThread {
             if (!chatCommand.getPayload().isEmpty()) {
               usrList = chatCommand.getPayload().split(CMDULDLM.toString());
             }
-            
+
             Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
-            //System.out.println(usrSet.toString());
-            
+            // System.out.println(usrSet.toString());
+
             // Prepare message
             String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
                 + chatCommand.getMessage();
@@ -196,12 +199,12 @@ public class CommandHandler extends WorkerThread {
 
               // Send only for recipient user list
             } else {
-              
+
               // Add sender to recepient list
               usrSet.add(chatUser.getUsername());
 
               System.out.println("CommandHandler.run()" + usrSet.toString());
-              
+
               // Create storage for not founded user names
               ArrayList<String> notFoundUserList = new ArrayList<String>();
 
@@ -223,8 +226,8 @@ public class CommandHandler extends WorkerThread {
 
               // If not found user list not empty, send error message back to client
               if (!notFoundUserList.isEmpty()) {
-                String errMessage =
-                    notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ", CMDULDLM.toString());
+                String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "")
+                    .replaceAll(", ", CMDULDLM.toString());
                 System.out.println("CommandHandler.run()" + notFoundUserList.toString());
                 new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
               }
@@ -280,7 +283,7 @@ public class CommandHandler extends WorkerThread {
           getCurrentDateTime() + " " + chatUser.getUsername() + " " + EXT_USR_MSG));
 
       // update user list on available clients
-      sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesInString()));
+      sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesListInString()));
 
       // dispose User object
       chatUser = null;
@@ -305,11 +308,13 @@ public class CommandHandler extends WorkerThread {
    * @return the current date time string
    */
   private String getCurrentDateTime() {
-    /*String currentTime =
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    return currentTime;*/
-    //return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    //return LocalDateTime.now().toString();
+    /*
+     * String currentTime =
+     * LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")); return
+     * currentTime;
+     */
+    // return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    // return LocalDateTime.now().toString();
     return "1";
   }
 
@@ -328,22 +333,12 @@ public class CommandHandler extends WorkerThread {
    * Return all chat user names in one string separated by {@link CommandName#CMDDLM}. Used in
    * {@link CommandName#CMD_USRLST usrlst} command.
    *
-   * @return the string of user names
+   * @return the list of user names in string
    */
-  private synchronized String getUserNamesInString() {
+  private String getUserNamesListInString() {
 
-    // TODO refactor to return key set from hashmap
-    String res = "";
-    String username = "";
-
-    for (CommandHandler commandHandler : handlerStorage.values()) {
-      // if we can't get chatUser object ignore it
-      if ((commandHandler.chatUser != null)
-          && (username = commandHandler.chatUser.getUsername()) != null) {
-        res += (res.length() == 0) ? username : CMDDLM + username;
-      }
-    }
-    return res;
+    return handlerStorage.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
+        CMDDLM.toString());
   }
 
 
@@ -368,8 +363,8 @@ public class CommandHandler extends WorkerThread {
    * @param excludeChatHandlerList the exclude chat handler list
    */
   /*
-   * private void sendToAllChatClients(ChatCommand command, Set<CommandHandler> excludeChatHandlerList)
-   * { for (CommandHandler chatHandler : handlerStorage) { if
+   * private void sendToAllChatClients(ChatCommand command, Set<CommandHandler>
+   * excludeChatHandlerList) { for (CommandHandler chatHandler : handlerStorage) { if
    * (!excludeChatHandlerList.contains(chatHandler)) { command.send(chatHandler.outputStream); } } }
    */
 

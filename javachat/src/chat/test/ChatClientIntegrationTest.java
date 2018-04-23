@@ -32,10 +32,10 @@ class ChatClientIntegrationTest {
     int timeout = 1;
 
     // wait while chatServer started
-    while (!chatServer.isStarted() && (timeout <= 10)) {
+    /*while (!chatServer.isStarted() && (timeout <= 10)) {
       TimeUnit.SECONDS.sleep(1);
       timeout++;
-    }
+    }*/
 
   }
 
@@ -47,7 +47,7 @@ class ChatClientIntegrationTest {
 
   }
 
-  @Disabled
+  //@Disabled
   @DisplayName("Start one client connect to server, send \"Hello\" message and then disconnect.")
   @Test
   // void startStopClientTest(final @Tested ChatClientPresenter chatClientPresenter, @Capturing

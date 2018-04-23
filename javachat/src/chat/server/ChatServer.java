@@ -27,9 +27,6 @@ public class ChatServer {
   /** The server host ip address. */
   public final static String SERVER_IP = "127.0.0.1";
 
-  /** The client connection socket. */
-  private Socket clientSocket;
-
   /** The client session handlers thread-safe storage. */
   // private CopyOnWriteArrayList<CommandHandler> commandHandlers;
   private ConcurrentHashMap<String, CommandHandler> commandHandlers;
@@ -41,21 +38,21 @@ public class ChatServer {
   private ProcessConsoleInputThreadClass processConsoleInputThread;
 
   /** Started flag. */
-  private AtomicBoolean started;
+  //private AtomicBoolean started;
 
   /**
    * Stopped flag. False - after running stop() method indicate that server was not stopped
    * correctly, True - it indicates that stop() method finished successfully.
    */
-  private AtomicBoolean stopped;
+  //private AtomicBoolean stopped;
 
 
-  private AtomicBoolean stoppingRequestFlag;
+  private AtomicBoolean stoppingChatServerFlag;
 
   // Constructor
 
   public final void setStopingRequestFlag(Boolean stopingRequestFlag) {
-    this.stoppingRequestFlag.set(stopingRequestFlag);
+    this.stoppingChatServerFlag.set(stopingRequestFlag);
   }
 
   /**
@@ -76,9 +73,9 @@ public class ChatServer {
   public ChatServer(int serverPort) {
 
     // create and initialize state flags
-    started = new AtomicBoolean(false);
-    stopped = new AtomicBoolean(false);
-    stoppingRequestFlag = new AtomicBoolean(false);
+    /*started = new AtomicBoolean(false);
+    stopped = new AtomicBoolean(false);*/
+    stoppingChatServerFlag = new AtomicBoolean(false);
 
     System.out.println("Chat server starting...");
 
@@ -125,21 +122,21 @@ public class ChatServer {
       System.out.println("Server started.");
 
       // Set state to already started
-      started.set(true);
+      //started.set(true);
 
     } else {
 
       // force to close server
       // stop();
-      stoppingRequestFlag.set(true);
+      stoppingChatServerFlag.set(true);
 
     }
 
-    new Thread(new Runnable() {
+    new Thread(null, new Runnable() {
 
       @Override
       public void run() {
-        while (!stoppingRequestFlag.get()) {
+        while (!stoppingChatServerFlag.get()) {
           try {
             Thread.sleep(10);
           } catch (InterruptedException e) {
@@ -149,7 +146,7 @@ public class ChatServer {
         }
         ChatServer.this.stop();
       }
-    }).start();
+    }, "StopFromConsoleThread").start();
 
 
   }
@@ -159,9 +156,9 @@ public class ChatServer {
    *
    * @return true, if constructor complete execution, then we agree what server started
    */
-  public boolean isStarted() {
+  /*public boolean isStarted() {
     return started.get();
-  }
+  }*/
 
 
   /**
@@ -169,9 +166,9 @@ public class ChatServer {
    *
    * @return true, if is stopped
    */
-  public boolean isStopped() {
+/*  public boolean isStopped() {
     return stopped.get();
-  }
+  }*/
 
   /**
    * Stop.
@@ -237,7 +234,7 @@ public class ChatServer {
     System.out.println("Server stopped.");
 
     // set stopped flag
-    stopped.set(true);
+   //stopped.set(true);
   }
 
   /**
@@ -253,6 +250,9 @@ public class ChatServer {
   private class ProcessChatHandlerThreadClass extends WorkerThread {
 
     private int serverSocketPort;
+
+    /** The client connection socket. */
+    private Socket clientSocket;
 
     /** The server socket. */
     private ServerSocket serverSocket;

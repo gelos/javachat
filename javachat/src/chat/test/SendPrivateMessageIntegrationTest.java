@@ -59,13 +59,13 @@ class SendPrivateMessageIntegrationTest {
 
     // Create server
     chatServer = new ChatServer();
-    int timeout = 1;
+/*    int timeout = 1;
 
     // Wait while chatServer started
     while (!chatServer.isStarted() && (timeout <= 10)) {
       TimeUnit.SECONDS.sleep(1);
       timeout++;
-    }
+    }*/
 
     View view;
     // Create clients

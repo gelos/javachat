@@ -108,153 +108,7 @@ public class CommandHandler extends WorkerThread {
       // reads commands from current client socket input until handler running
       while ((chatCommand = (ChatCommand) inputStream.readObject()) != null && isRuning()) {
 
-        System.out.println(((chatUser == null) ? "" : chatUser.getUsername()) + chatCommand);
-
-        // ignore all command except CMDENTER while session not opened
-        if (!isSessionOpened.get() && chatCommand.getCommandName() != CMDENTER) {
-          // TODO log command and ignore it
-          continue;
-        }
-
-        // chat command processing
-        switch (chatCommand.getCommandName()) {
-
-          case CMDERR:
-            System.out.println(chatUser.getUsername() + ": error: " + chatCommand.getMessage());
-            // TODO save to log
-            break;
-
-          case CMDEXIT:
-            stop(); // stop current CommandHandler thread (set isRuning() to false)
-            break;
-
-          case CMDENTER:
-
-            // get username
-            String userName = chatCommand.getPayload();
-
-            // TODO check for username uniquely
-
-            if (!userName.isEmpty()) { // check for empty username
-
-              // add current handler to handler storage and now we can communicate with other chat
-              // clients
-              // using user name as a key
-              handlerStorage.put(userName, this);
-
-              Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
-
-              isSessionOpened.set(true); // set flag that current session is opened
-
-              // create new user
-              chatUser = new ChatUser(userName);
-
-              // send ok enter command to confirm session opening
-              new ChatCommand(CMDOK, "", CMDENTER.toString()).send(outputStream);
-
-              // TODO what if isSessionOpened set to true but we cant send ok enter command to
-              // client
-              // send to all users usrlst command
-              sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesListInString()));
-
-              // send to all welcome message
-              sendToAllChatClients(new ChatCommand(CMDMSG,
-                  getCurrentDateTime() + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
-
-              // print to server console
-              System.out.println("Open chat session for user " + userName);
-
-            } else {
-
-              // if username is empty send err to client and print to console
-              new ChatCommand(CMDERR, NAME_ERR_MSG).send(outputStream);
-              System.out.println(NAME_ERR_MSG);
-            }
-            break;
-
-          case CMDHLP:
-            // TODO complete
-            break;
-
-          case CMDMSG:
-          case CMDPRVMSG:
-
-            // Get user list from payload
-            String[] usrList = new String[0];
-            if (!chatCommand.getPayload().isEmpty()) {
-              usrList = chatCommand.getPayload().split(CMDULDLM.toString());
-            }
-
-            Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
-
-            // System.out.println(usrSet.toString());
-
-            // Prepare message
-            String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
-                + chatCommand.getMessage();
-
-            // IF private message recipient list is empty, send message to all clients
-            if (usrSet.size() == 0) {
-              sendToAllChatClients(new ChatCommand(CMDMSG, message));
-
-              // Send only for recipient user list
-            } else {
-
-              // Add sender to recepient list
-              usrSet.add(chatUser.getUsername());
-
-              System.out.println("CommandHandler.run()" + usrSet.toString());
-
-              // Create storage for not founded user names
-              ArrayList<String> notFoundUserList = new ArrayList<String>();
-
-              // Send message to users in list
-              for (String key : usrSet) {
-
-                // Search chatHandler by chat user name string
-                CommandHandler commandHandler = handlerStorage.get(key);
-
-                // If found send message
-                if (commandHandler != null) {
-                  new ChatCommand(CMDMSG, message).send(commandHandler.outputStream);;
-
-                  // If not found, add to list
-                } else {
-                  notFoundUserList.add(key);
-                }
-              }
-
-              // If not found user list not empty, send error message back to client
-              if (!notFoundUserList.isEmpty()) {
-                String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "")
-                    .replaceAll(", ", CMDULDLM.toString());
-                System.out.println("CommandHandler.run()" + notFoundUserList.toString());
-                new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
-              }
-
-            }
-
-            /*
-             * // send private message for (CommandHandler chatHandler : handlerStorage) { if
-             * ((usrSet.size() == 0) // send message to all user or only to users in private //
-             * message user list || (usrSet.size() > 0 &&
-             * usrSet.contains(chatHandler.chatUser.getUsername()))) {
-             * 
-             * String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": " +
-             * chatCommand.getMessage(); new ChatCommand(chatCommand.getCommandName(), message)
-             * .send(chatHandler.outputStream); } else { // username not found print message to
-             * server console System.out.println("Command \"" + chatCommand.toString() +
-             * "\". Username " + chatHandler.chatUser.getUsername() + " not found"); } }
-             */
-            break;
-
-          default:
-            // TODO write unknown command to log file;
-            // send client unknown command error message and print to console
-            String errMessage = "Unknown command " + chatCommand.toString();
-            new ChatCommand(CMDERR, errMessage).send(outputStream);
-            System.out.println(errMessage);
-        }
+        processChatCommand(chatCommand);
       }
 
     } catch (IOException ioe) {
@@ -288,17 +142,178 @@ public class CommandHandler extends WorkerThread {
       // dispose User object
       chatUser = null;
 
-      // close client socket and associated streams
-      if (clientSocket != null) {
-        try {
-          clientSocket.close();
-          clientSocket = null;
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      }
+      //closeClientSocket();
+      stop();
 
+    }
+  }
+
+  @Override
+  public void stop() {
+    // TODO Auto-generated method stub
+    super.stop();
+    closeClientSocket();
+  }
+  
+  private synchronized void closeClientSocket() {
+    // close client socket and associated streams
+    if (clientSocket != null) {
+      try {
+        clientSocket.close();
+        clientSocket = null;
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private void processChatCommand(ChatCommand chatCommand) {
+    System.out.println(((chatUser == null) ? "" : chatUser.getUsername()) + chatCommand);
+
+    // ignore all command except CMDENTER while session not opened
+    if (!isSessionOpened.get() && chatCommand.getCommandName() != CMDENTER) {
+      return;
+    }
+
+    // chat command processing
+    switch (chatCommand.getCommandName()) {
+
+      case CMDERR:
+        System.out.println(chatUser.getUsername() + ": error: " + chatCommand.getMessage());
+        // TODO save to log
+        break;
+
+      case CMDEXIT:
+        stop(); // stop current CommandHandler thread (set isRuning() to false)
+        break;
+
+      case CMDENTER:
+
+        // get username
+        String userName = chatCommand.getPayload();
+
+        // TODO check for username uniquely
+
+        if (!userName.isEmpty()) { // check for empty username
+
+          // add current handler to handler storage and now we can communicate with other chat
+          // clients
+          // using user name as a key
+          handlerStorage.put(userName, this);
+
+          Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
+
+          isSessionOpened.set(true); // set flag that current session is opened
+
+          // create new user
+          chatUser = new ChatUser(userName);
+
+          // send ok enter command to confirm session opening
+          new ChatCommand(CMDOK, "", CMDENTER.toString()).send(outputStream);
+
+          // TODO what if isSessionOpened set to true but we cant send ok enter command to
+          // client
+          // send to all users usrlst command
+          sendToAllChatClients(new ChatCommand(CMDUSRLST, "", getUserNamesListInString()));
+
+          // send to all welcome message
+          sendToAllChatClients(new ChatCommand(CMDMSG,
+              getCurrentDateTime() + " " + chatUser.getUsername() + " " + WLC_USR_MSG));
+
+          // print to server console
+          System.out.println("Open chat session for user " + userName);
+
+        } else {
+
+          // if username is empty send err to client and print to console
+          new ChatCommand(CMDERR, NAME_ERR_MSG).send(outputStream);
+          System.out.println(NAME_ERR_MSG);
+        }
+        break;
+
+      case CMDHLP:
+        // TODO complete
+        break;
+
+      case CMDMSG:
+      case CMDPRVMSG:
+
+        // Get user list from payload
+        String[] usrList = new String[0];
+        if (!chatCommand.getPayload().isEmpty()) {
+          usrList = chatCommand.getPayload().split(CMDULDLM.toString());
+        }
+
+        Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
+
+        // System.out.println(usrSet.toString());
+
+        // Prepare message
+        String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": "
+            + chatCommand.getMessage();
+
+        // IF private message recipient list is empty, send message to all clients
+        if (usrSet.size() == 0) {
+          sendToAllChatClients(new ChatCommand(CMDMSG, message));
+
+          // Send only for recipient user list
+        } else {
+
+          // Add sender to recepient list
+          usrSet.add(chatUser.getUsername());
+
+          System.out.println("CommandHandler.run()" + usrSet.toString());
+
+          // Create storage for not founded user names
+          ArrayList<String> notFoundUserList = new ArrayList<String>();
+
+          // Send message to users in list
+          for (String key : usrSet) {
+
+            // Search chatHandler by chat user name string
+            CommandHandler commandHandler = handlerStorage.get(key);
+
+            // If found send message
+            if (commandHandler != null) {
+              new ChatCommand(CMDMSG, message).send(commandHandler.outputStream);;
+
+              // If not found, add to list
+            } else {
+              notFoundUserList.add(key);
+            }
+          }
+
+          // If not found user list not empty, send error message back to client
+          if (!notFoundUserList.isEmpty()) {
+            String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "")
+                .replaceAll(", ", CMDULDLM.toString());
+            System.out.println("CommandHandler.run()" + notFoundUserList.toString());
+            new ChatCommand(CMDERR, USR_NOT_FOUND_ERR_MSG + errMessage).send(outputStream);
+          }
+
+        }
+
+        /*
+         * // send private message for (CommandHandler chatHandler : handlerStorage) { if
+         * ((usrSet.size() == 0) // send message to all user or only to users in private //
+         * message user list || (usrSet.size() > 0 &&
+         * usrSet.contains(chatHandler.chatUser.getUsername()))) {
+         * 
+         * String message = getCurrentDateTime() + " " + chatUser.getUsername() + ": " +
+         * chatCommand.getMessage(); new ChatCommand(chatCommand.getCommandName(), message)
+         * .send(chatHandler.outputStream); } else { // username not found print message to
+         * server console System.out.println("Command \"" + chatCommand.toString() +
+         * "\". Username " + chatHandler.chatUser.getUsername() + " not found"); } }
+         */
+        break;
+
+      default:
+        // TODO write unknown command to log file;
+        // send client unknown command error message and print to console
+        String errMessage = "Unknown command " + chatCommand.toString();
+        new ChatCommand(CMDERR, errMessage).send(outputStream);
+        System.out.println(errMessage);
     }
   }
 

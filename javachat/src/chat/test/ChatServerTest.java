@@ -1,8 +1,6 @@
 package chat.test;
 
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,12 +21,11 @@ class ChatServerTest {
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
-  //@Disabled
-  @DisplayName("Test starting, stoping server.")
+  @DisplayName("Testing start and stop server.")
   @Test
   void serverStartStopTest() throws Throwable {
 
-    // set exception handler to throw other thread exceptions in current thread
+    // Set exception handler to throw other thread exceptions in current thread
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override
@@ -37,7 +34,8 @@ class ChatServerTest {
       }
     });
 
-    // redirect System.out & System.err
+    // Redirect System.out & System.err to current thread to allow checking standard and error
+    // output streams
     PrintStream systemOut = System.out;
     PrintStream systemErr = System.err;
     System.setOut(new PrintStream(outContent));
@@ -45,79 +43,38 @@ class ChatServerTest {
 
     ChatServer chatServer = new ChatServer();
 
-    int timeout = 1;
+    // Checking for lack of errors and correctness standard output on server starting
+    assertEquals(errContent.toString().length(), 0, "There are some errors in error stream.");
+    assertTrue("Server not started correctly. Check output stream.",
+        outContent.toString().contains(ChatServer.MSG_SERVER_STARTED));
 
-    // wait while chatServer started
-/*    while (!chatServer.isStarted() && (timeout <= 10) && (errContent.toString().length() == 0)) {
-      TimeUnit.SECONDS.sleep(1);
-      timeout++;
-    }
-*/
-    // check for lack of errors and correctness standard output on server starting
-    assertNotEquals(outContent.toString().length(), 0);
-    assertEquals(errContent.toString().length(), 0,
-        "It looks like we have some errors in err-stream.");
-    assertTrue("Maybe server not started correctly? Check ChatServer() constructor.",
-        outContent.toString().contains("Server started."));
+    // Pause between starting and stopping the server to allow console message prints in right
+    // order.
+    TimeUnit.SECONDS.sleep(1);
 
-    // try to stop server
     chatServer.stop();
 
-    // try to stop server, wait for return true
-    //assertTrue("Server not stopped correctly.", chatServer.isStopped());
+    // Checking for lack of errors and correctness standard output on server stopping
+    assertEquals(errContent.toString().length(), 0, "There are some errors in error stream.");
+    assertTrue("Server not stopped correctly. Check output stream.",
+        outContent.toString().contains(ChatServer.MSG_SERVER_STOPPED));
 
-    fail("Check console output for \"Server stopped.\" message.");
-    
-    // check for lack of errors and correctness standard output on server stopping
-    assertNotEquals(outContent.toString().length(), 0);
-    assertEquals(errContent.toString().length(), 0,
-        "It looks like we have some errors in err-stream.");
-    assertTrue("Maybe server not stopped correctly? Check ChatServer() constructor.",
-        outContent.toString().contains("Server stopped."));
-
-
-    // if we get other thread exception throw it in current thread
-    if (exception.get() != null) {
-      throw exception.get();
-    }
-
-    // restore
+    // Restore streams
     System.setOut(systemOut);
     System.setErr(systemErr);
 
-
-    // try another start/stop without controlling standard output and errors
-    chatServer = new ChatServer();
-
-    timeout = 1;
-
-/*    // wait while chatServer started
-    while (!chatServer.isStarted() && (timeout <= 10) && (errContent.toString().length() == 0)) {
-      TimeUnit.SECONDS.sleep(1);
-      timeout++;
-    }*/
-
-    // try to stop server
-    chatServer.stop();
-
-    // try to stop server, wait for return true
-    //assertTrue("Server not stopped correctly on second try.", chatServer.isStopped());
-    
-    fail("Check console output for \"Server stopped.\" message.");
-
-    // if we get other thread exception throw it in current thread
+    // If we have exceptions in other threads, throw them into the current thread
     if (exception.get() != null) {
       throw exception.get();
     }
 
   }
 
-  @Disabled
-  @DisplayName("Test chat server behavior on IOException error while create ServerSocket.")
+  @DisplayName("Testing the behavior of the chat server, when an IOException occurs when creating the new ServerSocket()")
   @Test
   void newServerSocketIOExceptionTest(@Mocked ServerSocket serverSocket) throws Throwable {
 
-    // set exception handler to throw other thread exceptions in current thread
+    // Set exception handler to throw other thread exceptions in current thread
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override
@@ -126,11 +83,11 @@ class ChatServerTest {
       }
     });
 
-    // redirect System.err
+    // Redirect System.err to current thread to allow checking error output streams
     PrintStream systemErr = System.err;
     System.setErr(new PrintStream(errContent));
 
-    // throw IOException on ServerSocket create
+    // Mocking a new ServerSocket to throws IOException
     new Expectations() {
       {
         new ServerSocket(anyInt);
@@ -138,37 +95,31 @@ class ChatServerTest {
       }
     };
 
-    // create chat server
     ChatServer chatServer = new ChatServer();
 
-    int timeout = 1;
-
-    // wait while chatServer started
-/*    while (!chatServer.isStarted() && (timeout <= 10) && (errContent.toString().length() == 0)) {
-      System.out.println(chatServer == null);
-      TimeUnit.SECONDS.sleep(1);
-      timeout++;
-    }*/
+    //TimeUnit.SECONDS.sleep(1);
 
     assertTrue("Chat server not properly catch IOException on new ServerSocket.",
-        errContent.toString().contains("Failed to create server socket on port"));
+        errContent.toString().contains(ChatServer.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET));
 
-    // if we get other thread exception throw it in current thread
+    chatServer.stop();
+
+
+    // Restore streams
+    System.setErr(systemErr);
+
+    // If we have exceptions in other threads, throw them into the current thread
     if (exception.get() != null) {
       throw exception.get();
     }
 
-    // restore
-    System.setErr(systemErr);
-
   }
 
-  @Disabled
-  @DisplayName("Test chat server behavior on IOException error on ServerSocket.accept(), using patial mocking.")
+  @DisplayName("Testing the behavior of the chat server, when an IOException occurs in the ServerSocket.accept() method, using partial mocking.")
   @Test
   void acceptServerSocketIOExceptionTest() throws Throwable {
 
-    // set exception handler to throw other thread exceptions in current thread
+    // Set exception handler to throw other thread exceptions in current thread
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
       @Override
@@ -177,12 +128,12 @@ class ChatServerTest {
       }
     });
 
-    // redirect System.err
+    // Redirect System.err to current thread to allow checking error output streams
     PrintStream systemErr = System.err;
     System.setErr(new PrintStream(errContent));
 
+    // Mock only ServerSocket.accept() to throw IOException
     ServerSocket serverSocketPartialMock = new ServerSocket();
-
     new Expectations(ServerSocket.class) {
       {
         serverSocketPartialMock.accept();
@@ -192,25 +143,22 @@ class ChatServerTest {
 
     ChatServer chatServer = new ChatServer();
 
-    int timeout = 1;
-
-    // wait while chatServer started
-/*    while (!chatServer.isStarted() && (timeout <= 10) && (errContent.toString().length() == 0)) {
-      TimeUnit.SECONDS.sleep(1);
-      System.out.println(timeout);
-      timeout++;
-    }*/
+    // A pause between starting and stopping the server to ensure that we arrive at the
+    // ServerSocket.accept () command.
+    TimeUnit.SECONDS.sleep(1);
 
     assertTrue("Chat server not properly catch IOException on ServerSocket.accept()",
-        errContent.toString().contains("Chat client acception failed."));
+        errContent.toString().contains(ChatServer.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED));
 
-    // if we get other thread exception throw it in current thread
+    chatServer.stop();
+
+    // Restore streams
+    System.setErr(systemErr);
+
+    // If we have exceptions in other threads, throw them into the current thread
     if (exception.get() != null) {
       throw exception.get();
     }
-
-    // restore
-    System.setErr(systemErr);
 
   }
 

@@ -1,12 +1,14 @@
 package chat.server;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.BindException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.hamcrest.core.IsNull;
 import chat.base.WorkerThread;
 
 // TODO: use netty+protobuf or ZeroMQ
@@ -20,6 +22,20 @@ import chat.base.WorkerThread;
  */
 
 public class ChatServer {
+
+  public static final String MSG_COMMAND_TO_SHUTDOWN_SERVER = "Type \"stop\" in console to shutdown server.";
+
+  public static final String MSG_SERVER_STARTED = "Server started.";
+
+  public static final String MSG_SERVER_STOPPED = "The server is stopped.";
+
+  public static final String MSG_STOPPING_CHAT_CLIENT_HANDLERS = "Stopping the chat client handlers...";
+
+  public static final String MSG_STOPPING_SERVER_THREADS = "Stopping server threads...";
+
+  public static final String ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED = "Chat client acception failed.";
+
+  public static final String ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET = "Failed to create server socket on serverSocketPort ";
 
   /** The server serverSocketPort number. */
   public final static int SERVER_PORT = 3000;
@@ -48,6 +64,10 @@ public class ChatServer {
 
 
   private AtomicBoolean stoppingChatServerFlag;
+
+  
+
+  
 
   // Constructor
 
@@ -117,9 +137,9 @@ public class ChatServer {
     if (processChatHandlerThread.isRuning() && processConsoleInputThread.isRuning()) {
 
       // print console message how to stop server from console
-      System.out.println("Type \"stop\" in console to shutdown server.");
+      System.out.println(MSG_COMMAND_TO_SHUTDOWN_SERVER);
 
-      System.out.println("Server started.");
+      System.out.println(MSG_SERVER_STARTED);
 
       // Set state to already started
       //started.set(true);
@@ -175,15 +195,16 @@ public class ChatServer {
    */
   public void stop() {
 
-    System.out.println("Stopping server thread...");
+    System.out.println(MSG_STOPPING_SERVER_THREADS);
 
     if (processChatHandlerThread != null) {
-      // try to stop thread, set running flag to false
+      
       processChatHandlerThread.stop();
-
+      
       try {
-
+      
         processChatHandlerThread.getThread().join();
+        processChatHandlerThread = null;
 
       } catch (InterruptedException e) {
         // TODO Auto-generated catch block
@@ -192,38 +213,33 @@ public class ChatServer {
 
     }
 
-    /*
-     * if (serverSocket != null) { // Close server socket to release blocking on while circle in
-     * processChatHandlerThread // on serverSocket.accept(). Throw SocketException and stop thread.
-     * serverSocket.close(); serverSocket = null; }
-     */
-    System.out.println("ChatServer.stop() pre stop");
     if (processConsoleInputThread != null) {
-      System.out.println("ChatServer.stop() pre stop 1");
+    
       processConsoleInputThread.stop();
-      System.out.println("ChatServer.stop() post stop 1");
+      
       try {
-        System.out.println("ChatServer.stop() enter join");
+      
         processConsoleInputThread.getThread().join();
-        System.out.println("ChatServer.stop() exit join");
+        processConsoleInputThread = null;
+        
       } catch (InterruptedException e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
     }
 
-    System.out.println("Stopping all client handlers...");
+    System.out.println(MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
     if (commandHandlers != null) {
-      // stop all ChatHadnlers
-      /*
-       * for (CommandHandler chatHandler : commandHandlers) { chatHandler.stop(); }
-       */
+
       for (CommandHandler commandHandler : commandHandlers.values()) {
+      
         commandHandler.stop();
 
         try {
           commandHandler.getThread().join();
+          commandHandler = null;
+          
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
@@ -231,10 +247,8 @@ public class ChatServer {
       }
     }
 
-    System.out.println("Server stopped.");
+    System.out.println(MSG_SERVER_STOPPED);
 
-    // set stopped flag
-   //stopped.set(true);
   }
 
   /**
@@ -317,13 +331,13 @@ public class ChatServer {
 
           // if Server socket not opened and thread trying to stop ignore error because it is
           // normal situation when we stopping server
-          System.out.println("ChatServer.ProcessChatHandlerThreadClass.run() socketException");
-          System.out.println("ChatServer.ProcessChatHandlerThreadClass.run() " + this.isRuning());
+          //System.out.println("ChatServer.ProcessChatHandlerThreadClass.run() socketException");
+          //System.out.println("ChatServer.ProcessChatHandlerThreadClass.run() " + this.isRuning());
 
         } else {
 
           // Something wrong write error and stop server
-          System.err.println("Chat client acception failed.");
+          System.err.println(ChatServer.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED);
           e.printStackTrace();
           // stop();
           // closeServerSocket();
@@ -331,7 +345,7 @@ public class ChatServer {
 
       } catch (IOException e) { // stop server on IOException
 
-        System.err.println("Chat client acception failed.");
+        System.err.println(ChatServer.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED);
         e.printStackTrace();
         // stop();
         // closeServerSocket();
@@ -358,7 +372,7 @@ public class ChatServer {
       } catch (IOException e) {
         // TODO Auto-generated catch block
         System.err
-            .println("Failed to create server socket on serverSocketPort " + serverSocketPort);
+            .println(ChatServer.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET + serverSocketPort);
         e.printStackTrace();
         return false;
       }
@@ -371,11 +385,7 @@ public class ChatServer {
         // Close server socket to release blocking on while circle in processChatHandlerThread
         // on serverSocket.accept(). Throw SocketException and stop thread.
         try {
-          System.out.println(
-              "ChatServer.ProcessChatHandlerThreadClass.closeServerSocket() pre serversocket close");
           serverSocket.close();
-          System.out.println(
-              "ChatServer.ProcessChatHandlerThreadClass.closeServerSocket() post serversocket close");
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -393,9 +403,7 @@ public class ChatServer {
 
     @Override
     public void stop() { // TODO Auto-generated method stub
-      System.out.println("ChatServer.ProcessChatHandlerThreadClass.stop() set stop flag");
       super.stop();
-      System.out.println("ChatServer.ProcessChatHandlerThreadClass.stop() try close server");
       closeServerSocket();
     }
 

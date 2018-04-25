@@ -4,24 +4,22 @@ import static chat.base.CommandName.CMDDLM;
 import static chat.base.CommandName.CMDPRVMSG;
 import static chat.base.CommandName.CMDUDLM;
 import static chat.base.CommandName.CMDULDLM;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import chat.base.ChatClientPresenter;
 import chat.base.Presenter;
 import chat.base.View;
 import chat.server.ChatServer;
 import chat.server.CommandHandler;
 import mockit.Capturing;
-import mockit.FullVerifications;
 import mockit.Verifications;
 
 @DisplayName("Send private message ")
@@ -32,21 +30,22 @@ class SendPrivateMessageIntegrationTest {
   public static final String USER_NAME_PREFIX = "client";
   public static final String MESSAGE_PREFIX = "message";
 
+  // To differentiate the sender, recipients, and recipient client, you must declare each variable
+  // separately.
   @Capturing
   View senderView;
   @Capturing
-  View receiverView1;
+  View recipientView1;
   @Capturing
-  View receiverView2;
+  View recipientView2;
   @Capturing
-  View notReceiverView;
+  View noRecipientView;
 
   private ChatServer chatServer;
 
-  // Chat clients storage
-  private Presenter[] chatClients = new Presenter[MAX_NUMBERS_OF_USERS];
+  private Presenter[] chatClientPresenterStorage = new Presenter[MAX_NUMBERS_OF_USERS];
 
-  // Factory method to create presenter and view Swing
+  // The factory method to create presenter and view Swing
   private ChatClientPresenter createChatClientFactory(String username, View view) {
     ChatClientPresenter presenter = new ChatClientPresenter();
     view.setPresenter(presenter);
@@ -55,49 +54,49 @@ class SendPrivateMessageIntegrationTest {
   }
 
   @BeforeEach
-  void BeforeAll() throws Exception {
+  void BeforeAll(TestInfo testInfo) throws Exception {
 
-    // Create server
+    System.out.println();
+    System.out.println("----------------------------------------------------------------------");
+    System.out
+        .println(testInfo.getTestClass().get().getSimpleName() + "." + testInfo.getDisplayName());
+    System.out.println("----------------------------------------------------------------------");
+
     chatServer = new ChatServer();
-/*    int timeout = 1;
-
-    // Wait while chatServer started
-    while (!chatServer.isStarted() && (timeout <= 10)) {
-      TimeUnit.SECONDS.sleep(1);
-      timeout++;
-    }*/
 
     View view;
-    // Create clients
-    for (int i = 0; i < chatClients.length; i++) {
+    for (int i = 0; i < chatClientPresenterStorage.length; i++) {
       switch (i) {
         case 0:
           view = senderView;
           break;
         case 1:
-          view = receiverView1;
+          view = recipientView1;
           break;
         case 2:
-          view = receiverView2;
+          view = recipientView2;
           break;
         default:
-          view = notReceiverView;
+          view = noRecipientView;
           break;
       }
-      chatClients[i] = createChatClientFactory(USER_NAME_PREFIX + i, view);
+      chatClientPresenterStorage[i] = createChatClientFactory(USER_NAME_PREFIX + i, view);
     }
 
     // Connect client to server
-    for (int i = 0; i < chatClients.length; i++) {
-      chatClients[i].openConnection(USER_NAME_PREFIX + i);
+    int i = 0;
+    for (Presenter chatClient : chatClientPresenterStorage) {
+      chatClient.openConnection(USER_NAME_PREFIX + i++);
     }
 
+    // Waiting until all chat clients log on to the server. Should be used for stability of the test.  
+    TimeUnit.MILLISECONDS.sleep(300);
+    
   }
 
   @AfterEach
   void AfterAll() throws Exception {
 
-    // Stop server
     chatServer.stop();
 
   }
@@ -132,29 +131,29 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      chatClients[0].sendCommand(privateCommand);
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
-          chatClients[0].getView().onSendMessage();
+          chatClientPresenterStorage[0].getView().onSendMessage();
           times = 1;
 
           String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
 
           for (int i = 0; i <= NUMBER_OF_PRIVATE_MSG_RECEPIENTS; i++) {
-            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+            chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
             assertTrue(actualMessage.contains(expectedMessage),
-                "Clients in recepient list must receive private message.");
+                "Clients in recepient list must receive private message. But received " + actualMessage);
           }
 
           // Checking that last user not received the private message. The statement 'times = 1'
           // means getting only one welcome login message initiated by sequential clients startup.
-          chatClients[MAX_NUMBERS_OF_USERS - 1].getView()
+          chatClientPresenterStorage[MAX_NUMBERS_OF_USERS - 1].getView()
               .onReceiveMessage(actualMessage = withCapture());
           times = 1;
           assertFalse(actualMessage.contains(expectedMessage),
-              "Last client must not receive private message.");
+              "Last client must not receive private message. But received " + actualMessage);
 
         }
       };
@@ -171,7 +170,7 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      chatClients[0].sendCommand(privateCommand);
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
@@ -182,9 +181,9 @@ class SendPrivateMessageIntegrationTest {
           String actualMessage;
 
           for (int i = 0; i < MAX_NUMBERS_OF_USERS; i++) {
-            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+            chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
             assertTrue(actualMessage.contains(expectedMessage),
-                "All client must receive private message.");
+                "All client must receive private message. But received " + actualMessage);
           }
         }
       };
@@ -206,7 +205,7 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      chatClients[0].sendCommand(privateCommand);
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
@@ -214,10 +213,10 @@ class SendPrivateMessageIntegrationTest {
           String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
 
-          for (int i = 0; i < chatClients.length; i++) {
-            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+          for (int i = 0; i < chatClientPresenterStorage.length; i++) {
+            chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
             assertTrue(actualMessage.contains(expectedMessage),
-                "All client must receive private message only once.");
+                "All client must receive private message only once. But received " + actualMessage);
             if (i == 1) {
 
               // Checking that user1 received the private message only once. The statement 'times =
@@ -255,7 +254,7 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      chatClients[0].sendCommand(privateCommand);
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
@@ -263,7 +262,8 @@ class SendPrivateMessageIntegrationTest {
               CommandHandler.USR_NOT_FOUND_ERR_MSG + unknowUser1 + CMDULDLM + unknowUser2;
           Object actualObject = null;
 
-          chatClients[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
+          chatClientPresenterStorage[0].getView().showErrorWindow(actualObject = withCapture(),
+              anyString);
           assertTrue(actualObject.toString().contains(expectedMessage),
               "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received.");
         }
@@ -292,12 +292,8 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      /*
-       * System.out
-       * .println("SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
-       * + privateCommand);
-       */
-      chatClients[0].sendCommand(privateCommand);
+
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       final String innerPrivateMessageRecepientList = privateMessageRecepientListCaseSensitivity;
       new Verifications() {
@@ -306,10 +302,9 @@ class SendPrivateMessageIntegrationTest {
               CommandHandler.USR_NOT_FOUND_ERR_MSG + innerPrivateMessageRecepientList;
           Object actualObject = null;
 
-          chatClients[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
-          /*
-           * System.out.println(actualObject.toString()); System.out.println(expectedErrorMessage);
-           */
+          chatClientPresenterStorage[0].getView().showErrorWindow(actualObject = withCapture(),
+              anyString);
+          
           assertTrue(actualObject.toString().contains(expectedErrorMessage),
               "Message \"" + CommandHandler.USR_NOT_FOUND_ERR_MSG + "\" not received.");
 
@@ -317,9 +312,9 @@ class SendPrivateMessageIntegrationTest {
           String actualMessage;
 
           for (int i = 0; i < MAX_NUMBERS_OF_USERS; i++) {
-            chatClients[i].getView().onReceiveMessage(actualMessage = withCapture());
+            chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
             assertTrue(actualMessage.contains(expectedMessage),
-                "All client must receive private message.");
+                "All client must receive private message. But received " + actualMessage);
           }
         }
       };
@@ -338,25 +333,23 @@ class SendPrivateMessageIntegrationTest {
       String chatMessage = MESSAGE_PREFIX + 0;
       String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList
           + CMDUDLM + CMDDLM + chatMessage;
-      System.out.println(
-          "SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
+      System.out
+          .println("SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
               + privateCommand);
-      chatClients[0].sendCommand(privateCommand);
+      chatClientPresenterStorage[0].sendCommand(privateCommand);
 
       new Verifications() {
         {
-          // TODO Additional spaces in usernames must be removed
-          
           String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
           String actualMessage;
 
-          chatClients[1].getView().onReceiveMessage(actualMessage = withCapture());
+          chatClientPresenterStorage[1].getView().onReceiveMessage(actualMessage = withCapture());
           assertTrue(actualMessage.contains(expectedMessage),
-              "All client must receive private message.");
+              "All client must receive private message. But received " + actualMessage);
 
-          chatClients[3].getView().onReceiveMessage(actualMessage = withCapture());
+          chatClientPresenterStorage[3].getView().onReceiveMessage(actualMessage = withCapture());
           assertTrue(actualMessage.contains(expectedMessage),
-              "All client must receive private message.");
+              "All client must receive private message. But received " + actualMessage);
 
         }
       };

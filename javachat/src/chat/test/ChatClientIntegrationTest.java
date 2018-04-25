@@ -27,15 +27,7 @@ class ChatClientIntegrationTest {
   @BeforeEach
   void setUp() throws Exception {
 
-    // create server
     chatServer = new ChatServer();
-    int timeout = 1;
-
-    // wait while chatServer started
-    /*while (!chatServer.isStarted() && (timeout <= 10)) {
-      TimeUnit.SECONDS.sleep(1);
-      timeout++;
-    }*/
 
   }
 

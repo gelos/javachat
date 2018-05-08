@@ -1,5 +1,8 @@
 package chat.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,6 +16,7 @@ import chat.base.WorkerThread;
 
 // TODO: use netty+protobuf or ZeroMQ
 // TODO add log support logback https://stackify.com/logging-logback/
+// TODO use Callable, Future, CompleteCallable
 /**
  * Implements server side of chat application. Initialize server part, accept client connection and
  * create new thread as ChartHandler object for every new client connection. Use stop command from
@@ -22,6 +26,10 @@ import chat.base.WorkerThread;
  */
 
 public class ChatServer {
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger logger = LoggerFactory.getLogger(ChatServer.class);
 
   public static final String MSG_COMMAND_TO_SHUTDOWN_SERVER = "Type \"stop\" in console to shutdown server.";
 
@@ -95,6 +103,8 @@ public class ChatServer {
     // create and initialize state flags
     /*started = new AtomicBoolean(false);
     stopped = new AtomicBoolean(false);*/
+	  logger.info("Hello World");
+
     stoppingChatServerFlag = new AtomicBoolean(false);
 
     System.out.println("Chat server starting...");

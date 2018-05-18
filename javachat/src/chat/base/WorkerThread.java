@@ -50,12 +50,15 @@ public class WorkerThread implements Runnable {
   /**
    * Start.
    */
-  public void start(String threadName) {
+  public void start(String threadPrefix) {
   
     runningFlag.set(true);
   
-    thread = (threadName.isEmpty()) ? new Thread(this) : new Thread(null, this, threadName);
+    //thread = (threadName.isEmpty()) ? new Thread(this) : new Thread(null, this, threadName);
+    thread = new Thread(this);
+    thread.setName(threadPrefix + thread.getName());
     thread.start();
+    
   
   }
 

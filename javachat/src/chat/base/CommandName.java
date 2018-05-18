@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The Enum CommandName used in {@link ChatCommand}. Command names that can be used:
+ * The Enum CommandName used in {@link Command}. Command names that can be used:
  * <li>{@link #CMDDLM}</li>
  * <li>{@link #CMDEXIT}</li>
  * <li>{@link #CMDENTER}</li>

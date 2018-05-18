@@ -6,13 +6,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import chat.base.ChatCommand;
+import chat.base.Command;
 import chat.base.CommandName;
 
-@DisplayName("ChatCommand constructor tests ")
+@DisplayName("Command constructor tests ")
 class ChatCommandUnitTest {
 
-  static class ChatCommandExtendedCompare extends ChatCommand {
+  static class ChatCommandExtendedCompare extends Command {
     private static final long serialVersionUID = 1L;
 
     public ChatCommandExtendedCompare(String commandString) {
@@ -35,7 +35,7 @@ class ChatCommandUnitTest {
         return false;
       if (getClass() != obj.getClass())
         return false;
-      ChatCommand other = (ChatCommand) obj;
+      Command other = (Command) obj;
       if (this.getCommandName() == other.getCommandName()
           && this.getPayload().equals(other.getPayload())
           && this.getMessage().equals(other.getMessage()))

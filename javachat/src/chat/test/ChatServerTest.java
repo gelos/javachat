@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import chat.server.ChatServer;
+import chat.server.Server;
 import mockit.Expectations;
 import mockit.Mocked;
 
@@ -41,23 +41,23 @@ class ChatServerTest {
     System.setOut(new PrintStream(outContent));
     System.setErr(new PrintStream(errContent));
 
-    ChatServer chatServer = new ChatServer();
+    Server server = new Server();
 
     // Checking for lack of errors and correctness standard output on server starting
     assertEquals(errContent.toString().length(), 0, "There are some errors in error stream.");
     assertTrue("Server not started correctly. Check output stream.",
-        outContent.toString().contains(ChatServer.MSG_SERVER_STARTED));
+        outContent.toString().contains(Server.MSG_SERVER_STARTED));
 
     // Pause between starting and stopping the server to allow console message prints in right
     // order.
     TimeUnit.SECONDS.sleep(1);
 
-    chatServer.stop();
+    server.stop();
 
     // Checking for lack of errors and correctness standard output on server stopping
     assertEquals(errContent.toString().length(), 0, "There are some errors in error stream.");
     assertTrue("Server not stopped correctly. Check output stream.",
-        outContent.toString().contains(ChatServer.MSG_SERVER_STOPPED));
+        outContent.toString().contains(Server.MSG_SERVER_STOPPED));
 
     // Restore streams
     System.setOut(systemOut);
@@ -95,14 +95,14 @@ class ChatServerTest {
       }
     };
 
-    ChatServer chatServer = new ChatServer();
+    Server server = new Server();
 
     //TimeUnit.SECONDS.sleep(1);
 
     assertTrue("Chat server not properly catch IOException on new ServerSocket.",
-        errContent.toString().contains(ChatServer.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET));
+        errContent.toString().contains(Server.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET));
 
-    chatServer.stop();
+    server.stop();
 
 
     // Restore streams
@@ -141,17 +141,19 @@ class ChatServerTest {
       }
     };
 
-    ChatServer chatServer = new ChatServer();
+    Server server = new Server();
 
     // A pause between starting and stopping the server to ensure that we arrive at the
     // ServerSocket.accept () command.
     TimeUnit.SECONDS.sleep(1);
 
     assertTrue("Chat server not properly catch IOException on ServerSocket.accept()",
-        errContent.toString().contains(ChatServer.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED));
+        errContent.toString().contains(Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED));
 
-    chatServer.stop();
+    server.stop();
 
+    serverSocketPartialMock.close();
+    
     // Restore streams
     System.setErr(systemErr);
 
@@ -159,7 +161,7 @@ class ChatServerTest {
     if (exception.get() != null) {
       throw exception.get();
     }
-
+    
   }
 
 }

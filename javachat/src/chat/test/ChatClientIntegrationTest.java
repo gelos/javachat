@@ -10,10 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import chat.base.ChatClientPresenter;
+import chat.base.ClientPresenter;
 import chat.base.View;
-import chat.client.mvp.swing.ChatClientViewSwing;
-import chat.server.ChatServer;
+import chat.client.mvp.swing.ClientViewSwing;
+import chat.server.Server;
 import mockit.Capturing;
 import mockit.Expectations;
 import mockit.FullVerifications;
@@ -22,12 +22,12 @@ import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
-  private ChatServer chatServer;
+  private Server server;
 
   @BeforeEach
   void setUp() throws Exception {
 
-    chatServer = new ChatServer();
+    server = new Server();
 
   }
 
@@ -35,17 +35,17 @@ class ChatClientIntegrationTest {
   void tearDown() throws Exception {
 
     // stop server
-    chatServer.stop();
+    server.stop();
 
   }
 
   //@Disabled
   @DisplayName("Start one client connect to server, send \"Hello\" message and then disconnect.")
   @Test
-  // void startStopClientTest(final @Tested ChatClientPresenter chatClientPresenter, @Capturing
-  // ChatClientViewSwing chatClientView) {
-  // void startStopClientTest(@Capturing ChatClientViewSwing chatClientView) {
-  void startStopClientTest(@Capturing ChatClientViewSwing chatClientView) throws Throwable {
+  // void startStopClientTest(final @Tested ClientPresenter chatClientPresenter, @Capturing
+  // ClientViewSwing chatClientView) {
+  // void startStopClientTest(@Capturing ClientViewSwing chatClientView) {
+  void startStopClientTest(@Capturing ClientViewSwing chatClientView) throws Throwable {
     // void startStopClientTest() {
 
     // set exception handler to throw other thread exceptions in current thread
@@ -57,16 +57,16 @@ class ChatClientIntegrationTest {
       }
     });
 
-    final ChatClientPresenter chatClientPresenter = new ChatClientPresenter();
+    final ClientPresenter clientPresenter = new ClientPresenter();
 
-    // ChatClientViewSwing chatClientView = new ChatClientViewSwing();
+    // ClientViewSwing chatClientView = new ClientViewSwing();
     // View chatClientView = new View();
 
-    // ChatClientViewSwing chatClientSwingView = new ChatClientViewSwing();
+    // ClientViewSwing chatClientSwingView = new ClientViewSwing();
 
-    chatClientPresenter.setView(chatClientView);
+    clientPresenter.setView(chatClientView);
 
-    new Expectations(ChatClientViewSwing.class) {
+    new Expectations(ClientViewSwing.class) {
       {
         // chatClientView.getPresenter(); result = chatClientPresenter;
         // chatClientView.getEnterTextField(); result = "this is test";
@@ -79,14 +79,14 @@ class ChatClientIntegrationTest {
       }
     };
 
-    chatClientPresenter.setView(chatClientView);
+    clientPresenter.setView(chatClientView);
 
     // System.out.println(chatClientView.getEnterTextField());
 
-    // System.out.println(((ChatClientPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
+    // System.out.println(((ClientPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
     // chatClientPresenter.getViewSwing().showMsgChatPane("");
 
-    chatClientPresenter.openConnection("oleg");
+    clientPresenter.openConnection("oleg");
 
     try {
       TimeUnit.SECONDS.sleep(5);
@@ -95,7 +95,7 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }
 
-    chatClientPresenter.sendCommand("hello");
+    clientPresenter.sendCommand("hello");
 
     // assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
     // (chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
@@ -110,7 +110,7 @@ class ChatClientIntegrationTest {
       e.printStackTrace();
     }
 
-    chatClientPresenter.closeConnection();
+    clientPresenter.closeConnection();
 
     try {
       TimeUnit.SECONDS.sleep(3);
@@ -155,14 +155,14 @@ class ChatClientIntegrationTest {
       }
     });
 
-    final ChatClientPresenter chatClientPresenter1 = new ChatClientPresenter();
-    final ChatClientPresenter chatClientPresenter2 = new ChatClientPresenter();
+    final ClientPresenter clientPresenter1 = new ClientPresenter();
+    final ClientPresenter clientPresenter2 = new ClientPresenter();
 
-    chatClientPresenter1.setView(chatClientView1);
-    chatClientPresenter2.setView(chatClientView2);
+    clientPresenter1.setView(chatClientView1);
+    clientPresenter2.setView(chatClientView2);
 
     // connect client 1
-    chatClientPresenter1.openConnection(CLIENT_NAME1);
+    clientPresenter1.openConnection(CLIENT_NAME1);
 
     // wait timeout for server processing
     /*
@@ -190,7 +190,7 @@ class ChatClientIntegrationTest {
     };
 
     // connect client 2 and check normal command sequence for client1 and client2
-    chatClientPresenter2.openConnection(CLIENT_NAME2);
+    clientPresenter2.openConnection(CLIENT_NAME2);
 
     /*
      * try { TimeUnit.SECONDS.sleep(SRV_TIMEOUT); } catch (InterruptedException e) {
@@ -230,7 +230,7 @@ class ChatClientIntegrationTest {
 
 
     // send message from client1
-    chatClientPresenter1.sendCommand(MSG1);
+    clientPresenter1.sendCommand(MSG1);
     new FullVerifications() {
       {
         chatClientView1.onSendMessage();
@@ -244,7 +244,7 @@ class ChatClientIntegrationTest {
     };
 
     // send message from client2
-    chatClientPresenter2.sendCommand(MSG2);
+    clientPresenter2.sendCommand(MSG2);
     new FullVerifications() {
       {
         chatClientView2.onSendMessage();
@@ -257,7 +257,7 @@ class ChatClientIntegrationTest {
       }
     };
 
-    chatClientPresenter1.closeConnection();
+    clientPresenter1.closeConnection();
 
     new FullVerifications() {
       {
@@ -275,7 +275,7 @@ class ChatClientIntegrationTest {
       }
     };
 
-    chatClientPresenter2.closeConnection();
+    clientPresenter2.closeConnection();
 
     new FullVerifications() {
       {

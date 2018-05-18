@@ -1,15 +1,15 @@
 package chat.client.mvp.swing;
 
 import javax.swing.SwingUtilities;
-import chat.base.ChatClientPresenter;
+import chat.base.ClientPresenter;
 
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 
 /**
- * The Class ChatClientSwing. Main class to start chat client.
+ * The Class ClientSwing. Main class to start chat client.
  */
-public class ChatClientSwing {
+public class ClientSwing {
 
   /**
    * The main method. Run GUI in Event Dispatch Thread. Initialize View and Presenter.
@@ -24,8 +24,8 @@ public class ChatClientSwing {
         try {
           
           // Initialize View and Presenter
-          final ChatClientPresenter presenter = new ChatClientPresenter();
-          final ChatClientViewSwing mainWindow = new ChatClientViewSwing();
+          final ClientPresenter presenter = new ClientPresenter();
+          final ClientViewSwing mainWindow = new ClientViewSwing();
           presenter.setView(mainWindow);
           mainWindow.setPresenter(presenter);
           

@@ -22,9 +22,9 @@ import chat.base.Presenter;
 import chat.base.View;
 
 /**
- * The Class ChatClientViewSwing. Realize swing GUI view.
+ * The Class ClientViewSwing. Realize swing GUI view.
  */
-public class ChatClientViewSwing extends JFrame implements View {
+public class ClientViewSwing extends JFrame implements View {
 
   // Constant
 
@@ -56,7 +56,7 @@ public class ChatClientViewSwing extends JFrame implements View {
   /**
    * Initialize GUI components.
    */
-  public ChatClientViewSwing() {
+  public ClientViewSwing() {
 
     initActions();
     initComponents();
@@ -195,7 +195,7 @@ public class ChatClientViewSwing extends JFrame implements View {
   @Override
   public void onReceiveMessage(String message) {
     // TODO Auto-generated method stub
-    System.out.println("ChatClientViewSwing.showMsgChatPane(" + message + ")");
+    System.out.println("ClientViewSwing.showMsgChatPane(" + message + ")");
     
     StyledDocument doc = chatTextPane.getStyledDocument();
     try {

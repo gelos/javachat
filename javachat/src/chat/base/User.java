@@ -3,7 +3,7 @@ package chat.base;
 /**
  * The User Name class for store chat user information. 
  */
-public class ChatUser {
+public class User {
 
   /** The user name. */
   private String username;
@@ -13,7 +13,7 @@ public class ChatUser {
    *
    * @param username the user name String
    */
-  public ChatUser(String username) {
+  public User(String username) {
     this.username = username;
   }
 

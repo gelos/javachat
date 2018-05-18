@@ -3,12 +3,12 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry kind="lib" path="F:/Java/jmockit/jmockit-1.38.jar"/>
-	<classpathentry kind="lib" path="F:/Java/jmockit/jmockit-1.38-javadoc.jar"/>
-	<classpathentry kind="lib" path="F:/Java/jmockit/jmockit-1.38-sources.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Oleg.Olyunin/.p2/pool/plugins/org.slf4j.api_1.7.10.v20170428-1633.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Oleg.Olyunin/.p2/pool/plugins/ch.qos.logback.classic_1.1.2.v20160208-0839.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Oleg.Olyunin/.p2/pool/plugins/ch.qos.logback.core_1.1.2.v20160208-0839.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Oleg.Olyunin/.p2/pool/plugins/ch.qos.logback.slf4j_1.1.2.v20160301-0943.jar"/>
+	<classpathentry kind="lib" path="lib/ch.qos.logback.classic_1.1.2.v20160208-0839.jar"/>
+	<classpathentry kind="lib" path="lib/ch.qos.logback.core_1.1.2.v20160208-0839.jar"/>
+	<classpathentry kind="lib" path="lib/ch.qos.logback.slf4j_1.1.2.v20160301-0943.jar"/>
+	<classpathentry kind="lib" path="lib/jmockit-1.38-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/jmockit-1.38-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jmockit-1.38.jar"/>
+	<classpathentry kind="lib" path="lib/org.slf4j.api_1.7.10.v20170428-1633.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -35,7 +35,7 @@ public class ClientPresenter implements Presenter {
 	private final static String MSG_CANT_CON_SRV = "Can't connect to server " + Server.SERVER_IP + ":"
 			+ Server.SERVER_PORT + ". Server not started.";
 
-	private final static int MAX_TIMEOUT_SESSION_OPEN = 3;
+	private final static int MAX_TIMEOUT_SESSION_OPEN_MS = 100;
 
 	private View view;
 
@@ -120,7 +120,7 @@ public class ClientPresenter implements Presenter {
 
 		// Waiting for the '/ok enter' command to be received from the server
 		int waitingForOKEnterTimeoutMiliseconds = 0;
-		while (!isSessionOpened.get() && (waitingForOKEnterTimeoutMiliseconds <= MAX_TIMEOUT_SESSION_OPEN)) {
+		while (!isSessionOpened.get() && (waitingForOKEnterTimeoutMiliseconds <= MAX_TIMEOUT_SESSION_OPEN_MS)) {
 			try {
 				TimeUnit.MILLISECONDS.sleep(1);
 			} catch (InterruptedException e) {
@@ -142,7 +142,7 @@ public class ClientPresenter implements Presenter {
 			getView().onConnectionClosed(ClientPresenter.DEFAULT_WINDOW_NAME);
 			// stop message handler
 			processCommandThread.stop();
-			String msg = "Can't connect to the server, timeout " + MAX_TIMEOUT_SESSION_OPEN
+			String msg = "Can't connect to the server, timeout " + MAX_TIMEOUT_SESSION_OPEN_MS
 					+ ". Check server, try again or increase open session timeout.";
 			System.out.println(msg);
 			getView().showErrorWindow(msg, "Open session timeout.");
@@ -171,7 +171,7 @@ public class ClientPresenter implements Presenter {
 
 		// stop message handler thread BEFORE closing server socket and associated
 		// streams
-		if ((processCommandThread != null) && (processCommandThread.isRuning())) {
+		if ((processCommandThread != null) && (processCommandThread.isRunning())) {
 			processCommandThread.stop();
 		}
 
@@ -207,6 +207,7 @@ public class ClientPresenter implements Presenter {
 		Command command = new Command(commandString);
 		switch (command.getCommandName()) {
 		case CMDEXIT:
+		  //TODO duplicate send exit command 
 			closeConnection();
 			onViewStart();
 			break;
@@ -255,7 +256,7 @@ public class ClientPresenter implements Presenter {
 			Command command;
 			try {
 
-				while ((command = (Command) inputStream.readObject()) != null && isRuning()) {
+				while ((command = (Command) inputStream.readObject()) != null && isRunning()) {
 
 					loggerDebugMDC.debug(command.toString());
 					// loggerRoot.debug("run() - {}", this.toString() + command); //$NON-NLS-1$

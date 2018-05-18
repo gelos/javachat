@@ -29,7 +29,7 @@ public class WorkerThread implements Runnable {
    *
    * @return true, if is runningFlag
    */
-  public boolean isRuning() {
+  public boolean isRunning() {
     return runningFlag.get();
   }
 

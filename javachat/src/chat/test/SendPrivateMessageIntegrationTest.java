@@ -54,7 +54,8 @@ class SendPrivateMessageIntegrationTest {
 	private Presenter[] chatClientPresenterStorage = new Presenter[MAX_NUMBERS_OF_USERS];
 
 	// The factory method to create presenter and view Swing
-	private ClientPresenter createChatClientFactory(String username, View view) {
+	//private ClientPresenter createChatClientFactory(String username, View view) {
+	private ClientPresenter createChatClientFactory(View view) {
 		ClientPresenter presenter = new ClientPresenter();
 		view.setPresenter(presenter);
 		presenter.setView(view);
@@ -87,7 +88,8 @@ class SendPrivateMessageIntegrationTest {
 				view = noRecipientView;
 				break;
 			}
-			chatClientPresenterStorage[i] = createChatClientFactory(USER_NAME_PREFIX + i, view);
+			//chatClientPresenterStorage[i] = createChatClientFactory(USER_NAME_PREFIX + i, view);
+			chatClientPresenterStorage[i] = createChatClientFactory(view);
 			//loggerDebug.debug(chatClientPresenterStorage[i].toString());
 		}
 
@@ -99,7 +101,7 @@ class SendPrivateMessageIntegrationTest {
 
 		// Waiting until all chat clients log on to the server. Should be used for
 		// stability of the test.
-		TimeUnit.MILLISECONDS.sleep(1500);
+		//TimeUnit.MILLISECONDS.sleep(1500);
 
 	}
 
@@ -141,8 +143,12 @@ class SendPrivateMessageIntegrationTest {
 			String chatMessage = MESSAGE_PREFIX + 0;
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
+			
+			// wait to test stability
+			TimeUnit.MILLISECONDS.sleep(1500);
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-
+			TimeUnit.MILLISECONDS.sleep(1500);
+			
 			new Verifications() {
 				{
 					chatClientPresenterStorage[0].getView().onSendMessage();
@@ -165,6 +171,7 @@ class SendPrivateMessageIntegrationTest {
 					chatClientPresenterStorage[MAX_NUMBERS_OF_USERS - 1].getView()
 							.onReceiveMessage(actualMessage = withCapture());
 					times = 1;
+					System.out.println(actualMessage);
 					assertFalse(actualMessage.contains(expectedMessage),
 							"Last client must not receive private message. But received " + actualMessage);
 

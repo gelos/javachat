@@ -123,7 +123,7 @@ public class Server {
 		processConsoleInputThread.start(processConsoleInputThread.getClass().getSimpleName());
 
 		// Check that both thread successfully running
-		if (processClientHandlersThread.isRuning() && processConsoleInputThread.isRuning()) {
+		if (processClientHandlersThread.isRunning() && processConsoleInputThread.isRunning()) {
 
 			loggerRoot.info("Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
 
@@ -255,7 +255,7 @@ public class Server {
 		public void run() {
 
 			if (!openServerSocket(serverSocketPort)) {
-				stop();
+				//stop();
 				return;
 			}
 
@@ -266,7 +266,7 @@ public class Server {
 			try {
 
 				// Waiting for client connection in circle
-				while (this.isRuning()) {
+				while (this.isRunning()) {
 
 					synchronized (serverSocket) {
 
@@ -278,7 +278,7 @@ public class Server {
 
 			} catch (SocketException e) { // Throws when calling ServerSocket.close
 
-				if (isServerSocketClosed() && !this.isRuning()) {
+				if (isServerSocketClosed() && !this.isRunning()) {
 
 					// if Server socket not opened and thread trying to stop ignore error because it
 					// is normal situation when we stopping server
@@ -293,11 +293,11 @@ public class Server {
 
 				loggerRoot.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 
-			} finally {
+			} /*finally {
 
 				stop();
 
-			}
+			}*/
 		}
 
 		private synchronized boolean isServerSocketClosed() {
@@ -363,12 +363,12 @@ public class Server {
 		public void run() {
 
 			// Wait for console input
-			while (this.isRuning()) {
+			while (this.isRunning()) {
 
 				try {
 					while (!consoleInput.ready()) {
 						try {
-							if (!this.isRuning()) {
+							if (!this.isRunning()) {
 								break;
 							}
 							Thread.sleep(10);
@@ -376,7 +376,7 @@ public class Server {
 							loggerRoot.error("run()", e); //$NON-NLS-1$
 						}
 					}
-					if (this.isRuning()) {
+					if (this.isRunning()) {
 						String s = consoleInput.readLine();
 
 						// Check input for stop command

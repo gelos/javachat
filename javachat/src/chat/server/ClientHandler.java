@@ -116,7 +116,7 @@ public class ClientHandler extends WorkerThread {
 
 			// Reading commands from the current client input socket while the handler is
 			// running
-			while ((command = (Command) inputStream.readObject()) != null && isRuning()) {
+			while ((command = (Command) inputStream.readObject()) != null && isRunning()) {
 
 				processCommand(command);
 
@@ -144,7 +144,11 @@ public class ClientHandler extends WorkerThread {
 			// Send update user list command
 			sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
-			stop();
+			MDC.clear();
+	        user = null;
+	        closeClientSocket();
+			
+			//stop();
 
 		}
 	}
@@ -152,12 +156,23 @@ public class ClientHandler extends WorkerThread {
 	@Override
 	public void stop() {
 		super.stop();
-		MDC.clear();
-		user = null;
-		closeClientSocket();
+		// First close the input stream to release the while circle in run() method
+		closeInputStream();
 	}
 
-	private synchronized void closeClientSocket() {
+	private synchronized void closeInputStream() {
+    // TODO Auto-generated method stub
+	  if (clientSocket != null && inputStream != null) {
+        try {
+            inputStream.close();
+            inputStream = null;
+        } catch (IOException e) {
+            loggerRoot.error("closeInputStream()", e); //$NON-NLS-1$
+        }
+    }
+  }
+
+  private synchronized void closeClientSocket() {
 
 		if (clientSocket != null) {
 			try {

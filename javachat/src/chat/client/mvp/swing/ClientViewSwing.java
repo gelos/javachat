@@ -49,7 +49,7 @@ public class ClientViewSwing extends JFrame implements View {
   /** The user list. */
   private JList<?> chatUserList;
 
-  
+  //TODO stop Presenter on windows close
 
   // Constructor
 

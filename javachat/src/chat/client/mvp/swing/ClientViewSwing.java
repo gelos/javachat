@@ -1,5 +1,8 @@
 package chat.client.mvp.swing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -25,6 +28,10 @@ import chat.base.View;
  * The Class ClientViewSwing. Realize swing GUI view.
  */
 public class ClientViewSwing extends JFrame implements View {
+  /**
+   * Logger for this class
+   */
+  private static final Logger logger = LoggerFactory.getLogger(ClientViewSwing.class);
 
   // Constant
 
@@ -206,8 +213,7 @@ public class ClientViewSwing extends JFrame implements View {
         doc.insertString(doc.getLength(), "\n" + message, null);
       }
     } catch (BadLocationException e1) {
-      // TODO Auto-generated catch block
-      e1.printStackTrace();
+      logger.error("onReceiveMessage(String)", e1); //$NON-NLS-1$
     }
   }
 

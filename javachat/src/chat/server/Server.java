@@ -67,7 +67,7 @@ public class Server {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger loggerRoot = LoggerFactory.getLogger(Server.class);
+	private static final Logger logger = LoggerFactory.getLogger(Server.class);
 	private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
 	private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
@@ -108,7 +108,7 @@ public class Server {
 		stopServerThread = new StopServerThreadClass();
 		stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
-		loggerRoot.info("Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
+		logger.info("Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
 		System.out.println(MSG_SERVER_STARTING);
 		
 		// Initialize client handlers storage
@@ -125,7 +125,7 @@ public class Server {
 		// Check that both thread successfully running
 		if (processClientHandlersThread.isRunning() && processConsoleInputThread.isRunning()) {
 
-			loggerRoot.info("Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
+			logger.info("Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
 
 			System.out.println(MSG_COMMAND_TO_SHUTDOWN_SERVER);
 			System.out.println(MSG_SERVER_STARTED);
@@ -143,10 +143,10 @@ public class Server {
 	 */
 	public void stop() {
 
-		loggerRoot.info("stop() - {}", MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
+		logger.info("stop() - {}", MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
 		System.out.println(MSG_STOPPING_SERVER_THREADS);
 
-		loggerRoot.info("stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
+		logger.info("stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
 		System.out.println(MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
 		if (clientHandlers != null) {
@@ -160,7 +160,7 @@ public class Server {
 					clientHandler = null;
 
 				} catch (InterruptedException e) {
-					loggerRoot.error("stop()", e); //$NON-NLS-1$
+					logger.error("stop()", e); //$NON-NLS-1$
 				}
 
 			}
@@ -176,7 +176,7 @@ public class Server {
 				processClientHandlersThread = null;
 
 			} catch (InterruptedException e) {
-				loggerRoot.error("stop()", e); //$NON-NLS-1$
+				logger.error("stop()", e); //$NON-NLS-1$
 			}
 
 		}
@@ -191,12 +191,12 @@ public class Server {
 				processConsoleInputThread = null;
 
 			} catch (InterruptedException e) {
-				loggerRoot.error("stop()", e); //$NON-NLS-1$
+				logger.error("stop()", e); //$NON-NLS-1$
 			}
 		}
 
 		
-		loggerRoot.info("stop() - {}", MSG_SERVER_STOPPED); //$NON-NLS-1$
+		logger.info("stop() - {}", MSG_SERVER_STOPPED); //$NON-NLS-1$
 		System.out.println(MSG_SERVER_STOPPED);
 
 	}
@@ -226,7 +226,7 @@ public class Server {
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
-					loggerRoot.error("$Runnable.run()", e); //$NON-NLS-1$
+					logger.error("$Runnable.run()", e); //$NON-NLS-1$
 				}
 			}
 			Server.this.stop();
@@ -259,7 +259,7 @@ public class Server {
 				return;
 			}
 
-			loggerRoot.info("run() - {}", //$NON-NLS-1$
+			logger.info("run() - {}", //$NON-NLS-1$
 					Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
 			System.out.println(Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
 
@@ -286,12 +286,12 @@ public class Server {
 				} else {
 
 					// Something wrong write error and stop server
-					loggerRoot.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
+					logger.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 				}
 
 			} catch (IOException e) { // stop server on IOException
 
-				loggerRoot.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
+				logger.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 
 			} /*finally {
 
@@ -308,12 +308,12 @@ public class Server {
 			try {
 				serverSocket = new ServerSocket(serverSocketPort);
 			} catch (BindException e) {
-				loggerRoot.error("openServerSocket(int) - " + Server.ERR_PORT_IN_USE_1 + serverSocketPort //$NON-NLS-1$
+				logger.error("openServerSocket(int) - " + Server.ERR_PORT_IN_USE_1 + serverSocketPort //$NON-NLS-1$
 						+ Server.ERR_PORT_IN_USE_2, e); // $NON-NLS-2$
 				return false;
 
 			} catch (IOException e) {
-				loggerRoot.error(
+				logger.error(
 						"openServerSocket(int) - " + Server.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET + serverSocketPort, //$NON-NLS-1$
 						e);
 				return false;
@@ -329,7 +329,7 @@ public class Server {
 				try {
 					serverSocket.close();
 				} catch (IOException e) {
-					loggerRoot.error("closeServerSocket()", e); //$NON-NLS-1$
+					logger.error("closeServerSocket()", e); //$NON-NLS-1$
 				}
 				serverSocket = null;
 			}
@@ -373,7 +373,7 @@ public class Server {
 							}
 							Thread.sleep(10);
 						} catch (InterruptedException e) {
-							loggerRoot.error("run()", e); //$NON-NLS-1$
+							logger.error("run()", e); //$NON-NLS-1$
 						}
 					}
 					if (this.isRunning()) {
@@ -389,7 +389,7 @@ public class Server {
 					}
 
 				} catch (IOException e1) {
-					loggerRoot.error("run()", e1); //$NON-NLS-1$
+					logger.error("run()", e1); //$NON-NLS-1$
 				}
 
 			}

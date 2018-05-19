@@ -97,6 +97,9 @@ class SendPrivateMessageIntegrationTest {
 		int i = 0;
 		for (Presenter chatClient : chatClientPresenterStorage) {
 			chatClient.openConnection(USER_NAME_PREFIX + i++);
+			// TODO remove timeout and run test to success
+			// TODO maybe use awaitility
+			TimeUnit.MILLISECONDS.sleep(100);
 		}
 
 		// Waiting until all chat clients log on to the server. Should be used for
@@ -145,10 +148,12 @@ class SendPrivateMessageIntegrationTest {
 					+ chatMessage;
 			
 			// wait to test stability
-			TimeUnit.MILLISECONDS.sleep(1500);
+		/*	TimeUnit.MILLISECONDS.sleep(3000);
+			System.out.println("first timeout");*/
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-			TimeUnit.MILLISECONDS.sleep(1500);
-			
+		/*	TimeUnit.MILLISECONDS.sleep(5000);
+			System.out.println("second timeout");*/
+						
 			new Verifications() {
 				{
 					chatClientPresenterStorage[0].getView().onSendMessage();
@@ -157,6 +162,8 @@ class SendPrivateMessageIntegrationTest {
 					String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
 					String actualMessage;
 
+					System.out.println("chatClientPresenterStorage.length " + chatClientPresenterStorage.length);
+					
 					for (int i = 0; i <= NUMBER_OF_PRIVATE_MSG_RECEPIENTS; i++) {
 						chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
 						assertTrue(actualMessage.contains(expectedMessage),
@@ -177,6 +184,8 @@ class SendPrivateMessageIntegrationTest {
 
 				}
 			};
+			/*TimeUnit.MILLISECONDS.sleep(3000);
+			System.out.println("third timeout");*/
 		}
 	}
 

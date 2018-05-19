@@ -3,7 +3,6 @@ package chat.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-
 import static chat.base.CommandName.CMDDLM;
 import static chat.base.CommandName.CMDENTER;
 import static chat.base.CommandName.CMDERR;
@@ -32,384 +31,382 @@ import chat.base.CommandName;
 import chat.base.WorkerThread;
 
 /**
- * It implements server side part of chat application for one chat client.
- * Handle input/output streams of client connection. Maintain handler storage
- * and user lists.
+ * It implements server side part of chat application for one chat client. Handle input/output
+ * streams of client connection. Maintain handler storage and user lists.
  * 
  * @see Server
  */
 public class ClientHandler extends WorkerThread {
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger loggerRoot = LoggerFactory.getLogger(ClientHandler.class);
-	private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
-	private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
-	
-	private static final String MSG_ACCPT_CLIENT = "Accepted client connection from ";
+  /**
+   * Logger for this class
+   */
+  private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+  private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
+  private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
-	public static final String ERR_USRS_NOT_FOUND = "User(s) not found. Username list: ";
+  private static final String MSG_ACCPT_CLIENT = "Accepted client connection from ";
 
-	/** The Constant ERR_NAME_EXISTS. */
-	private static final String ERR_NAME_EXISTS = "Client connection failed. Username already exists or wrong.";
+  public static final String ERR_USRS_NOT_FOUND = "User(s) not found. Username list: ";
 
-	/** The Constant MSG_WLC_USR. */
-	private static final String MSG_WLC_USR = "login";
+  /** The Constant ERR_NAME_EXISTS. */
+  private static final String ERR_NAME_EXISTS =
+      "Client connection failed. Username already exists or wrong.";
 
-	/** The Constant MSG_EXIT_USR. */
-	private static final String MSG_EXIT_USR = "logout";
+  /** The Constant MSG_WLC_USR. */
+  private static final String MSG_WLC_USR = "login";
 
-	/** The client socket. */
-	private Socket clientSocket = null;
+  /** The Constant MSG_EXIT_USR. */
+  private static final String MSG_EXIT_USR = "logout";
 
-	/** The input stream. */
-	private ObjectInputStream inputStream = null;
+  /** The client socket. */
+  private Socket clientSocket = null;
 
-	/** The output stream. */
-	private ObjectOutputStream outputStream = null;
+  /** The input stream. */
+  private ObjectInputStream inputStream = null;
 
-	/** The client session handler storage. */
-	private ConcurrentHashMap<String, ClientHandler> clientHandlers;
+  /** The output stream. */
+  private ObjectOutputStream outputStream = null;
 
-	/** The chat user. */
-	private User user = null;
+  /** The client session handler storage. */
+  private ConcurrentHashMap<String, ClientHandler> clientHandlers;
 
-	/** The is session opened flag. */
-	private AtomicBoolean isSessionOpened;
+  /** The chat user. */
+  private User user = null;
 
-	/**
-	 * Instantiates a new chat handler.
-	 *
-	 * @param clientSocket
-	 *            the client socket
-	 * @param clientHandlers
-	 *            the handler storage
-	 */
-	public ClientHandler(Socket clientSocket, ConcurrentHashMap<String, ClientHandler> clientHandlers) {
-		this.clientSocket = clientSocket;
-		this.clientHandlers = clientHandlers;
-		this.isSessionOpened = new AtomicBoolean(false);
-	}
+  /** The is session opened flag. */
+  private AtomicBoolean isSessionOpened;
 
-	/**
-	 * Override {@link java.lang.Thread#run run()} method. Run while open current
-	 * socket input stream. Process command received from chat client.
-	 * 
-	 * @see java.lang.Thread#run()
-	 * @see Server
-	 * 
-	 */
-	@Override
-	public void run() {
+  /**
+   * Instantiates a new chat handler.
+   *
+   * @param clientSocket the client socket
+   * @param clientHandlers the handler storage
+   */
+  public ClientHandler(Socket clientSocket,
+      ConcurrentHashMap<String, ClientHandler> clientHandlers) {
+    this.clientSocket = clientSocket;
+    this.clientHandlers = clientHandlers;
+    this.isSessionOpened = new AtomicBoolean(false);
+  }
 
-		try {
+  /**
+   * Override {@link java.lang.Thread#run run()} method. Run while open current socket input stream.
+   * Process command received from chat client.
+   * 
+   * @see java.lang.Thread#run()
+   * @see Server
+   * 
+   */
+  @Override
+  public void run() {
 
-			inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-			outputStream = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+    try {
 
-			String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress()).toString()
-					.replace("/", "");
-			loggerRoot.info("run() - {}", MSG_ACCPT_CLIENT + ip); //$NON-NLS-1$
-			System.out.println(MSG_ACCPT_CLIENT + ip);
+      inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+      outputStream =
+          new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
 
-			Command command;
+      String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
+          .toString().replace("/", "");
+      logger.info("run() - {}", MSG_ACCPT_CLIENT + ip); //$NON-NLS-1$
+      System.out.println(MSG_ACCPT_CLIENT + ip);
 
-			// Reading commands from the current client input socket while the handler is
-			// running
-			while ((command = (Command) inputStream.readObject()) != null && isRunning()) {
+      // Command command;
 
-				processCommand(command);
+      // Reading commands from the current client input socket while the handler is
+      // running
+      // while ((command = (Command) inputStream.readObject()) != null && isRunning()) {
+      while (isRunning()) {
 
-			}
+        Command command = (Command) inputStream.readObject();
+        processCommand(command);
 
-		} catch (ClassNotFoundException | IOException e) {
-			loggerRoot.error("run()", e); //$NON-NLS-1$
+      }
 
-		} finally {
+    } catch (ClassNotFoundException | IOException e) {
+      logger.error("run()", e); //$NON-NLS-1$
 
-			// First of all we remove this handler from clientHandlers storage to prevent
-			// receiving messages
-			if (user != null) {
-				clientHandlers.remove(user.getUsername());
-			}
+    } finally {
 
-			// print console message about closing connection
-			String msg = (user != null) ? " from " + user.getUsername() : "";
-			loggerRoot.info("run() - {}", msg); //$NON-NLS-1$
+      // First of all we remove this handler from clientHandlers storage to prevent
+      // receiving messages
+      if (user != null) {
+        clientHandlers.remove(user.getUsername());
+      }
 
-			// Send a message to all clients about the current user's exit
-			sendToAllChatClients(
-					new Command(CMDMSG, getCurrentDateTime() + " " + user.getUsername() + " " + MSG_EXIT_USR));
+      // print console message about closing connection
+      String msg = (user != null) ? " from " + user.getUsername() : "";
+      logger.info("run() - {}", msg); //$NON-NLS-1$
 
-			// Send update user list command
-			sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
+      // Send a message to all clients about the current user's exit
+      sendToAllChatClients(new Command(CMDMSG,
+          getCurrentDateTime() + " " + user.getUsername() + " " + MSG_EXIT_USR));
 
-			MDC.clear();
-	        user = null;
-	        closeClientSocket();
-			
-			//stop();
+      // Send update user list command
+      sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
-		}
-	}
+      MDC.clear();
+      user = null;
+      closeClientSocket();
 
-	@Override
-	public void stop() {
-		super.stop();
-		// First close the input stream to release the while circle in run() method
-		closeInputStream();
-	}
+      // stop();
 
-	private synchronized void closeInputStream() {
+    }
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    // First close the input stream to release the while circle in run() method
+    closeInputStream();
+  }
+
+  private synchronized void closeInputStream() {
     // TODO Auto-generated method stub
-	  if (clientSocket != null && inputStream != null) {
-        try {
-            inputStream.close();
-            inputStream = null;
-        } catch (IOException e) {
-            loggerRoot.error("closeInputStream()", e); //$NON-NLS-1$
-        }
+    if (clientSocket != null && inputStream != null) {
+      try {
+        inputStream.close();
+        inputStream = null;
+      } catch (IOException e) {
+        logger.error("closeInputStream()", e); //$NON-NLS-1$
+      }
     }
   }
 
   private synchronized void closeClientSocket() {
 
-		if (clientSocket != null) {
-			try {
-				clientSocket.close();
-				clientSocket = null;
-			} catch (IOException e) {
-				loggerRoot.error("closeClientSocket()", e); //$NON-NLS-1$
-			}
-		}
-	}
+    if (clientSocket != null) {
+      try {
+        clientSocket.close();
+        clientSocket = null;
+      } catch (IOException e) {
+        logger.error("closeClientSocket()", e); //$NON-NLS-1$
+      }
+    }
+  }
 
-	private void processCommand(Command command) {
-		//loggerRoot.debug("processCommand(Command) - user {}, command {}", ((user == null) ? "" : user.getUsername()), //$NON-NLS-1$
-		//		command);
+  private void processCommand(Command command) {
+    // loggerRoot.debug("processCommand(Command) - user {}, command {}", ((user == null) ? "" :
+    // user.getUsername()), //$NON-NLS-1$
+    // command);
 
-		//System.out.println(((user == null) ? "" : user.getUsername()) + command);
+    // System.out.println(((user == null) ? "" : user.getUsername()) + command);
 
-		loggerDebugMDC.debug(command.toString());
-		
-		// ignore all command except CMDENTER while session not opened
-		if (!isSessionOpened.get() && command.getCommandName() != CMDENTER) {
-			//loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
-			return;
-		}
+    loggerDebugMDC.debug(command.toString());
 
-		// chat command processing
-		switch (command.getCommandName()) {
+    // ignore all command except CMDENTER while session not opened
+    if (!isSessionOpened.get() && command.getCommandName() != CMDENTER) {
+      // loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
+      return;
+    }
 
-		case CMDERR:
-			System.out.println(user.getUsername() + ": error: " + command.getMessage());
-			// TODO save to log
-			break;
+    // chat command processing
+    switch (command.getCommandName()) {
 
-		case CMDEXIT:
-			stop(); // stop current ClientHandler thread (set isRuning() to false)
-			break;
+      case CMDERR:
+        System.out.println(user.getUsername() + ": error: " + command.getMessage());
+        // TODO save to log
+        break;
 
-		case CMDENTER:
+      case CMDEXIT:
+        stop(); // stop current ClientHandler thread (set isRuning() to false)
+        break;
 
-			// get username
-			String userName = command.getPayload();
+      case CMDENTER:
 
-			// TODO check for username uniquely
+        // get username
+        String userName = command.getPayload();
 
-			if (!userName.isEmpty()) { // check for empty username
+        // TODO check for username uniquely
 
-				// add current handler to handler storage and now we can communicate with other
-				// chat
-				// clients
-				// using user name as a key
-				MDC.put("username", userName);
-				clientHandlers.put(userName, this);
+        if (!userName.isEmpty()) { // check for empty username
 
-				//Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
+          // add current handler to handler storage and now we can communicate with other
+          // chat
+          // clients
+          // using user name as a key
+          MDC.put("username", userName);
+          clientHandlers.put(userName, this);
 
-				isSessionOpened.set(true); // set flag that current session is opened
+          // Thread.currentThread().setName(Thread.currentThread().getName() + " " + userName);
 
-				// create new user
-				user = new User(userName);
+          isSessionOpened.set(true); // set flag that current session is opened
 
-				// send ok enter command to confirm session opening
-				new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);
+          // create new user
+          user = new User(userName);
 
-				// TODO what if isSessionOpened set to true but we cant send ok enter command to
-				// client
-				// send to all users usrlst command
-				sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
+          // send ok enter command to confirm session opening
+          new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);
 
-				// send to all welcome message
-				sendToAllChatClients(
-						new Command(CMDMSG, getCurrentDateTime() + " " + user.getUsername() + " " + MSG_WLC_USR));
+          // TODO what if isSessionOpened set to true but we cant send ok enter command to
+          // client
+          // send to all users usrlst command
+          sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
-				// print to server console
-				System.out.println("Open chat session for user " + userName);
+          // send to all welcome message
+          sendToAllChatClients(new Command(CMDMSG,
+              getCurrentDateTime() + " " + user.getUsername() + " " + MSG_WLC_USR));
 
-			} else {
+          // print to server console
+          System.out.println("Open chat session for user " + userName);
 
-				// if username is empty send err to client and print to console
-				new Command(CMDERR, ERR_NAME_EXISTS).send(outputStream);
-				System.out.println(ERR_NAME_EXISTS);
-			}
-			break;
+        } else {
 
-		case CMDHLP:
-			// TODO complete
-			break;
+          // if username is empty send err to client and print to console
+          new Command(CMDERR, ERR_NAME_EXISTS).send(outputStream);
+          System.out.println(ERR_NAME_EXISTS);
+        }
+        break;
 
-		case CMDMSG:
-		case CMDPRVMSG:
+      case CMDHLP:
+        // TODO complete
+        break;
 
-			// Get user list from payload
-			String[] usrList = new String[0];
-			if (!command.getPayload().isEmpty()) {
-				usrList = command.getPayload().split(CMDULDLM.toString());
-			}
+      case CMDMSG:
+      case CMDPRVMSG:
 
-			Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
+        // Get user list from payload
+        String[] usrList = new String[0];
+        if (!command.getPayload().isEmpty()) {
+          usrList = command.getPayload().split(CMDULDLM.toString());
+        }
 
-			// System.out.println(usrSet.toString());
+        Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
 
-			// Prepare message
-			String message = getCurrentDateTime() + " " + user.getUsername() + ": " + command.getMessage();
+        // System.out.println(usrSet.toString());
 
-			// IF private message recipient list is empty, send message to all clients
-			if (usrSet.size() == 0) {
-				sendToAllChatClients(new Command(CMDMSG, message));
+        // Prepare message
+        String message =
+            getCurrentDateTime() + " " + user.getUsername() + ": " + command.getMessage();
 
-				// Send only for recipient user list
-			} else {
+        // IF private message recipient list is empty, send message to all clients
+        if (usrSet.size() == 0) {
+          sendToAllChatClients(new Command(CMDMSG, message));
 
-				// Add sender to recepient list
-				usrSet.add(user.getUsername());
+          // Send only for recipient user list
+        } else {
 
-				//System.out.println("ClientHandler.run()" + usrSet.toString());
+          // Add sender to recepient list
+          usrSet.add(user.getUsername());
 
-				// Create storage for not founded user names
-				ArrayList<String> notFoundUserList = new ArrayList<String>();
+          // System.out.println("ClientHandler.run()" + usrSet.toString());
 
-				// Send message to users in list
-				for (String key : usrSet) {
+          // Create storage for not founded user names
+          ArrayList<String> notFoundUserList = new ArrayList<String>();
 
-					// Search chatHandler by chat user name string
-					ClientHandler clientHandler = clientHandlers.get(key);
+          // Send message to users in list
+          for (String key : usrSet) {
 
-					// If found send message
-					if (clientHandler != null) {
-						new Command(CMDMSG, message).send(clientHandler.outputStream);
-						;
+            // Search chatHandler by chat user name string
+            ClientHandler clientHandler = clientHandlers.get(key);
 
-						// If not found, add to list
-					} else {
-						notFoundUserList.add(key);
-					}
-				}
+            // If found send message
+            if (clientHandler != null) {
+              new Command(CMDMSG, message).send(clientHandler.outputStream);;
 
-				// If not found user list not empty, send error message back to client
-				if (!notFoundUserList.isEmpty()) {
-					String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "").replaceAll(", ",
-							CMDULDLM.toString());
-					System.out.println("ClientHandler.run()" + notFoundUserList.toString());
-					new Command(CMDERR, ERR_USRS_NOT_FOUND + errMessage).send(outputStream);
-				}
+              // If not found, add to list
+            } else {
+              notFoundUserList.add(key);
+            }
+          }
 
-			}
+          // If not found user list not empty, send error message back to client
+          if (!notFoundUserList.isEmpty()) {
+            String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "")
+                .replaceAll(", ", CMDULDLM.toString());
+            System.out.println("ClientHandler.run()" + notFoundUserList.toString());
+            new Command(CMDERR, ERR_USRS_NOT_FOUND + errMessage).send(outputStream);
+          }
 
-			/*
-			 * // send private message for (ClientHandler chatHandler : clientHandlers) { if
-			 * ((usrSet.size() == 0) // send message to all user or only to users in private
-			 * // message user list || (usrSet.size() > 0 &&
-			 * usrSet.contains(chatHandler.chatUser.getUsername()))) {
-			 * 
-			 * String message = getCurrentDateTime() + " " + user.getUsername() + ": " +
-			 * chatCommand.getMessage(); new Command(chatCommand.getCommandName(), message)
-			 * .send(chatHandler.outputStream); } else { // username not found print message
-			 * to server console System.out.println("Command \"" + chatCommand.toString() +
-			 * "\". Username " + chatHandler.chatUser.getUsername() + " not found"); } }
-			 */
-			break;
+        }
 
-		default:
-			// TODO write unknown command to log file;
-			// send client unknown command error message and print to console
-			String errMessage = "Unknown command " + command.toString();
-			new Command(CMDERR, errMessage).send(outputStream);
-			System.out.println(errMessage);
-		}
+        /*
+         * // send private message for (ClientHandler chatHandler : clientHandlers) { if
+         * ((usrSet.size() == 0) // send message to all user or only to users in private // message
+         * user list || (usrSet.size() > 0 && usrSet.contains(chatHandler.chatUser.getUsername())))
+         * {
+         * 
+         * String message = getCurrentDateTime() + " " + user.getUsername() + ": " +
+         * chatCommand.getMessage(); new Command(chatCommand.getCommandName(), message)
+         * .send(chatHandler.outputStream); } else { // username not found print message to server
+         * console System.out.println("Command \"" + chatCommand.toString() + "\". Username " +
+         * chatHandler.chatUser.getUsername() + " not found"); } }
+         */
+        break;
 
-		loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
-	}
+      default:
+        // TODO write unknown command to log file;
+        // send client unknown command error message and print to console
+        String errMessage = "Unknown command " + command.toString();
+        new Command(CMDERR, errMessage).send(outputStream);
+        System.out.println(errMessage);
+    }
 
-	/**
-	 * Gets the current date time.
-	 *
-	 * @return the current date time string
-	 */
-	private String getCurrentDateTime() {
+  }
 
-		String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
-		return currentTime;
+  /**
+   * Gets the current date time.
+   *
+   * @return the current date time string
+   */
+  private String getCurrentDateTime() {
 
-		// return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd
-		// HH:mm:ss"));
-		// return LocalDateTime.now().toString();
-		// return "1";
-	}
+    String currentTime =
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"));
+    return currentTime;
 
-	/**
-	 * Send chat command to all chat clients.
-	 *
-	 * @param command
-	 *            the command to send
-	 */
-	private void sendToAllChatClients(Command command) {
-		for (ClientHandler clientHandler : clientHandlers.values()) {
-			command.send(clientHandler.outputStream);
-		}
-	}
+    // return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd
+    // HH:mm:ss"));
+    // return LocalDateTime.now().toString();
+    // return "1";
+  }
 
-	/**
-	 * Return all chat user names in one string separated by
-	 * {@link CommandName#CMDDLM}. Used in {@link CommandName#CMD_USRLST usrlst}
-	 * command.
-	 *
-	 * @return the list of user names in string
-	 */
-	private String getUserNamesListInString() {
+  /**
+   * Send chat command to all chat clients.
+   *
+   * @param command the command to send
+   */
+  private void sendToAllChatClients(Command command) {
+    for (ClientHandler clientHandler : clientHandlers.values()) {
+      command.send(clientHandler.outputStream);
+    }
+  }
 
-		return clientHandlers.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ", CMDDLM.toString());
-	}
+  /**
+   * Return all chat user names in one string separated by {@link CommandName#CMDDLM}. Used in
+   * {@link CommandName#CMD_USRLST usrlst} command.
+   *
+   * @return the list of user names in string
+   */
+  private String getUserNamesListInString() {
 
-	// Send to all users except current updated usrlst command
-	/*
-	 * HashSet<ClientHandler> excludeChatHandler = new HashSet<>();
-	 * excludeChatHandler.add(this); sendToAllChatClients(new Command(CMDUSRLST, "",
-	 * getUserNamesInString()), excludeChatHandler);
-	 */
+    return clientHandlers.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
+        CMDDLM.toString());
+  }
 
-	// Send to all exit message
+  // Send to all users except current updated usrlst command
+  /*
+   * HashSet<ClientHandler> excludeChatHandler = new HashSet<>(); excludeChatHandler.add(this);
+   * sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesInString()), excludeChatHandler);
+   */
 
-	/*
-	 * sendToAllChatClients(new Command(CMDMSG, currentTime + " " +
-	 * user.getUsername() + " " + MSG_EXIT_USR), excludeChatHandler);
-	 */
+  // Send to all exit message
 
-	/**
-	 * Send to all chat clients.
-	 *
-	 * @param command
-	 *            the command
-	 * @param excludeChatHandlerList
-	 *            the exclude chat handler list
-	 */
-	/*
-	 * private void sendToAllChatClients(Command command, Set<ClientHandler>
-	 * excludeChatHandlerList) { for (ClientHandler chatHandler : clientHandlers) {
-	 * if (!excludeChatHandlerList.contains(chatHandler)) {
-	 * command.send(chatHandler.outputStream); } } }
-	 */
+  /*
+   * sendToAllChatClients(new Command(CMDMSG, currentTime + " " + user.getUsername() + " " +
+   * MSG_EXIT_USR), excludeChatHandler);
+   */
+
+  /**
+   * Send to all chat clients.
+   *
+   * @param command the command
+   * @param excludeChatHandlerList the exclude chat handler list
+   */
+  /*
+   * private void sendToAllChatClients(Command command, Set<ClientHandler> excludeChatHandlerList) {
+   * for (ClientHandler chatHandler : clientHandlers) { if
+   * (!excludeChatHandlerList.contains(chatHandler)) { command.send(chatHandler.outputStream); } } }
+   */
 
 }

@@ -1,5 +1,8 @@
 package chat.client.mvp.swing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.SwingUtilities;
 import chat.base.ClientPresenter;
 
@@ -10,6 +13,10 @@ import chat.base.ClientPresenter;
  * The Class ClientSwing. Main class to start chat client.
  */
 public class ClientSwing {
+  /**
+   * Logger for this class
+   */
+  private static final Logger logger = LoggerFactory.getLogger(ClientSwing.class);
 
   /**
    * The main method. Run GUI in Event Dispatch Thread. Initialize View and Presenter.
@@ -34,7 +41,7 @@ public class ClientSwing {
           presenter.onViewStart();
 
         } catch (Exception e) {
-          e.printStackTrace();
+          logger.error("$Runnable.run()", e); //$NON-NLS-1$
         }
       }
     });

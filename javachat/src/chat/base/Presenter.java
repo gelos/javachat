@@ -1,6 +1,5 @@
 package chat.base;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Interface Presenter.
  */

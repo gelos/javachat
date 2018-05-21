@@ -21,7 +21,7 @@ class ChatServerTest {
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 
-  @DisplayName("Testing start and stop server.")
+  @DisplayName("Start and stop server.")
   @Test
   void serverStartStopTest() throws Throwable {
 
@@ -70,6 +70,7 @@ class ChatServerTest {
 
   }
 
+  @Disabled
   @DisplayName("Testing the behavior of the chat server, when an IOException occurs when creating the new ServerSocket()")
   @Test
   void newServerSocketIOExceptionTest(@Mocked ServerSocket serverSocket) throws Throwable {
@@ -115,6 +116,7 @@ class ChatServerTest {
 
   }
 
+  @Disabled
   @DisplayName("Testing the behavior of the chat server, when an IOException occurs in the ServerSocket.accept() method, using partial mocking.")
   @Test
   void acceptServerSocketIOExceptionTest() throws Throwable {

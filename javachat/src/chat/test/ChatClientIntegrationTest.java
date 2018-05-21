@@ -1,299 +1,297 @@
 package chat.test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import chat.base.ClientPresenter;
 import chat.base.View;
 import chat.client.mvp.swing.ClientViewSwing;
+import chat.server.ClientHandler;
 import chat.server.Server;
 import mockit.Capturing;
-import mockit.Expectations;
-import mockit.FullVerifications;
-import mockit.Mocked;
 import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
-  private Server server;
+	private static final int OPERATION_DELAY = 100;
+	private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE = "The client did not receive a message ";
+	private static final String CHAT_MSG_1 = "hello";
+	private static final String CHAT_MSG_2 = "message2";
+	private static final String CHAT_USERNAME1 = "user1";
+	private static final String CHAT_USERNAME2 = "user2";
+	private static final String ERR_USR_NAME_NOT_EQUAL_TO_EXPECTED = "User name not equal to expected.";
+	private static final String ERR_USR_LST_DID_NOT_CONTAIN_USR = "User list did not contain expected username.";
+	private static final String ERR_DID_NOT_RECEIVE_WLC_MSG = "Did not receive welcome message.";
+	private static final String ERR_DID_NOT_RECEIVE_EXT_MSG = "Did not receive exit message.";;
+	private Server server;
 
-  @BeforeEach
-  void setUp() throws Exception {
+	@BeforeEach
+	void setUp() throws Exception {
 
-    server = new Server();
+		server = new Server();
 
-  }
+	}
 
-  @AfterEach
-  void tearDown() throws Exception {
+	@AfterEach
+	void tearDown() throws Exception {
 
-    // stop server
-    server.stop();
+		server.stop();
 
-  }
+	}
 
-  //@Disabled
-  @DisplayName("Start one client connect to server, send \"Hello\" message and then disconnect.")
-  @Test
-  // void startStopClientTest(final @Tested ClientPresenter chatClientPresenter, @Capturing
-  // ClientViewSwing chatClientView) {
-  // void startStopClientTest(@Capturing ClientViewSwing chatClientView) {
-  void startStopClientTest(@Capturing ClientViewSwing chatClientView) throws Throwable {
-    // void startStopClientTest() {
+	@DisplayName("Start the client, connect to the server, send a \"Hello\" message then disconnect.")
+	@Test
+	void startStopClientTest(@Capturing ClientViewSwing clientView) throws Throwable {
 
-    // set exception handler to throw other thread exceptions in current thread
-    final AtomicReference<Throwable> exception = new AtomicReference<>();
-    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread t, final Throwable e) {
-        exception.compareAndSet(null, e);
-      }
-    });
+		// set exception handler to throw other thread exceptions in current thread
+		final AtomicReference<Throwable> exception = new AtomicReference<>();
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(final Thread t, final Throwable e) {
+				exception.compareAndSet(null, e);
+			}
+		});
 
-    final ClientPresenter clientPresenter = new ClientPresenter();
+		final ClientPresenter clientPresenter = new ClientPresenter();
 
-    // ClientViewSwing chatClientView = new ClientViewSwing();
-    // View chatClientView = new View();
+		clientPresenter.setView(clientView);
+		clientView.setPresenter(clientPresenter);
 
-    // ClientViewSwing chatClientSwingView = new ClientViewSwing();
+		clientPresenter.openConnection(CHAT_USERNAME1);
+		// TODO Remove the timeout, use awaitility instead
+		// TODO Find out why if remove timeout client did not receive message?
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-    clientPresenter.setView(chatClientView);
+		new Verifications() {
+			{
+				clientPresenter.getView().onConnectionOpening(anyString);
+				times = 1;
+				clientPresenter.getView().onConnectionOpened(anyString);
+				times = 1;
 
-    new Expectations(ClientViewSwing.class) {
-      {
-        // chatClientView.getPresenter(); result = chatClientPresenter;
-        // chatClientView.getEnterTextField(); result = "this is test";
-        // chatClientView.showMsgOnChatPane(anyString); // result = null;
-        // chatClientView.clearChatUserList();
-        // result = null;
-        chatClientView.onUpdateChatUserList((String[]) any);
-        result = null;
-        chatClientView.onConnectionOpened(anyString);
-      }
-    };
+				// Check for update user list command
+				clientPresenter.getView().onUpdateChatUserList((String[]) any);
+				times = 1;
 
-    clientPresenter.setView(chatClientView);
+				// Check for user login message
+				clientPresenter.getView().onReceiveMessage(anyString);
+				times = 1;
 
-    // System.out.println(chatClientView.getEnterTextField());
+			}
+		};
 
-    // System.out.println(((ClientPresenter)chatClientView.getPresenterSwing()).getViewSwing().getEnterTextField());
-    // chatClientPresenter.getViewSwing().showMsgChatPane("");
+		clientPresenter.sendCommand(CHAT_MSG_1);
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+		
+		new Verifications() {
+			{
+				clientPresenter.getView().onSendMessage();
+				times = 1;
 
-    clientPresenter.openConnection("oleg");
+				String actualMessage;
+				String expectedMessage = CHAT_MSG_1;
+				clientPresenter.getView().onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + actualMessage);
 
-    try {
-      TimeUnit.SECONDS.sleep(5);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+			}
+		};
 
-    clientPresenter.sendCommand("hello");
+		clientPresenter.closeConnection();
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-    // assertTimeout(Duration.ofNanos(1), () -> {chatClientPresenter.openConnection("oleg");});
-    // (chatClientPresenter.openConnection("oleg"), "Cant connect to chat server.");
+		new Verifications() {
+			{
+				clientPresenter.getView().onConnectionClosing(anyString);
+				times = 1;
+				clientPresenter.getView().onConnectionClosed(anyString);
+				times = 1;
 
-    System.out.println("connection oppened");
-    // chatClientPresenter.sendChatMsg();
+			}
+		};
 
-    try {
-      TimeUnit.SECONDS.sleep(3);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+		// if we get other thread exception throw it in current thread
+		if (exception.get() != null) {
+			throw exception.get();
+		}
 
-    clientPresenter.closeConnection();
+	}
 
-    try {
-      TimeUnit.SECONDS.sleep(3);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+	@Test
+	@DisplayName("Sending messages between two clients.")
+	void sendMessagesBetweenTwoClientsTest(@Capturing View chatClientView1, @Capturing View chatClientView2)
+			throws Throwable {
 
-    // if we get other thread exception throw it in current thread
-    if (exception.get() != null) {
-      throw exception.get();
-    }
+		// TODO test opening session in already opened session
 
+		final AtomicReference<Throwable> exception = new AtomicReference<>();
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(final Thread t, final Throwable e) {
+				exception.compareAndSet(null, e);
+			}
+		});
 
-    /*
-     * new Verifications() {{ chatClientView.showMsgChatPane(anyString); times =1; }};
-     */
-    // chatClientPresenter = null;
-  }
+		final ClientPresenter clientPresenter1 = new ClientPresenter();
+		final ClientPresenter clientPresenter2 = new ClientPresenter();
 
-  @Test
-  @DisplayName("Test for sending messages between two clients.")
-  void sendMessageTwoClientsTest(@Mocked View chatClientView1, @Mocked View chatClientView2)
-      throws Throwable {
+		clientPresenter1.setView(chatClientView1);
+		chatClientView1.setPresenter(clientPresenter1);
 
-    // TODO test names with spaces
-    // TODO test opening session in already opened session
+		clientPresenter2.setView(chatClientView2);
+		chatClientView2.setPresenter(clientPresenter2);
 
-    // final int SRV_TIMEOUT = 1;
-    final String CLIENT_NAME1 = "client1";
-    final String CLIENT_NAME2 = "client2";
-    final String MSG1 = "hello 1";
-    final String MSG2 = "hello 2";
-    final String LOGIN_MSG = "login";
-    final String LOGOUT_MSG = "logout";
+		clientPresenter1.openConnection(CHAT_USERNAME1);
+		// TODO Remove the timeout, use awaitility instead
+		// TODO Find out why if remove timeout client did not receive message?
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-    final AtomicReference<Throwable> exception = new AtomicReference<>();
-    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-      @Override
-      public void uncaughtException(final Thread t, final Throwable e) {
-        exception.compareAndSet(null, e);
-      }
-    });
+		new Verifications() {
+			{ // check for normal session opening command sequence for client 1
 
-    final ClientPresenter clientPresenter1 = new ClientPresenter();
-    final ClientPresenter clientPresenter2 = new ClientPresenter();
+				chatClientView1.onConnectionOpening(anyString);
 
-    clientPresenter1.setView(chatClientView1);
-    clientPresenter2.setView(chatClientView2);
+				String actualUsername;
+				String expectedUsername = CHAT_USERNAME1;
+				chatClientView1.onConnectionOpened(actualUsername = withCapture());
+				assertTrue(actualUsername.equals(expectedUsername), ERR_USR_NAME_NOT_EQUAL_TO_EXPECTED);
 
-    // connect client 1
-    clientPresenter1.openConnection(CLIENT_NAME1);
+				String[] actualUserList;
+				chatClientView1.onUpdateChatUserList(actualUserList = withCapture());
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
-    // wait timeout for server processing
-    /*
-     * try { TimeUnit.SECONDS.sleep(SRV_TIMEOUT); } catch (InterruptedException e) {
-     * e.printStackTrace(); }
-     */
+				String actualMessage;
+				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_WLC_USR;
+				chatClientView1.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
+			}
+		};
 
-    new FullVerifications() {
-      { // check for normal session opening command sequence for client 1
+		// connect client 2 and check normal command sequence for client1 and client2
+		clientPresenter2.openConnection(CHAT_USERNAME2);
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-        chatClientView1.onConnectionOpening(anyString);
+		new Verifications() {
+			{
+				chatClientView2.onConnectionOpening(anyString);
 
-        String username; // check onConnectionOpened after ok command received
-        chatClientView1.onConnectionOpened(username = withCapture());
-        assertTrue(username.equalsIgnoreCase(CLIENT_NAME1));
+				String actualUsername;
+				String expectedUsername = CHAT_USERNAME2;
+				chatClientView2.onConnectionOpened(actualUsername = withCapture());
+				assertTrue(actualUsername.equals(expectedUsername), ERR_USR_NAME_NOT_EQUAL_TO_EXPECTED);
 
-        String[] usrList; // check for user list update
-        chatClientView1.onUpdateChatUserList(usrList = withCapture());
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
+				String[] actualUserList;
+				chatClientView1.onUpdateChatUserList(actualUserList = withCapture());
+				expectedUsername = CHAT_USERNAME1;
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
+				expectedUsername = CHAT_USERNAME2;
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
-        String message; // check for welcome user message
-        chatClientView1.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME1 + " " + LOGIN_MSG));
-      }
-    };
+				chatClientView2.onUpdateChatUserList(actualUserList = withCapture());
+				expectedUsername = CHAT_USERNAME1;
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
+				expectedUsername = CHAT_USERNAME2;
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
-    // connect client 2 and check normal command sequence for client1 and client2
-    clientPresenter2.openConnection(CLIENT_NAME2);
+				String actualMessage;
+				String expectedMessage = CHAT_USERNAME2 + " " + ClientHandler.MSG_WLC_USR;
+				chatClientView1.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
+				chatClientView2.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
 
-    /*
-     * try { TimeUnit.SECONDS.sleep(SRV_TIMEOUT); } catch (InterruptedException e) {
-     * e.printStackTrace(); }
-     */
+			}
+		};
 
-    new FullVerifications() {
-      {
-        chatClientView2.onConnectionOpening(anyString);
+		clientPresenter1.sendCommand(CHAT_MSG_1);
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-        String username;
-        chatClientView2.onConnectionOpened(username = withCapture());
-        assertTrue(username.equalsIgnoreCase(CLIENT_NAME2));
+		new Verifications() {
+			{
+				chatClientView1.onSendMessage();
+				times = 1;
 
-        String[] usrList;
-        chatClientView1.onUpdateChatUserList(usrList = withCapture());
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
-        chatClientView2.onUpdateChatUserList(usrList = withCapture());
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME1));
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
+				String actualMessage;
+				String expectedMessage = CHAT_MSG_1;
+				chatClientView1.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
 
-        String message;
-        chatClientView1.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME2 + " " + LOGIN_MSG));
-        chatClientView2.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME2 + " " + LOGIN_MSG));
-      }
-    };
+				chatClientView2.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + actualMessage);
+			}
+		};
 
-    try {
-      TimeUnit.SECONDS.sleep(1);
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+		clientPresenter2.sendCommand(CHAT_MSG_2);
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
+		new Verifications() {
+			{
+				chatClientView2.onSendMessage();
+				times = 1;
 
-    // send message from client1
-    clientPresenter1.sendCommand(MSG1);
-    new FullVerifications() {
-      {
-        chatClientView1.onSendMessage();
+				String actualMessage;
+				String expectedMessage = CHAT_MSG_2;
+				chatClientView1.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + actualMessage);
 
-        String message;
-        chatClientView1.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
-        chatClientView2.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME1 + ": " + MSG1));
-      }
-    };
+				chatClientView2.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + actualMessage);
+			}
+		};
 
-    // send message from client2
-    clientPresenter2.sendCommand(MSG2);
-    new FullVerifications() {
-      {
-        chatClientView2.onSendMessage();
+		clientPresenter1.closeConnection();
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-        String message;
-        chatClientView1.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
-        chatClientView2.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME2 + ": " + MSG2));
-      }
-    };
+		new Verifications() {
+			{
+				chatClientView1.onConnectionClosing(anyString);
+				times = 1;
+				chatClientView1.onConnectionClosed(anyString);
+				times = 1;
 
-    clientPresenter1.closeConnection();
+				String[] actualUserList;
+				String expectedUsername = CHAT_USERNAME2;
+				chatClientView2.onUpdateChatUserList(actualUserList = withCapture());
+				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
-    new FullVerifications() {
-      {
-        chatClientView1.onConnectionClosing(anyString);
-        chatClientView1.onConnectionClosed(anyString);
+				String actualMessage;
+				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_EXIT_USR;
 
-        String[] usrList; // check for user list update
-        chatClientView2.onUpdateChatUserList(usrList = withCapture());
-        assertTrue(Arrays.asList(usrList).contains(CLIENT_NAME2));
+				chatClientView2.onReceiveMessage(actualMessage = withCapture());
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_DID_NOT_RECEIVE_EXT_MSG + " Instead got " + actualMessage);
 
-        String message; // check for welcome user message
-        chatClientView2.onReceiveMessage(message = withCapture());
-        assertTrue(message.contains(CLIENT_NAME1 + " " + LOGOUT_MSG));
+			}
+		};
 
-      }
-    };
+		clientPresenter2.closeConnection();
+		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-    clientPresenter2.closeConnection();
+		new Verifications() {
+			{
+				chatClientView2.onConnectionClosing(anyString);
+				times = 1;
+				chatClientView2.onConnectionClosed(anyString);
+				times = 1;
+			}
+		};
 
-    new FullVerifications() {
-      {
-        chatClientView2.onConnectionClosing(anyString);
-        chatClientView2.onConnectionClosed(anyString);
-      }
-    };
-
-    /*
-     * try { TimeUnit.SECONDS.sleep(3); } catch (InterruptedException e) { // TODO Auto-generated
-     * catch block e.printStackTrace(); }
-     */
-    // if we get other thread exception throw it in current thread
-    if (exception.get() != null) {
-      throw exception.get();
-    }
-
-  }
-
-  
+		// if we get other thread exception throw it in current thread
+		if (exception.get() != null) {
+			throw exception.get();
+		}
+	}
 }

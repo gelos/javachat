@@ -27,11 +27,8 @@ import mockit.Verifications;
 
 @DisplayName("Send private message ")
 class SendPrivateMessageIntegrationTest {
-	/**
-	 * Logger for this class
-	 */
-	//private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
 
+	private static final int OPERATION_DELAY = 100;
 	// MAX_NUMBER_OF_CLIENTS must be equal sum number of @Capturing View variables
 	public static final int MAX_NUMBERS_OF_USERS = 4;
 	public static final String USER_NAME_PREFIX = "client";
@@ -54,7 +51,6 @@ class SendPrivateMessageIntegrationTest {
 	private Presenter[] chatClientPresenterStorage = new Presenter[MAX_NUMBERS_OF_USERS];
 
 	// The factory method to create presenter and view Swing
-	//private ClientPresenter createChatClientFactory(String username, View view) {
 	private ClientPresenter createChatClientFactory(View view) {
 		ClientPresenter presenter = new ClientPresenter();
 		view.setPresenter(presenter);
@@ -88,9 +84,7 @@ class SendPrivateMessageIntegrationTest {
 				view = noRecipientView;
 				break;
 			}
-			//chatClientPresenterStorage[i] = createChatClientFactory(USER_NAME_PREFIX + i, view);
 			chatClientPresenterStorage[i] = createChatClientFactory(view);
-			//loggerDebug.debug(chatClientPresenterStorage[i].toString());
 		}
 
 		// Connect client to server
@@ -99,13 +93,8 @@ class SendPrivateMessageIntegrationTest {
 			chatClient.openConnection(USER_NAME_PREFIX + i++);
 			// TODO remove timeout and run test to success
 			// TODO maybe use awaitility
-			TimeUnit.MILLISECONDS.sleep(100);
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 		}
-
-		// Waiting until all chat clients log on to the server. Should be used for
-		// stability of the test.
-		//TimeUnit.MILLISECONDS.sleep(1500);
-
 	}
 
 	@AfterEach
@@ -146,14 +135,10 @@ class SendPrivateMessageIntegrationTest {
 			String chatMessage = MESSAGE_PREFIX + 0;
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
-			
-			// wait to test stability
-		/*	TimeUnit.MILLISECONDS.sleep(3000);
-			System.out.println("first timeout");*/
+
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-		/*	TimeUnit.MILLISECONDS.sleep(5000);
-			System.out.println("second timeout");*/
-						
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+
 			new Verifications() {
 				{
 					chatClientPresenterStorage[0].getView().onSendMessage();
@@ -161,9 +146,6 @@ class SendPrivateMessageIntegrationTest {
 
 					String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
 					String actualMessage;
-
-					System.out.println("chatClientPresenterStorage.length " + chatClientPresenterStorage.length);
-					
 					for (int i = 0; i <= NUMBER_OF_PRIVATE_MSG_RECEPIENTS; i++) {
 						chatClientPresenterStorage[i].getView().onReceiveMessage(actualMessage = withCapture());
 						assertTrue(actualMessage.contains(expectedMessage),
@@ -172,9 +154,8 @@ class SendPrivateMessageIntegrationTest {
 					}
 
 					// Checking that last user not received the private message. The statement
-					// 'times = 1'
-					// means getting only one welcome login message initiated by sequential clients
-					// startup.
+					// 'times = 1' means getting only one welcome login message initiated by
+					// sequential clients startup.
 					chatClientPresenterStorage[MAX_NUMBERS_OF_USERS - 1].getView()
 							.onReceiveMessage(actualMessage = withCapture());
 					times = 1;
@@ -184,8 +165,6 @@ class SendPrivateMessageIntegrationTest {
 
 				}
 			};
-			/*TimeUnit.MILLISECONDS.sleep(3000);
-			System.out.println("third timeout");*/
 		}
 	}
 
@@ -193,14 +172,15 @@ class SendPrivateMessageIntegrationTest {
 	@DisplayName("with empty user list")
 	class EmptyUserList {
 		@Test
-		void testEmptyUserList() {
+		void testEmptyUserList() throws InterruptedException {
 
 			String privateMessageRecepientList = "";
 			String chatMessage = MESSAGE_PREFIX + 0;
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+			
 			new Verifications() {
 				{
 					senderView.onSendMessage();
@@ -223,7 +203,7 @@ class SendPrivateMessageIntegrationTest {
 	@DisplayName("with duplicate user names in list")
 	class DuplicateUserNames {
 		@Test
-		void testDuplicateUserNames() {
+		void testDuplicateUserNames() throws InterruptedException {
 
 			String privateMessageRecepientList = getFullPrivateMessageRecepientList();
 
@@ -235,7 +215,8 @@ class SendPrivateMessageIntegrationTest {
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+			
 			new Verifications() {
 				{
 
@@ -249,17 +230,15 @@ class SendPrivateMessageIntegrationTest {
 						if (i == 1) {
 
 							// Checking that user1 received the private message only once. The statement
-							// 'times =
-							// 4' means getting three welcome login messages initiated by sequential clients
-							// startup plus one private message.
+							// 'times = 4' means getting three welcome login messages initiated by
+							// sequential clients startup plus one private message.
 
 							times = 4;
 						} else if (i == 3) {
 
 							// Checking that user3 received the private message only once. The statement
-							// 'times =
-							// 2' means getting one welcome login messages initiated by sequential clients
-							// startup plus one private message.
+							// 'times = 2' means getting one welcome login messages initiated by sequential
+							// clients startup plus one private message.
 
 							times = 2;
 						}
@@ -273,7 +252,7 @@ class SendPrivateMessageIntegrationTest {
 	@DisplayName("with unknown users")
 	class UnknownUsers {
 		@Test
-		void testUnknownUsers() {
+		void testUnknownUsers() throws InterruptedException {
 
 			String privateMessageRecepientList = getFullPrivateMessageRecepientList();
 
@@ -285,7 +264,8 @@ class SendPrivateMessageIntegrationTest {
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
-
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+			
 			new Verifications() {
 				{
 					String expectedMessage = ClientHandler.ERR_USRS_NOT_FOUND + unknowUser1 + CMDULDLM + unknowUser2;
@@ -303,7 +283,7 @@ class SendPrivateMessageIntegrationTest {
 	@DisplayName("with different case sensitivity in all usernames")
 	class CaseSensitivity {
 		@Test
-		void testCaseSensitivity() {
+		void testCaseSensitivity() throws InterruptedException {
 
 			String privateMessageRecepientList = "";
 			String privateMessageRecepientListCaseSensitivity = "";
@@ -320,6 +300,7 @@ class SendPrivateMessageIntegrationTest {
 					+ chatMessage;
 
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 			final String innerPrivateMessageRecepientList = privateMessageRecepientListCaseSensitivity;
 			new Verifications() {
@@ -349,7 +330,7 @@ class SendPrivateMessageIntegrationTest {
 	@DisplayName("with additional spaces in usernames")
 	class AdditionalSpaces {
 		@Test
-		void testAdditionalSpaces() {
+		void testAdditionalSpaces() throws InterruptedException {
 
 			String privateMessageRecepientList = USER_NAME_PREFIX + 1 + CMDULDLM + CMDDLM + CMDDLM + USER_NAME_PREFIX
 					+ 3;
@@ -357,10 +338,8 @@ class SendPrivateMessageIntegrationTest {
 			String chatMessage = MESSAGE_PREFIX + 0;
 			String privateCommand = "" + CMDPRVMSG + CMDDLM + CMDUDLM + privateMessageRecepientList + CMDUDLM + CMDDLM
 					+ chatMessage;
-			// System.out
-			// .println("SendPrivateMessageIntegrationTest.AdditionalSpaces.testwithCaseSensitivity()"
-			// + privateCommand);
 			chatClientPresenterStorage[0].sendCommand(privateCommand);
+			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 			new Verifications() {
 				{

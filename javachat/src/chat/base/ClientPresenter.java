@@ -24,7 +24,7 @@ public class ClientPresenter implements Presenter {
    * Logger for this class
    */
   private static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
-  private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
+  //private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
   private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
   private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
@@ -105,9 +105,9 @@ public class ClientPresenter implements Presenter {
     try {
 
       // TODO create static create method, refactor command Command.create().send()
-      Command enterCommand = new Command(CMDENTER, "", username);
+      //Command enterCommand = ;
       // loggerDebugMDC.debug(enterCommand.toString());
-      enterCommand.send(outputStream);
+      new Command(CMDENTER, "", username).send(outputStream);
 
       inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
 

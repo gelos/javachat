@@ -68,8 +68,6 @@ public class Server {
 	 * Logger for this class
 	 */
 	private static final Logger logger = LoggerFactory.getLogger(Server.class);
-	private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
-	private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
 	/** The client session handlers thread-safe storage. */
 	// private CopyOnWriteArrayList<ClientHandler> clientHandlers;
@@ -108,9 +106,9 @@ public class Server {
 		stopServerThread = new StopServerThreadClass();
 		stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
-		logger.info("Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
+		logger.info("Server.Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
 		System.out.println(MSG_SERVER_STARTING);
-		
+
 		// Initialize client handlers storage
 		clientHandlers = new ConcurrentHashMap<String, ClientHandler>();
 
@@ -125,7 +123,7 @@ public class Server {
 		// Check that both thread successfully running
 		if (processClientHandlersThread.isRunning() && processConsoleInputThread.isRunning()) {
 
-			logger.info("Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
+			logger.info("Server.Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
 
 			System.out.println(MSG_COMMAND_TO_SHUTDOWN_SERVER);
 			System.out.println(MSG_SERVER_STARTED);
@@ -143,10 +141,10 @@ public class Server {
 	 */
 	public void stop() {
 
-		logger.info("stop() - {}", MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
+		logger.info("Server.stop() - {}", MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
 		System.out.println(MSG_STOPPING_SERVER_THREADS);
 
-		logger.info("stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
+		logger.info("Server.stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
 		System.out.println(MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
 		if (clientHandlers != null) {
@@ -165,7 +163,7 @@ public class Server {
 
 			}
 		}
-		
+
 		if (processClientHandlersThread != null) {
 
 			processClientHandlersThread.stop();
@@ -195,8 +193,7 @@ public class Server {
 			}
 		}
 
-		
-		logger.info("stop() - {}", MSG_SERVER_STOPPED); //$NON-NLS-1$
+		logger.info("Server.stop() - {}", MSG_SERVER_STOPPED); //$NON-NLS-1$
 		System.out.println(MSG_SERVER_STOPPED);
 
 	}
@@ -255,11 +252,11 @@ public class Server {
 		public void run() {
 
 			if (!openServerSocket(serverSocketPort)) {
-				//stop();
+				// stop();
 				return;
 			}
 
-			logger.info("run() - {}", //$NON-NLS-1$
+			logger.info("ProcessClientHandlersThread.run() - {}", //$NON-NLS-1$
 					Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
 			System.out.println(Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
 
@@ -293,11 +290,13 @@ public class Server {
 
 				logger.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 
-			} /*finally {
-
-				stop();
-
-			}*/
+			} /*
+				 * finally {
+				 * 
+				 * stop();
+				 * 
+				 * }
+				 */
 		}
 
 		private synchronized boolean isServerSocketClosed() {

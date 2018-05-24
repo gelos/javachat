@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import chat.base.ClientPresenter;
 import chat.base.Command;
 import chat.base.User;
 import chat.base.CommandName;
@@ -49,8 +51,8 @@ public class ClientHandler extends WorkerThread {
 
 	public static final String ERR_USRS_NOT_FOUND = "User(s) not found. Username list: ";
 
-	/** The Constant ERR_NAME_EXISTS. */
-	private static final String ERR_NAME_EXISTS = "Client connection failed. Username already exists or wrong.";
+	/** The Constant ERR_NAME_EXISTS_MSG. */
+	public static final String ERR_NAME_EXISTS_MSG = "Username already exists or wrong.";
 
 	/** The Constant MSG_WLC_USR. */
 	public static final String MSG_WLC_USR = "login";
@@ -166,7 +168,6 @@ public class ClientHandler extends WorkerThread {
 	}
 
 	private synchronized void closeInputStream() {
-		// TODO Auto-generated method stub
 		if (clientSocket != null && inputStream != null) {
 			try {
 				inputStream.close();
@@ -209,8 +210,10 @@ public class ClientHandler extends WorkerThread {
 		switch (command.getCommandName()) {
 
 		case CMDERR:
-			System.out.println(user.getUsername() + ": error: " + command.getMessage());
-			// TODO save to log
+			// TODO test it with unit test
+			System.err.println(user.getUsername() + ": error: " + command.getMessage());
+			// getView().show WarningWindow(command.toString(), WRN_UNKNOWN_COMMAND_MSG);
+			logger.error("ProcessCommandThread.run() {}", command.getMessage());
 			break;
 
 		case CMDEXIT:
@@ -233,9 +236,6 @@ public class ClientHandler extends WorkerThread {
 				MDC.put("username", userName);
 				clientHandlers.put(userName, this);
 
-				// Thread.currentThread().setName(Thread.currentThread().getName() + " " +
-				// userName);
-
 				isSessionOpened.set(true); // set flag that current session is opened
 
 				// create new user
@@ -245,7 +245,7 @@ public class ClientHandler extends WorkerThread {
 				new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);
 
 				// TODO what if isSessionOpened set to true but we cant send ok enter command to
-				// client
+				// client check with unit tests
 				// send to all users usrlst command
 				sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
@@ -260,9 +260,11 @@ public class ClientHandler extends WorkerThread {
 
 			} else {
 
-				// if username is empty send err to client and print to console
-				new Command(CMDERR, ERR_NAME_EXISTS).send(outputStream);
-				System.out.println(ERR_NAME_EXISTS);
+				// if username is empty send error to client, print to console and save to log
+				String msg = ERR_NAME_EXISTS_MSG + " " + userName;
+				new Command(CMDERR, msg).send(outputStream);
+				logger.warn("ClientHandler.processCommand() {}", msg);
+				System.out.println(msg);
 			}
 			break;
 
@@ -343,10 +345,9 @@ public class ClientHandler extends WorkerThread {
 			break;
 
 		default:
-			// TODO write unknown command to log file;
-			// send client unknown command error message and print to console
-			String errMessage = "Unknown command " + command.toString();
+			String errMessage = ClientPresenter.WRN_UNKNOWN_COMMAND_MSG + " " + command;
 			new Command(CMDERR, errMessage).send(outputStream);
+			logger.warn(errMessage);
 			System.out.println(errMessage);
 		}
 

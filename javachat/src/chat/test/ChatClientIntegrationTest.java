@@ -1,6 +1,7 @@
 package chat.test;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import chat.base.ClientPresenter;
@@ -26,6 +28,7 @@ import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
+	public static final int MAX_TEST_REPEAT = 5;
 	private static final long LATCH_OPERATION_TIMEOUT_SEC = 3L;
 	private static final int OPERATION_DELAY = 100;
 	private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE = "The client did not receive a message ";
@@ -55,177 +58,8 @@ class ChatClientIntegrationTest {
 
 	}
 
-	@Test
-	@DisplayName("Sending messages between two clients.")
-	void sendMessagesBetweenTwoClientsTest(@Capturing View chatClientView1, @Capturing View chatClientView2)
-			throws Throwable {
-
-		// TODO test opening session in already opened session
-
-		final AtomicReference<Throwable> exception = new AtomicReference<>();
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public void uncaughtException(final Thread t, final Throwable e) {
-				exception.compareAndSet(null, e);
-			}
-		});
-
-		final ClientPresenter clientPresenter1 = new ClientPresenter();
-		final ClientPresenter clientPresenter2 = new ClientPresenter();
-
-		clientPresenter1.setView(chatClientView1);
-		chatClientView1.setPresenter(clientPresenter1);
-
-		clientPresenter2.setView(chatClientView2);
-		chatClientView2.setPresenter(clientPresenter2);
-
-		clientPresenter1.openConnection(CHAT_USERNAME1);
-		// TODO Remove the timeout, use awaitility instead
-		// TODO Find out why if remove timeout client did not receive message?
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{ // check for normal session opening command sequence for client 1
-
-				chatClientView1.onConnectionOpening(anyString);
-
-				String actualUsername;
-				String expectedUsername = CHAT_USERNAME1;
-				chatClientView1.onConnectionOpened(actualUsername = withCapture());
-				assertTrue(actualUsername.equals(expectedUsername), ERR_USR_NAME_NOT_EQUAL_TO_EXPECTED);
-
-				String[] actualUserList;
-				chatClientView1.onUpdateChatUserList(actualUserList = withCapture());
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-
-				String actualMessage;
-				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_WLC_USR;
-				chatClientView1.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
-			}
-		};
-
-		// connect client 2 and check normal command sequence for client1 and client2
-		clientPresenter2.openConnection(CHAT_USERNAME2);
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{
-				chatClientView2.onConnectionOpening(anyString);
-
-				String actualUsername;
-				String expectedUsername = CHAT_USERNAME2;
-				chatClientView2.onConnectionOpened(actualUsername = withCapture());
-				assertTrue(actualUsername.equals(expectedUsername), ERR_USR_NAME_NOT_EQUAL_TO_EXPECTED);
-
-				String[] actualUserList;
-				chatClientView1.onUpdateChatUserList(actualUserList = withCapture());
-				expectedUsername = CHAT_USERNAME1;
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-				expectedUsername = CHAT_USERNAME2;
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-
-				chatClientView2.onUpdateChatUserList(actualUserList = withCapture());
-				expectedUsername = CHAT_USERNAME1;
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-				expectedUsername = CHAT_USERNAME2;
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-
-				String actualMessage;
-				String expectedMessage = CHAT_USERNAME2 + " " + ClientHandler.MSG_WLC_USR;
-				chatClientView1.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
-				chatClientView2.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
-
-			}
-		};
-
-		clientPresenter1.sendCommand(CHAT_MSG_1);
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{
-				chatClientView1.onSendMessage();
-				times = 1;
-
-				String actualMessage;
-				String expectedMessage = CHAT_MSG_1;
-				chatClientView1.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage),
-						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
-
-				chatClientView2.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage),
-						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
-			}
-		};
-
-		clientPresenter2.sendCommand(CHAT_MSG_2);
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{
-				chatClientView2.onSendMessage();
-				times = 1;
-
-				String actualMessage;
-				String expectedMessage = CHAT_MSG_2;
-				chatClientView1.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage),
-						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
-
-				chatClientView2.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage),
-						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
-			}
-		};
-
-		clientPresenter1.closeConnection();
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{
-				chatClientView1.onConnectionClosing(anyString);
-				times = 1;
-				chatClientView1.onConnectionClosed(anyString);
-				times = 1;
-
-				String[] actualUserList;
-				String expectedUsername = CHAT_USERNAME2;
-				chatClientView2.onUpdateChatUserList(actualUserList = withCapture());
-				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
-
-				String actualMessage;
-				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_EXIT_USR;
-
-				chatClientView2.onReceiveMessage(actualMessage = withCapture());
-				assertTrue(actualMessage.contains(expectedMessage),
-						ERR_DID_NOT_RECEIVE_EXT_MSG + " Instead got " + actualMessage);
-
-			}
-		};
-
-		clientPresenter2.closeConnection();
-		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
-
-		new Verifications() {
-			{
-				chatClientView2.onConnectionClosing(anyString);
-				times = 1;
-				chatClientView2.onConnectionClosed(anyString);
-				times = 1;
-			}
-		};
-
-		// if we get other thread exception throw it in current thread
-		if (exception.get() != null) {
-			throw exception.get();
-		}
-	}
-
+	@RepeatedTest(value = MAX_TEST_REPEAT, name = "{displayName} {currentRepetition}/{totalRepetitions}")
 	@DisplayName("Start the client, connect to the server, send a \"Hello\" message then disconnect.")
-	@Test
 	void startStopClientTest() throws Throwable {
 
 		// set exception handler to throw other thread exceptions in current thread
@@ -327,9 +161,9 @@ class ChatClientIntegrationTest {
 
 	}
 
-	@Test
-	@DisplayName("Sending messages between two clients. With countDownLatch.")
-	void sendMessagesBetweenTwoClientsWithCountDownTest() throws Throwable {
+	@RepeatedTest(value = MAX_TEST_REPEAT, name = "{displayName} {currentRepetition}/{totalRepetitions}")
+	@DisplayName("Sending messages between two clients.")
+	void sendMessagesBetweenTwoClientsTest() throws Throwable {
 
 		// TODO test opening session in already opened session
 
@@ -346,40 +180,43 @@ class ChatClientIntegrationTest {
 
 		boolean isCountDownLatchZero = false;
 
-		ClientViewSwing anyClientView = new ClientViewSwingTest();
-
-		// Indicate which methods are being mocked.
-		new Expectations(ClientViewSwingTest.class) {
-			{
-				anyClientView.onConnectionOpening(anyString);
-				anyClientView.onConnectionOpened(anyString);
-				anyClientView.onUpdateChatUserList((String[]) any);
-				anyClientView.onSendMessage();
-				anyClientView.onConnectionClosing(anyString);
-				//anyClientView.setPresenter((Presenter) any);
-			}
-		};
-
 		// Partial mocking ClientViewSwingTest class and instance
 		ClientViewSwingTest clientView1 = new ClientViewSwingTest();
 		ClientViewSwingTest clientView2 = new ClientViewSwingTest();
+
+		// Indicate which methods are being mocked on concrete instance.
+		new Expectations(clientView1) {
+			{
+				clientView1.onConnectionOpening(anyString);
+				clientView1.onConnectionOpened(anyString);
+				clientView1.onUpdateChatUserList((String[]) any);
+				clientView1.onSendMessage();
+				clientView1.onConnectionClosing(anyString);
+			}
+		};
+
+		// Indicate which methods are being mocked on concrete instance.
+		new Expectations(clientView2) {
+			{
+				clientView2.onConnectionOpening(anyString);
+				clientView2.onConnectionOpened(anyString);
+				clientView2.onUpdateChatUserList((String[]) any);
+				clientView1.onSendMessage();
+				clientView2.onConnectionClosing(anyString);
+			}
+		};
 
 		CountDownLatch latch1 = new CountDownLatch(1);
 		clientView1.setLatch(latch1);
 		CountDownLatch latch2 = new CountDownLatch(1);
 
 		clientPresenter1.setView(clientView1);
-		// clientView1.setPresenter(clientPresenter1);
 		clientPresenter2.setView(clientView2);
-		// clientView2.setPresenter(clientPresenter2);
 
 		clientPresenter1.openConnection(CHAT_USERNAME1);
+		// Waiting for clientView1 to complete onReceiveMessage
 		isCountDownLatchZero = latch1.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
-
-		// TODO Remove the timeout, use awaitility instead
-		// TODO Find out why if remove timeout client did not receive message?
-		// TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 		new Verifications() {
 			{ // check for normal session opening command sequence for client 1
@@ -414,8 +251,6 @@ class ChatClientIntegrationTest {
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 		isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
-
-		// TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 		new Verifications() {
 			{
@@ -455,7 +290,6 @@ class ChatClientIntegrationTest {
 		clientView2.setLatch(latch2);
 
 		clientPresenter1.sendCommand(CHAT_MSG_1);
-		// TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 		// Waiting for clientView1 and ClientView2 to complete onReceiveMessage
 		isCountDownLatchZero = latch1.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
@@ -492,17 +326,11 @@ class ChatClientIntegrationTest {
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 		isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
-		// TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
-		/*System.out.println(
-				"ChatClientIntegrationTest.sendMessagesBetweenTwoClientsWithCountDownTest() clientPresenter2.getView():"
-						+ clientPresenter2.getView().hashCode() + ", clientView2:" + clientView2.hashCode()
-						+ ", clientView1:" + clientView1.hashCode());
-*/
 		new Verifications() {
 			{
-				// TODO check why there are two invocation
-				clientView2.onSendMessage(); times = 2;
+				clientView2.onSendMessage();
+				times = 1;
 
 				String actualMessage;
 				String expectedMessage = CHAT_MSG_2;
@@ -520,16 +348,15 @@ class ChatClientIntegrationTest {
 		clientView1.setLatch(latch1);
 		latch2 = new CountDownLatch(1);
 		clientView2.setLatch(latch2);
-		
+
 		clientPresenter1.closeConnection();
-//		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 
 		// Waiting for clientView1 and ClientView2 to complete onReceiveMessage
 		isCountDownLatchZero = latch1.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 		isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
-			
+
 		new Verifications() {
 			{
 				clientView1.onConnectionClosing(anyString);
@@ -554,19 +381,18 @@ class ChatClientIntegrationTest {
 
 		latch2 = new CountDownLatch(1);
 		clientView2.setLatch(latch2);
-		
+
 		clientPresenter2.closeConnection();
-//		TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
+		// Waiting for ClientView2 to complete onConnectionClosed
 		isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
 		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 
 		new Verifications() {
 			{
-				// TODO check why there are two invocation
 				clientView2.onConnectionClosing(anyString);
-				times = 2;
+				times = 1;
 				clientView2.onConnectionClosed(anyString);
-				times = 2;
+				times = 1;
 			}
 		};
 
@@ -574,5 +400,95 @@ class ChatClientIntegrationTest {
 		if (exception.get() != null) {
 			throw exception.get();
 		}
+	}
+
+	// @RepeatedTest(value = MAX_TEST_REPEAT, name = "{displayName}
+	// {currentRepetition}/{totalRepetitions}")
+	@Test
+	@DisplayName("Connecting to a server with an existing username.")
+	void connectWithExistingUserNameTest() throws Throwable {
+
+		// set exception handler to throw other thread exceptions in current thread
+		final AtomicReference<Throwable> exception = new AtomicReference<>();
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(final Thread t, final Throwable e) {
+				exception.compareAndSet(null, e);
+			}
+		});
+
+		final ClientPresenter clientPresenter1 = new ClientPresenter();
+		final ClientPresenter clientPresenter2 = new ClientPresenter();
+
+		boolean isCountDownLatchZero = false;
+
+		// Partial mocking ClientViewSwingTest class and instance
+		ClientViewSwingTest clientView1 = new ClientViewSwingTest();
+		ClientViewSwingTest clientView2 = new ClientViewSwingTest();
+
+		// Indicate which methods are being mocked on concrete instance.
+		new Expectations(clientView1) {
+			{
+				clientView1.onConnectionOpening(anyString);
+				clientView1.onConnectionOpened(anyString);
+				clientView1.onUpdateChatUserList((String[]) any);
+				clientView1.onSendMessage();
+				clientView1.onConnectionClosing(anyString);
+			}
+		};
+
+		// Indicate which methods are being mocked on concrete instance.
+		new Expectations(clientView2) {
+			{
+				clientView2.onConnectionOpening(anyString);
+				clientView2.onConnectionOpened(anyString);
+				clientView2.onUpdateChatUserList((String[]) any);
+				clientView1.onSendMessage();
+				clientView2.onConnectionClosing(anyString);
+				clientView2.showErrorWindow(any, anyString);
+			}
+		};
+
+		CountDownLatch latch1 = new CountDownLatch(1);
+		clientView1.setLatch(latch1);
+
+		clientPresenter1.setView(clientView1);
+		clientPresenter2.setView(clientView2);
+
+		clientPresenter1.openConnection(CHAT_USERNAME1);
+		// Waiting for clientView1 to complete onReceiveMessage
+		isCountDownLatchZero = latch1.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
+		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
+
+		CountDownLatch latch2 = new CountDownLatch(1);
+		clientView2.setLatch(latch2);
+		// Waiting for clientView2 to complete onConnectionclosed()
+		clientPresenter2.openConnection(CHAT_USERNAME1);
+		isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
+		assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
+		
+		fail("The test is not completed.");
+		
+		new Verifications() {
+			{
+				//clientView2.onConnectionClosing(anyString); times = 2;
+				String actualMessage;
+				String expectedMessage = ClientHandler.ERR_NAME_EXISTS_MSG;
+				clientView2.showErrorWindow(actualMessage = withCapture(), anyString);
+				assertTrue(actualMessage.contains(expectedMessage),
+						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);
+				times = 1;
+				//clientPresenter2.getView().onConnectionClosing(anyString); times = 3;
+				//clientView1.onConnectionClosing(anyString);
+				//clientView2.onConnectionClosing(anyString);
+				clientPresenter2.getView().onConnectionClosed(anyString); times = 1;
+			}
+		};
+
+		// if we get other thread exception throw it in current thread
+		if (exception.get() != null) {
+			throw exception.get();
+		}
+
 	}
 }

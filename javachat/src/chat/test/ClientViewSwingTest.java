@@ -23,6 +23,11 @@ public class ClientViewSwingTest extends ClientViewSwing {
 	}
 	
 	@Override
+	public void onSendMessage() {
+		System.out.println("ClientViewSwingTest.onSendMessage() " + this.hashCode() + " " + this.getClass().getSimpleName());
+	}
+	
+	@Override
 	public void onConnectionClosed(String message) {
 		latch.countDown();
 	}

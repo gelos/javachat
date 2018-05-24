@@ -42,13 +42,14 @@ public class ClientPresenter implements Presenter {
 
 	private Socket serverSocket = null;
 
-	private ProcessCommandThreadClass processCommandThread = null;
+	private ProcessCommandThread processCommandThread = null;
 
 	private ObjectOutputStream outputStream = null;
 
 	private ObjectInputStream inputStream = null;
 
 	private AtomicBoolean isSessionOpened;
+	public static final String WRN_UNKNOWN_COMMAND_MSG = "Unknown command";
 
 	/** The Constant DEFAULT_WINDOW_NAME. */
 	public static final String DEFAULT_WINDOW_NAME = "Java Chat Client";
@@ -114,14 +115,11 @@ public class ClientPresenter implements Presenter {
 
 			inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
 
-			processCommandThread = new ProcessCommandThreadClass();
+			processCommandThread = new ProcessCommandThread();
 			processCommandThread.start(THREAD_NAME_CLIENT);
 
 		} catch (IOException e1) {
 			logger.error("openConnection(String)", e1); //$NON-NLS-1$
-
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
 
 		// Waiting for the '/ok enter' command to be received from the server
@@ -147,9 +145,10 @@ public class ClientPresenter implements Presenter {
 		} else {
 			// TODO closeConnection here
 			MDC.clear();
-			getView().onConnectionClosed(ClientPresenter.DEFAULT_WINDOW_NAME);
+						/*getView().onConnectionClosed(ClientPresenter.DEFAULT_WINDOW_NAME);
 			// stop message handler
-			processCommandThread.stop();
+			processCommandThread.stop();*/
+			closeConnection();
 			String msg = "Can't connect to the server, timeout " + MAX_TIMEOUT_SESSION_OPEN_MS
 					+ ". Check server, try again or increase open session timeout.";
 			System.out.println(msg);
@@ -261,7 +260,7 @@ public class ClientPresenter implements Presenter {
 	/**
 	 * The Class ClientHandler.
 	 */
-	class ProcessCommandThreadClass extends WorkerThread {
+	class ProcessCommandThread extends WorkerThread {
 
 		@Override
 		public void run() {
@@ -285,7 +284,7 @@ public class ClientPresenter implements Presenter {
 
 					case CMDERR:
 						logger.debug("run() - {}", //$NON-NLS-1$
-								"ClientPresenter.ProcessCommandThreadClass.run()" + command.getMessage()); //$NON-NLS-1$
+								"ClientPresenter.ProcessCommandThread.run()" + command.getMessage()); //$NON-NLS-1$
 						getView().showErrorWindow(command.getMessage(), "Error");
 						break;
 
@@ -314,15 +313,14 @@ public class ClientPresenter implements Presenter {
 						break;
 
 					default:
-						// TODO save unknown commands to log file
-						getView().showWarningWindow(command.toString(), "Unknown command");
+						getView().showWarningWindow(command.toString(), ClientPresenter.WRN_UNKNOWN_COMMAND_MSG);
+						logger.warn("ProcessCommandThread.run() {}", ClientPresenter.WRN_UNKNOWN_COMMAND_MSG + " " + command);
 					}
 
 				}
 			} catch (IOException ioe) {
 				logger.debug("run() - {}", ioe.getMessage()); //$NON-NLS-1$
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				logger.error("run()", e); //$NON-NLS-1$
 			}
 		}

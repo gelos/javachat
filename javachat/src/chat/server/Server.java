@@ -74,12 +74,12 @@ public class Server {
 	private ConcurrentHashMap<String, ClientHandler> clientHandlers;
 
 	/** The chat client communication thread. */
-	private ProcessClientHandlersThreadClass processClientHandlersThread;
+	private ProcessClientHandlersThread processClientHandlersThread;
 
 	/** The process console input thread. */
-	private ProcessConsoleInputThreadClass processConsoleInputThread;
+	private ProcessConsoleInputThread processConsoleInputThread;
 
-	private StopServerThreadClass stopServerThread;
+	private StopServerThread stopServerThread;
 
 	private AtomicBoolean stopServerFlag;
 
@@ -103,7 +103,7 @@ public class Server {
 
 		// Start thread that stop server on stopServerFlag set
 		stopServerFlag = new AtomicBoolean(false);
-		stopServerThread = new StopServerThreadClass();
+		stopServerThread = new StopServerThread();
 		stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
 		logger.info("Server.Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
@@ -113,11 +113,11 @@ public class Server {
 		clientHandlers = new ConcurrentHashMap<String, ClientHandler>();
 
 		// Start thread for create clients handler
-		processClientHandlersThread = new ProcessClientHandlersThreadClass(serverPort);
+		processClientHandlersThread = new ProcessClientHandlersThread(serverPort);
 		processClientHandlersThread.start(processClientHandlersThread.getClass().getSimpleName());
 
 		// Start thread for process console command input
-		processConsoleInputThread = new ProcessConsoleInputThreadClass();
+		processConsoleInputThread = new ProcessConsoleInputThread();
 		processConsoleInputThread.start(processConsoleInputThread.getClass().getSimpleName());
 
 		// Check that both thread successfully running
@@ -214,7 +214,7 @@ public class Server {
 		this.stopServerFlag.set(stopServerFlag);
 	}
 
-	private class StopServerThreadClass extends WorkerThread {
+	private class StopServerThread extends WorkerThread {
 
 		@Override
 		public void run() {
@@ -232,7 +232,7 @@ public class Server {
 	}
 
 	/** The distinct thread to process chat client connections. */
-	private class ProcessClientHandlersThreadClass extends WorkerThread {
+	private class ProcessClientHandlersThread extends WorkerThread {
 
 		private static final String THREAD_NAME_SRV = "server-";
 
@@ -244,7 +244,7 @@ public class Server {
 		/** The server socket. */
 		private ServerSocket serverSocket;
 
-		public ProcessClientHandlersThreadClass(int port) {
+		public ProcessClientHandlersThread(int port) {
 			this.serverSocketPort = port;
 		}
 
@@ -336,9 +336,9 @@ public class Server {
 
 		/**
 		 * Do not move closeServerSocket method to
-		 * {@link ProcessClientHandlersThreadClass#run()}. It is placed here to
+		 * {@link ProcessClientHandlersThread#run()}. It is placed here to
 		 * interrupt clientSocket = serverSocket.accept() in
-		 * {@link ProcessClientHandlersThreadClass#run()} with SocketException.
+		 * {@link ProcessClientHandlersThread#run()} with SocketException.
 		 */
 
 		@Override
@@ -350,11 +350,11 @@ public class Server {
 	}
 
 	/** The thread to process console input. */
-	private class ProcessConsoleInputThreadClass extends WorkerThread {
+	private class ProcessConsoleInputThread extends WorkerThread {
 
 		private BufferedReader consoleInput;
 
-		public ProcessConsoleInputThreadClass() {
+		public ProcessConsoleInputThread() {
 			consoleInput = new BufferedReader(new InputStreamReader(System.in));
 		}
 

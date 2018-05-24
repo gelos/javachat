@@ -23,7 +23,7 @@ import chat.base.WorkerThread;
  * client connection and create new thread as ChartHandler object for every new
  * client connection. Use stop command from console to shutdown server.
  * 
- * @see ClientHandler
+ * @see ServerCommandHandler
  */
 
 public class Server {
@@ -70,8 +70,8 @@ public class Server {
 	private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
 	/** The client session handlers thread-safe storage. */
-	// private CopyOnWriteArrayList<ClientHandler> clientHandlers;
-	private ConcurrentHashMap<String, ClientHandler> clientHandlers;
+	// private CopyOnWriteArrayList<ServerCommandHandler> serverCommandHandlers;
+	private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
 
 	/** The chat client communication thread. */
 	private ProcessClientHandlersThread processClientHandlersThread;
@@ -110,7 +110,7 @@ public class Server {
 		System.out.println(MSG_SERVER_STARTING);
 
 		// Initialize client handlers storage
-		clientHandlers = new ConcurrentHashMap<String, ClientHandler>();
+		serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
 
 		// Start thread for create clients handler
 		processClientHandlersThread = new ProcessClientHandlersThread(serverPort);
@@ -147,15 +147,15 @@ public class Server {
 		logger.info("Server.stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
 		System.out.println(MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
-		if (clientHandlers != null) {
+		if (serverCommandHandlers != null) {
 
-			for (ClientHandler clientHandler : clientHandlers.values()) {
+			for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
 
-				clientHandler.stop();
+				serverCommandHandler.stop();
 
 				try {
-					clientHandler.getThread().join();
-					clientHandler = null;
+					serverCommandHandler.getThread().join();
+					serverCommandHandler = null;
 
 				} catch (InterruptedException e) {
 					logger.error("stop()", e); //$NON-NLS-1$
@@ -269,7 +269,7 @@ public class Server {
 
 						clientSocket = serverSocket.accept();
 
-						new ClientHandler(clientSocket, clientHandlers).start(THREAD_NAME_SRV);
+						new ServerCommandHandler(clientSocket, serverCommandHandlers).start(THREAD_NAME_SRV);
 					}
 				}
 

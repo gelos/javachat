@@ -258,7 +258,7 @@ public class ClientPresenter implements Presenter {
 	}
 
 	/**
-	 * The Class ClientHandler.
+	 * The Class ServerCommandHandler.
 	 */
 	class ProcessCommandThread extends WorkerThread {
 

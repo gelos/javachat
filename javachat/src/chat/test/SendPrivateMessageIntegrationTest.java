@@ -18,10 +18,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import chat.base.ClientPresenter;
+import chat.base.Constants;
 import chat.base.Presenter;
 import chat.base.View;
 import chat.server.Server;
-import chat.server.ClientHandler;
 import mockit.Capturing;
 import mockit.Verifications;
 
@@ -268,12 +268,12 @@ class SendPrivateMessageIntegrationTest {
 			
 			new Verifications() {
 				{
-					String expectedMessage = ClientHandler.ERR_USRS_NOT_FOUND + unknowUser1 + CMDULDLM + unknowUser2;
+					String expectedMessage = Constants.ERR_USRS_NOT_FOUND + unknowUser1 + CMDULDLM + unknowUser2;
 					Object actualObject = null;
 
 					chatClientPresenterStorage[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
 					assertTrue(actualObject.toString().contains(expectedMessage),
-							"Message \"" + ClientHandler.ERR_USRS_NOT_FOUND + "\" not received.");
+							"Message \"" + Constants.ERR_USRS_NOT_FOUND + "\" not received.");
 				}
 			};
 		}
@@ -305,13 +305,13 @@ class SendPrivateMessageIntegrationTest {
 			final String innerPrivateMessageRecepientList = privateMessageRecepientListCaseSensitivity;
 			new Verifications() {
 				{
-					String expectedErrorMessage = ClientHandler.ERR_USRS_NOT_FOUND + innerPrivateMessageRecepientList;
+					String expectedErrorMessage = Constants.ERR_USRS_NOT_FOUND + innerPrivateMessageRecepientList;
 					Object actualObject = null;
 
 					chatClientPresenterStorage[0].getView().showErrorWindow(actualObject = withCapture(), anyString);
 
 					assertTrue(actualObject.toString().contains(expectedErrorMessage),
-							"Message \"" + ClientHandler.ERR_USRS_NOT_FOUND + "\" not received.");
+							"Message \"" + Constants.ERR_USRS_NOT_FOUND + "\" not received.");
 
 					String expectedMessage = USER_NAME_PREFIX + 0 + ": " + chatMessage;
 					String actualMessage;

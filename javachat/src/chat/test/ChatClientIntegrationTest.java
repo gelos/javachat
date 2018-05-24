@@ -17,10 +17,10 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import chat.base.ClientPresenter;
+import chat.base.Constants;
 import chat.base.Presenter;
 import chat.base.View;
 import chat.client.mvp.swing.ClientViewSwing;
-import chat.server.ClientHandler;
 import chat.server.Server;
 import mockit.Capturing;
 import mockit.Expectations;
@@ -233,7 +233,7 @@ class ChatClientIntegrationTest {
 				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
 				String actualMessage;
-				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_WLC_USR;
+				String expectedMessage = CHAT_USERNAME1 + " " + Constants.MSG_WLC_USR;
 				clientView1.onReceiveMessage(actualMessage = withCapture());
 				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
 			}
@@ -275,7 +275,7 @@ class ChatClientIntegrationTest {
 				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
 				String actualMessage;
-				String expectedMessage = CHAT_USERNAME2 + " " + ClientHandler.MSG_WLC_USR;
+				String expectedMessage = CHAT_USERNAME2 + " " + Constants.MSG_WLC_USR;
 				clientView1.onReceiveMessage(actualMessage = withCapture());
 				assertTrue(actualMessage.contains(expectedMessage), ERR_DID_NOT_RECEIVE_WLC_MSG);
 				clientView2.onReceiveMessage(actualMessage = withCapture());
@@ -370,7 +370,7 @@ class ChatClientIntegrationTest {
 				assertTrue(Arrays.asList(actualUserList).contains(expectedUsername), ERR_USR_LST_DID_NOT_CONTAIN_USR);
 
 				String actualMessage;
-				String expectedMessage = CHAT_USERNAME1 + " " + ClientHandler.MSG_EXIT_USR;
+				String expectedMessage = CHAT_USERNAME1 + " " + Constants.MSG_EXIT_USR;
 
 				clientView2.onReceiveMessage(actualMessage = withCapture());
 				assertTrue(actualMessage.contains(expectedMessage),
@@ -473,7 +473,7 @@ class ChatClientIntegrationTest {
 			{
 				//clientView2.onConnectionClosing(anyString); times = 2;
 				String actualMessage;
-				String expectedMessage = ClientHandler.ERR_NAME_EXISTS_MSG;
+				String expectedMessage = Constants.ERR_NAME_EXISTS_MSG;
 				clientView2.showErrorWindow(actualMessage = withCapture(), anyString);
 				assertTrue(actualMessage.contains(expectedMessage),
 						ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE + " Instead got " + actualMessage);

@@ -2,7 +2,7 @@ package chat.test;
 
 import java.util.concurrent.CountDownLatch;
 
-import chat.client.mvp.swing.ClientViewSwing;
+import chat.client.mvp.view.swing.ClientViewSwing;
 
 public class ClientViewSwingTest extends ClientViewSwing {
 

@@ -61,7 +61,7 @@ public class CommandHandler extends WorkerThread {
 		}
 	}
 
-	public void processCommand(Command command) {
+	public void processCommand(Command Command) {
 		
 	}
 

@@ -1,4 +1,4 @@
-package chat.base;
+package chat.client.mvp.presenter;
 
 import static chat.base.CommandName.CMDENTER;
 
@@ -16,6 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import chat.base.Command;
+import chat.base.CommandName;
+import chat.base.Constants;
+import chat.base.Presenter;
+import chat.base.View;
+import chat.base.WorkerThread;
 import chat.server.Server;
 
 /**
@@ -28,13 +34,6 @@ public class ClientPresenter implements Presenter {
 	private static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
 	// private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
 	private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
-
-	private final static String MSG_ASK_FOR_USERNAME = "Enter username to start сhat: ";
-
-	private final static String MSG_EMPTY_USRENAME = "Username cannot be empty.";
-
-	private final static String MSG_CANT_CON_SRV = "Can't connect to server " + Server.SERVER_IP + ":"
-			+ Server.SERVER_PORT + ". Server not started.";
 
 	private final static int MAX_TIMEOUT_SESSION_OPEN_MS = 100;
 
@@ -49,12 +48,6 @@ public class ClientPresenter implements Presenter {
 	private ObjectInputStream inputStream = null;
 
 	private AtomicBoolean isSessionOpened;
-	public static final String WRN_UNKNOWN_COMMAND_MSG = "Unknown command";
-
-	/** The Constant DEFAULT_WINDOW_NAME. */
-	public static final String DEFAULT_WINDOW_NAME = "Java Chat Client";
-	private static final String THREAD_NAME_CLIENT = "client-";
-
 	/**
 	 * Create an instance of a new chat client presenter.
 	 */
@@ -72,10 +65,10 @@ public class ClientPresenter implements Presenter {
 	 * Updating view for a new session start.
 	 */
 	public void onViewStart() {
-		getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
+		getView().onConnectionOpening(Constants.DEFAULT_WINDOW_NAME);
 		String[] emptyUserList = new String[0];
 		getView().onUpdateChatUserList(emptyUserList);
-		getView().onReceiveMessage(MSG_ASK_FOR_USERNAME);
+		getView().onReceiveMessage(Constants.MSG_ASK_FOR_USERNAME);
 	}
 
 	/**
@@ -90,7 +83,7 @@ public class ClientPresenter implements Presenter {
 
 		MDC.put("username", username);
 
-		getView().onConnectionOpening(DEFAULT_WINDOW_NAME);
+		getView().onConnectionOpening(Constants.DEFAULT_WINDOW_NAME);
 		isSessionOpened.set(false);
 
 		try {
@@ -116,7 +109,7 @@ public class ClientPresenter implements Presenter {
 			inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
 
 			processCommandThread = new ProcessCommandThread();
-			processCommandThread.start(THREAD_NAME_CLIENT);
+			processCommandThread.start(Constants.THREAD_NAME_CLIENT);
 
 		} catch (IOException e1) {
 			logger.error("openConnection(String)", e1); //$NON-NLS-1$
@@ -163,14 +156,14 @@ public class ClientPresenter implements Presenter {
 	/**
 	 * Close connection.
 	 *
-	 * @see chat.client.mvp.swing.Presenter#closeConnection()
+	 * @see chat.client.mvp.view.swing.Presenter#closeConnection()
 	 */
 	@Override
 	public void closeConnection() {
 
 		MDC.clear();
 
-		getView().onConnectionClosing(ClientPresenter.DEFAULT_WINDOW_NAME);
+		getView().onConnectionClosing(Constants.DEFAULT_WINDOW_NAME);
 
 		System.out.println("Closing client...");
 
@@ -194,7 +187,7 @@ public class ClientPresenter implements Presenter {
 		}
 
 		System.out.println("Client stopped.");
-		getView().onConnectionClosed(ClientPresenter.DEFAULT_WINDOW_NAME);
+		getView().onConnectionClosed(Constants.DEFAULT_WINDOW_NAME);
 	}
 
 	/**
@@ -206,14 +199,14 @@ public class ClientPresenter implements Presenter {
 	 *
 	 * @param commandString
 	 *            the command string
-	 * @see chat.client.mvp.swing.Presenter#sendCommand(java.lang.String)
+	 * @see chat.client.mvp.view.swing.Presenter#sendCommand(java.lang.String)
 	 */
 	@Override
 	public void sendCommand(String commandString) {
 		// loggerDebug.debug("sendCommand(String) - start"); //$NON-NLS-1$
 
-		Command command = new Command(commandString);
-		switch (command.getCommandName()) {
+		Command Command = new Command(commandString);
+		switch (Command.getCommandName()) {
 		case CMDEXIT:
 			// TODO duplicate send exit command
 			closeConnection();
@@ -222,13 +215,13 @@ public class ClientPresenter implements Presenter {
 		case CMDPRVMSG:
 		case CMDENTER:
 		case CMDMSG:
-			command.send(outputStream);
+			Command.send(outputStream);
 			// loggerDebug.debug("sendCommand(String) - getView().onSendMessage(), getView:
 			// " + getView().hashCode()); //$NON-NLS-1$
 			getView().onSendMessage();
 			break;
 		case CMDERR:
-			getView().showErrorWindow("Wrong format or command \"" + command.getMessage() + "\" not supported.",
+			getView().showErrorWindow("Wrong format or command \"" + Command.getMessage() + "\" not supported.",
 					"Error");
 			getView().onSendMessage();
 			break;
@@ -248,7 +241,7 @@ public class ClientPresenter implements Presenter {
 	 *            the message
 	 * @param userList
 	 *            the user list
-	 * @see chat.client.mvp.swing.Presenter#sendPrivateMessage(java.lang.String,
+	 * @see chat.client.mvp.view.swing.Presenter#sendPrivateMessage(java.lang.String,
 	 *      java.lang.String)
 	 */
 	@Override
@@ -272,20 +265,20 @@ public class ClientPresenter implements Presenter {
 				// {
 				while (isRunning()) {
 
-					Command command = (Command) inputStream.readObject();
-					loggerDebugMDC.debug(command.toString());
+					Command Command = (Command) inputStream.readObject();
+					loggerDebugMDC.debug(Command.toString());
 					// loggerRoot.debug("run() - {}", this.toString() + command); //$NON-NLS-1$
 
 					// loggerRoot.debug("processCommand(Command) - user {}, command {}", ((user ==
 					// null) ? "" : user.getUsername()), //$NON-NLS-1$
 					// command);
 
-					switch (command.getCommandName()) {
+					switch (Command.getCommandName()) {
 
 					case CMDERR:
 						logger.debug("run() - {}", //$NON-NLS-1$
-								"ClientPresenter.ProcessCommandThread.run()" + command.getMessage()); //$NON-NLS-1$
-						getView().showErrorWindow(command.getMessage(), "Error");
+								"ClientPresenter.ProcessCommandThread.run()" + Command.getMessage()); //$NON-NLS-1$
+						getView().showErrorWindow(Command.getMessage(), "Error");
 						break;
 
 					case CMDEXIT:
@@ -297,24 +290,24 @@ public class ClientPresenter implements Presenter {
 						break;
 
 					case CMDOK:
-						if (command.getPayload().equals(CommandName.CMDENTER.toString())) {
+						if (Command.getPayload().equals(CommandName.CMDENTER.toString())) {
 							isSessionOpened.set(true);
 						}
 						break;
 
 					case CMDMSG:
 					case CMDPRVMSG:
-						getView().onReceiveMessage(command.getMessage());
+						getView().onReceiveMessage(Command.getMessage());
 						break;
 
 					case CMDUSRLST:
 						// Update userList
-						getView().onUpdateChatUserList(command.getPayload().split(" "));
+						getView().onUpdateChatUserList(Command.getPayload().split(" "));
 						break;
 
 					default:
-						getView().showWarningWindow(command.toString(), ClientPresenter.WRN_UNKNOWN_COMMAND_MSG);
-						logger.warn("ProcessCommandThread.run() {}", ClientPresenter.WRN_UNKNOWN_COMMAND_MSG + " " + command);
+						getView().showWarningWindow(Command.toString(), Constants.WRN_UNKNOWN_COMMAND_MSG);
+						logger.warn("ProcessCommandThread.run() {}", Constants.WRN_UNKNOWN_COMMAND_MSG + " " + Command);
 					}
 
 				}
@@ -329,7 +322,7 @@ public class ClientPresenter implements Presenter {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see chat.client.mvp.swing.Presenter#setView(chat.client.mvp.swing.View)
+	 * @see chat.client.mvp.view.swing.Presenter#setView(chat.client.mvp.view.swing.View)
 	 */
 	@Override
 	public void setView(View view) {

@@ -17,10 +17,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import chat.base.ClientPresenter;
+
 import chat.base.Constants;
 import chat.base.Presenter;
 import chat.base.View;
+import chat.client.mvp.presenter.ClientPresenter;
 import chat.server.Server;
 import mockit.Capturing;
 import mockit.Verifications;

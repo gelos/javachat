@@ -1,4 +1,4 @@
-package chat.client.mvp.swing;
+package chat.client.mvp.view.swing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

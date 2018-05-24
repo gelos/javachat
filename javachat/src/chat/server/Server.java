@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import chat.base.Constants;
 import chat.base.WorkerThread;
 
 // TODO: use netty+protobuf or ZeroMQ
@@ -27,34 +28,6 @@ import chat.base.WorkerThread;
  */
 
 public class Server {
-	// Constructor
-
-	private static final String CMD_STOP = "stop";
-
-	public static final String MSG_SERVER_STARTED = "Server started.";
-
-	public static final String MSG_SERVER_STOPPED = "The server is stopped.";
-
-	private static final String MSG_SERVER_STARTING = "Chat server starting...";
-
-	private static final String MSG_COMMAND_TO_SHUTDOWN_SERVER = "Type \"" + CMD_STOP
-			+ "\" in console to shutdown server.";
-
-	private static final String MSG_STOPPING_CHAT_CLIENT_HANDLERS = "Stopping the chat client handlers...";
-
-	private static final String MSG_STOPPING_SERVER_THREADS = "Stopping server threads...";
-
-	private static final String MSG_CONNECTION_SOCKET_1 = "Server socket on ";
-
-	private static final String MSG_CONNECTION_SOCKET_2 = " port created.";
-
-	public static final String ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED = "Chat client acception failed.";
-
-	public static final String ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET = "Failed to create server socket on serverSocketPort ";
-
-	private static final String ERR_PORT_IN_USE_1 = "Port ";
-
-	private static final String ERR_PORT_IN_USE_2 = " already in use.";
 
 	// Constructor
 
@@ -106,8 +79,8 @@ public class Server {
 		stopServerThread = new StopServerThread();
 		stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
-		logger.info("Server.Server(int) - {}", MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
-		System.out.println(MSG_SERVER_STARTING);
+		logger.info("Server.Server(int) - {}", Constants.MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
+		System.out.println(Constants.MSG_SERVER_STARTING);
 
 		// Initialize client handlers storage
 		serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
@@ -123,10 +96,10 @@ public class Server {
 		// Check that both thread successfully running
 		if (processClientHandlersThread.isRunning() && processConsoleInputThread.isRunning()) {
 
-			logger.info("Server.Server(int) - {}", MSG_SERVER_STARTED); //$NON-NLS-1$
+			logger.info("Server.Server(int) - {}", Constants.MSG_SERVER_STARTED); //$NON-NLS-1$
 
-			System.out.println(MSG_COMMAND_TO_SHUTDOWN_SERVER);
-			System.out.println(MSG_SERVER_STARTED);
+			System.out.println(Constants.MSG_COMMAND_TO_SHUTDOWN_SERVER);
+			System.out.println(Constants.MSG_SERVER_STARTED);
 
 		} else {
 
@@ -141,11 +114,11 @@ public class Server {
 	 */
 	public void stop() {
 
-		logger.info("Server.stop() - {}", MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
-		System.out.println(MSG_STOPPING_SERVER_THREADS);
+		logger.info("Server.stop() - {}", Constants.MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
+		System.out.println(Constants.MSG_STOPPING_SERVER_THREADS);
 
-		logger.info("Server.stop() - {}", MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
-		System.out.println(MSG_STOPPING_CHAT_CLIENT_HANDLERS);
+		logger.info("Server.stop() - {}", Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
+		System.out.println(Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
 		if (serverCommandHandlers != null) {
 
@@ -193,8 +166,8 @@ public class Server {
 			}
 		}
 
-		logger.info("Server.stop() - {}", MSG_SERVER_STOPPED); //$NON-NLS-1$
-		System.out.println(MSG_SERVER_STOPPED);
+		logger.info("Server.stop() - {}", Constants.MSG_SERVER_STOPPED); //$NON-NLS-1$
+		System.out.println(Constants.MSG_SERVER_STOPPED);
 
 	}
 
@@ -257,8 +230,8 @@ public class Server {
 			}
 
 			logger.info("ProcessClientHandlersThread.run() - {}", //$NON-NLS-1$
-					Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
-			System.out.println(Server.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Server.MSG_CONNECTION_SOCKET_2);
+					Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
+			System.out.println(Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
 
 			try {
 
@@ -283,12 +256,12 @@ public class Server {
 				} else {
 
 					// Something wrong write error and stop server
-					logger.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
+					logger.error("run() - " + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 				}
 
 			} catch (IOException e) { // stop server on IOException
 
-				logger.error("run() - " + Server.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
+				logger.error("run() - " + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
 
 			} /*
 				 * finally {
@@ -307,13 +280,13 @@ public class Server {
 			try {
 				serverSocket = new ServerSocket(serverSocketPort);
 			} catch (BindException e) {
-				logger.error("openServerSocket(int) - " + Server.ERR_PORT_IN_USE_1 + serverSocketPort //$NON-NLS-1$
-						+ Server.ERR_PORT_IN_USE_2, e); // $NON-NLS-2$
+				logger.error("openServerSocket(int) - " + Constants.ERR_PORT_IN_USE_1 + serverSocketPort //$NON-NLS-1$
+						+ Constants.ERR_PORT_IN_USE_2, e); // $NON-NLS-2$
 				return false;
 
 			} catch (IOException e) {
 				logger.error(
-						"openServerSocket(int) - " + Server.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET + serverSocketPort, //$NON-NLS-1$
+						"openServerSocket(int) - " + Constants.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET + serverSocketPort, //$NON-NLS-1$
 						e);
 				return false;
 			}
@@ -379,7 +352,7 @@ public class Server {
 						String s = consoleInput.readLine();
 
 						// Check input for stop command
-						if (s.equalsIgnoreCase(Server.CMD_STOP)) {
+						if (s.equalsIgnoreCase(Constants.SERVER_CMD_STOP)) {
 							Server.this.setStopServerFlag(true);
 							break;
 						}

@@ -24,10 +24,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.MDC;
 
-import chat.base.ClientPresenter;
 import chat.base.Command;
 import chat.base.CommandHandler;
 import chat.base.CommandName;
+import chat.base.Constants;
 import chat.base.User;
 
 import static chat.base.Constants.*;
@@ -85,8 +85,8 @@ public class ServerCommandHandler extends CommandHandler {
 			// running
 			while (isRunning()) {
 
-				Command command = (Command) inputStream.readObject();
-				processCommand(command);
+				Command Command = (Command) inputStream.readObject();
+				processCommand(Command);
 
 			}
 
@@ -133,8 +133,7 @@ public class ServerCommandHandler extends CommandHandler {
 		try {
 			closeInputStream();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			logger.error("stop()", e); //$NON-NLS-1$
+			logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
 		}
 	}
 
@@ -157,12 +156,12 @@ public class ServerCommandHandler extends CommandHandler {
 	/**
 	 * Send chat command to all chat clients.
 	 *
-	 * @param command
+	 * @param Command
 	 *            the command to send
 	 */
-	void sendToAllChatClients(Command command) {
+	void sendToAllChatClients(Command Command) {
 		for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
-			command.send(serverCommandHandler.outputStream);
+			Command.send(serverCommandHandler.outputStream);
 		}
 	}
 
@@ -179,7 +178,7 @@ public class ServerCommandHandler extends CommandHandler {
 	}
 
 	@Override
-	public void processCommand(Command command) {
+	public void processCommand(Command Command) {
 		// loggerRoot.debug("processCommand(Command) - user {}, command {}", ((user ==
 		// null) ? "" :
 		// user.getUsername()), //$NON-NLS-1$
@@ -187,22 +186,22 @@ public class ServerCommandHandler extends CommandHandler {
 
 		// System.out.println(((user == null) ? "" : user.getUsername()) + command);
 
-		loggerDebugMDC.debug(command.toString());
+		loggerDebugMDC.debug(Command.toString());
 
 		// ignore all command except CMDENTER while session not opened
-		if (!isSessionOpened.get() && command.getCommandName() != CMDENTER) {
+		if (!isSessionOpened.get() && Command.getCommandName() != CMDENTER) {
 			// loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
 			return;
 		}
 
 		// chat command processing
-		switch (command.getCommandName()) {
+		switch (Command.getCommandName()) {
 
 		case CMDERR:
 			// TODO test it with unit test
-			System.err.println(user.getUsername() + ": error: " + command.getMessage());
+			System.err.println(user.getUsername() + ": error: " + Command.getMessage());
 			// getView().show WarningWindow(command.toString(), WRN_UNKNOWN_COMMAND_MSG);
-			logger.error("ProcessCommandThread.run() {}", command.getMessage());
+			logger.error("ProcessCommandThread.run() {}", Command.getMessage());
 			break;
 
 		case CMDEXIT:
@@ -212,7 +211,7 @@ public class ServerCommandHandler extends CommandHandler {
 		case CMDENTER:
 
 			// get username
-			String userName = command.getPayload();
+			String userName = Command.getPayload();
 
 			// TODO check for username uniquely
 
@@ -266,8 +265,8 @@ public class ServerCommandHandler extends CommandHandler {
 
 			// Get user list from payload
 			String[] usrList = new String[0];
-			if (!command.getPayload().isEmpty()) {
-				usrList = command.getPayload().split(CMDULDLM.toString());
+			if (!Command.getPayload().isEmpty()) {
+				usrList = Command.getPayload().split(CMDULDLM.toString());
 			}
 
 			Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
@@ -275,7 +274,7 @@ public class ServerCommandHandler extends CommandHandler {
 			// System.out.println(usrSet.toString());
 
 			// Prepare message
-			String message = getCurrentDateTime() + " " + user.getUsername() + ": " + command.getMessage();
+			String message = getCurrentDateTime() + " " + user.getUsername() + ": " + Command.getMessage();
 
 			// IF private message recipient list is empty, send message to all clients
 			if (usrSet.size() == 0) {
@@ -334,7 +333,7 @@ public class ServerCommandHandler extends CommandHandler {
 			break;
 
 		default:
-			String errMessage = ClientPresenter.WRN_UNKNOWN_COMMAND_MSG + " " + command;
+			String errMessage = Constants.WRN_UNKNOWN_COMMAND_MSG + " " + Command;
 			new Command(CMDERR, errMessage).send(outputStream);
 			logger.warn(errMessage);
 			System.out.println(errMessage);

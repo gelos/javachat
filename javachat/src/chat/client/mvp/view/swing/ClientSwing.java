@@ -1,10 +1,11 @@
-package chat.client.mvp.swing;
+package chat.client.mvp.view.swing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import chat.client.mvp.presenter.ClientPresenter;
+
 import javax.swing.SwingUtilities;
-import chat.base.ClientPresenter;
 
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
 // TODO use MVC pattern http://www.javacreed.com/testing-swing-application/

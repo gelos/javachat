@@ -47,7 +47,7 @@ public class Server {
 	private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
 
 	/** The chat client communication thread. */
-	private ProcessClientHandlersThread processClientHandlersThread;
+	private ProcessClientConnectionsThread processClientConnectionsThread;
 
 	/** The process console input thread. */
 	private ProcessConsoleInputThread processConsoleInputThread;
@@ -86,15 +86,15 @@ public class Server {
 		serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
 
 		// Start thread for create clients handler
-		processClientHandlersThread = new ProcessClientHandlersThread(serverPort);
-		processClientHandlersThread.start(processClientHandlersThread.getClass().getSimpleName());
+		processClientConnectionsThread = new ProcessClientConnectionsThread(serverPort);
+		processClientConnectionsThread.start(processClientConnectionsThread.getClass().getSimpleName());
 
 		// Start thread for process console command input
 		processConsoleInputThread = new ProcessConsoleInputThread();
 		processConsoleInputThread.start(processConsoleInputThread.getClass().getSimpleName());
 
 		// Check that both thread successfully running
-		if (processClientHandlersThread.isRunning() && processConsoleInputThread.isRunning()) {
+		if (processClientConnectionsThread.isRunning() && processConsoleInputThread.isRunning()) {
 
 			logger.info("Server.Server(int) - {}", Constants.MSG_SERVER_STARTED); //$NON-NLS-1$
 
@@ -137,14 +137,14 @@ public class Server {
 			}
 		}
 
-		if (processClientHandlersThread != null) {
+		if (processClientConnectionsThread != null) {
 
-			processClientHandlersThread.stop();
+			processClientConnectionsThread.stop();
 
 			try {
 
-				processClientHandlersThread.getThread().join();
-				processClientHandlersThread = null;
+				processClientConnectionsThread.getThread().join();
+				processClientConnectionsThread = null;
 
 			} catch (InterruptedException e) {
 				logger.error("stop()", e); //$NON-NLS-1$
@@ -205,7 +205,7 @@ public class Server {
 	}
 
 	/** The distinct thread to process chat client connections. */
-	private class ProcessClientHandlersThread extends WorkerThread {
+	private class ProcessClientConnectionsThread extends WorkerThread {
 
 		private static final String THREAD_NAME_SRV = "server-";
 
@@ -217,7 +217,7 @@ public class Server {
 		/** The server socket. */
 		private ServerSocket serverSocket;
 
-		public ProcessClientHandlersThread(int port) {
+		public ProcessClientConnectionsThread(int port) {
 			this.serverSocketPort = port;
 		}
 
@@ -229,7 +229,7 @@ public class Server {
 				return;
 			}
 
-			logger.info("ProcessClientHandlersThread.run() - {}", //$NON-NLS-1$
+			logger.info("ProcessClientConnectionsThread.run() - {}", //$NON-NLS-1$
 					Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
 			System.out.println(Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
 
@@ -296,7 +296,7 @@ public class Server {
 		private synchronized void closeServerSocket() {
 			if (serverSocket != null) {
 				// Close server socket to release blocking on while circle in
-				// processClientHandlersThread on serverSocket.accept(). Throw SocketException
+				// processClientConnectionsThread on clientSocket.accept(). Throw SocketException
 				// and stop thread.
 				try {
 					serverSocket.close();
@@ -309,9 +309,9 @@ public class Server {
 
 		/**
 		 * Do not move closeServerSocket method to
-		 * {@link ProcessClientHandlersThread#run()}. It is placed here to
-		 * interrupt clientSocket = serverSocket.accept() in
-		 * {@link ProcessClientHandlersThread#run()} with SocketException.
+		 * {@link ProcessClientConnectionsThread#run()}. It is placed here to
+		 * interrupt clientSocket = clientSocket.accept() in
+		 * {@link ProcessClientConnectionsThread#run()} with SocketException.
 		 */
 
 		@Override

@@ -60,7 +60,6 @@ public class ServerCommandHandler extends CommandHandler {
 			ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers) {
 		super(clientSocket);
 		this.serverCommandHandlers = serverCommandHandlers;
-		// this.isSessionOpened = new AtomicBoolean(false);
 	}
 
 	/*
@@ -189,7 +188,7 @@ public class ServerCommandHandler extends CommandHandler {
 		loggerDebugMDC.debug(Command.toString());
 
 		// ignore all command except CMDENTER while session not opened
-		if (!isSessionOpened.get() && Command.getCommandName() != CMDENTER) {
+		if (!isChatSessionOpened.get() && Command.getCommandName() != CMDENTER) {
 			// loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
 			return;
 		}
@@ -224,7 +223,7 @@ public class ServerCommandHandler extends CommandHandler {
 				MDC.put("username", userName);
 				serverCommandHandlers.put(userName, this);
 
-				isSessionOpened.set(true); // set flag that current session is opened
+				isChatSessionOpened.set(true); // set flag that current session is opened
 
 				// create new user
 				user = new User(userName);
@@ -232,7 +231,7 @@ public class ServerCommandHandler extends CommandHandler {
 				// send ok enter command to confirm session opening
 				new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);
 
-				// TODO what if isSessionOpened set to true but we cant send ok enter command to
+				// TODO what if isChatSessionOpened set to true but we cant send ok enter command to
 				// client check with unit tests
 				// send to all users usrlst command
 				sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
@@ -283,7 +282,7 @@ public class ServerCommandHandler extends CommandHandler {
 				// Send only for recipient user list
 			} else {
 
-				// Add sender to recepient list
+				// Add sender to recipient list
 				usrSet.add(user.getUsername());
 
 				// System.out.println("ServerCommandHandler.run()" + usrSet.toString());

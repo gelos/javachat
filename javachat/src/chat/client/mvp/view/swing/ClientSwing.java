@@ -4,7 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import chat.client.mvp.presenter.ClientPresenter;
-
+import chat.client.mvp.presenter.Presenter;
+import chat.client.mvp.presenter.PresenterFabric;
 import javax.swing.SwingUtilities;
 
 // TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
@@ -32,7 +33,7 @@ public class ClientSwing {
         try {
           
           // Initialize View and Presenter
-          final ClientPresenter presenter = new ClientPresenter();
+          final Presenter presenter = PresenterFabric.createPresenter();
           final ClientViewSwing mainWindow = new ClientViewSwing();
           presenter.setView(mainWindow);
           mainWindow.setPresenter(presenter);

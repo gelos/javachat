@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * The Class with implemented basic thread methods.
  */
-public class WorkerThread implements Runnable {
+public abstract class WorkerThread implements Runnable {
 
   /** The thread. */
   private Thread thread;
@@ -62,14 +62,9 @@ public class WorkerThread implements Runnable {
   
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see java.lang.Runnable#run()
-   */
-  @Override
+  /*@Override
   public void run() {
-
-  }
+    
+  }*/
 
 }

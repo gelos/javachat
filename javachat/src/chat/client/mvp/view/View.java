@@ -1,4 +1,6 @@
-package chat.base;
+package chat.client.mvp.view;
+
+import chat.client.mvp.presenter.Presenter;
 
 /**
  * MVP passive View Interface.

@@ -1,4 +1,6 @@
-package chat.base;
+package chat.client.mvp.presenter;
+
+import chat.client.mvp.view.View;
 
 /**
  * The Interface Presenter.
@@ -30,7 +32,7 @@ public interface Presenter {
    * @param message the message
    * @param userList the user list
    */
-  void sendPrivateMessage(String message, String userList);
+  //void sendPrivateMessage(String message, String userList);
 
   /**
    * Sets the view.
@@ -45,4 +47,6 @@ public interface Presenter {
    * @return the view
    */
   View getView();
+
+  void onViewStart();
 }

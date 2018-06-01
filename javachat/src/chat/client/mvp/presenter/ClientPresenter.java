@@ -19,9 +19,8 @@ import org.slf4j.MDC;
 import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
-import chat.base.Presenter;
-import chat.base.View;
 import chat.base.WorkerThread;
+import chat.client.mvp.view.View;
 import chat.server.Server;
 
 /**
@@ -31,15 +30,16 @@ public class ClientPresenter implements Presenter {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
+	protected static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
 	// private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
 	private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
-	private final static int MAX_TIMEOUT_SESSION_OPEN_MS = 100;
+	protected final static int MAX_TIMEOUT_SESSION_OPEN_MS = 100;
 
-	private View view;
 
-	private Socket serverSocket = null;
+  private View view;
+
+	public Socket clientSocket = null;
 
 	private ProcessCommandThread processCommandThread = null;
 
@@ -88,8 +88,8 @@ public class ClientPresenter implements Presenter {
 
 		try {
 
-			serverSocket = new Socket(Server.SERVER_IP, Server.SERVER_PORT);
-			outputStream = new ObjectOutputStream(new BufferedOutputStream(serverSocket.getOutputStream()));
+			clientSocket = new Socket(Server.SERVER_IP, Server.SERVER_PORT);
+			outputStream = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
 
 		} catch (UnknownHostException uhe) {
 			logger.error("openConnection(String)", uhe); //$NON-NLS-1$
@@ -106,7 +106,7 @@ public class ClientPresenter implements Presenter {
 			// loggerDebugMDC.debug(enterCommand.toString());
 			new Command(CMDENTER, "", username).send(outputStream);
 
-			inputStream = new ObjectInputStream(new BufferedInputStream(serverSocket.getInputStream()));
+			inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
 
 			processCommandThread = new ProcessCommandThread();
 			processCommandThread.start(Constants.THREAD_NAME_CLIENT);
@@ -156,7 +156,7 @@ public class ClientPresenter implements Presenter {
 	/**
 	 * Close connection.
 	 *
-	 * @see chat.client.mvp.view.swing.Presenter#closeConnection()
+	 * @see chat.client.mvp.chat.client.mvp.presenter.Presenter#closeConnection()
 	 */
 	@Override
 	public void closeConnection() {
@@ -175,12 +175,12 @@ public class ClientPresenter implements Presenter {
 			processCommandThread.stop();
 		}
 
-		if (serverSocket != null && serverSocket.isConnected()) {
+		if (clientSocket != null && clientSocket.isConnected()) {
 			// send to server exit command
 			new Command(CommandName.CMDEXIT, "").send(outputStream);
 
 			try {
-				serverSocket.close();
+				clientSocket.close();
 			} catch (IOException e) {
 				logger.error("closeConnection()", e); //$NON-NLS-1$
 			}
@@ -199,7 +199,7 @@ public class ClientPresenter implements Presenter {
 	 *
 	 * @param commandString
 	 *            the command string
-	 * @see chat.client.mvp.view.swing.Presenter#sendCommand(java.lang.String)
+	 * @see chat.client.mvp.chat.client.mvp.presenter.Presenter#sendCommand(java.lang.String)
 	 */
 	@Override
 	public void sendCommand(String commandString) {
@@ -241,14 +241,14 @@ public class ClientPresenter implements Presenter {
 	 *            the message
 	 * @param userList
 	 *            the user list
-	 * @see chat.client.mvp.view.swing.Presenter#sendPrivateMessage(java.lang.String,
+	 * @see chat.client.mvp.chat.client.mvp.presenter.Presenter#sendPrivateMessage(java.lang.String,
 	 *      java.lang.String)
 	 */
-	@Override
+	/*@Override
 	public void sendPrivateMessage(String message, String userList) {
 		new Command(CommandName.CMDPRVMSG, message, userList).send(outputStream);
 		getView().onSendMessage();
-	}
+	}*/
 
 	/**
 	 * The Class ServerCommandHandler.

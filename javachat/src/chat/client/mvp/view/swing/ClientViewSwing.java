@@ -21,8 +21,8 @@ import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
-import chat.base.Presenter;
-import chat.base.View;
+import chat.client.mvp.presenter.Presenter;
+import chat.client.mvp.view.View;
 
 /**
  * The Class ClientViewSwing. Realize swing GUI view.

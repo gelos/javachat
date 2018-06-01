@@ -19,9 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import chat.base.Constants;
-import chat.base.Presenter;
-import chat.base.View;
 import chat.client.mvp.presenter.ClientPresenter;
+import chat.client.mvp.presenter.Presenter;
+import chat.client.mvp.presenter.PresenterFabric;
+import chat.client.mvp.view.View;
 import chat.server.Server;
 import mockit.Capturing;
 import mockit.Verifications;
@@ -52,8 +53,8 @@ class SendPrivateMessageIntegrationTest {
 	private Presenter[] chatClientPresenterStorage = new Presenter[MAX_NUMBERS_OF_USERS];
 
 	// The factory method to create presenter and view Swing
-	private ClientPresenter createChatClientFactory(View view) {
-		ClientPresenter presenter = new ClientPresenter();
+	private Presenter createChatClientFactory(View view) {
+		Presenter presenter = PresenterFabric.createPresenter();
 		view.setPresenter(presenter);
 		presenter.setView(view);
 		return presenter;

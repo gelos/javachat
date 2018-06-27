@@ -16,7 +16,7 @@ public class ClientPresenterNew implements Presenter {
   /**
    * Logger for this class
    */
-  protected static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ClientPresenterNew.class);
   // private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
   private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 

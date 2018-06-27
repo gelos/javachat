@@ -3,7 +3,7 @@
   realizations="true" associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
   <interface id="1" language="java" name="chat.client.mvp.view.View" project="javachat" 
     file="/javachat/src/chat/client/mvp/view/View.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="268" width="275" x="627" y="1233"/>    
+    <position height="268" width="275" x="229" y="1285"/>    
     <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
@@ -12,7 +12,7 @@
   </interface>  
   <interface id="2" language="java" name="chat.client.mvp.presenter.Presenter" project="javachat" 
     file="/javachat/src/chat/client/mvp/presenter/Presenter.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="160" width="187" x="419" y="925"/>    
+    <position height="160" width="187" x="123" y="977"/>    
     <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
@@ -21,333 +21,243 @@
   </interface>  
   <class id="3" language="java" name="chat.client.mvp.view.swing.ClientSwing" project="javachat" 
     file="/javachat/src/chat/client/mvp/view/swing/ClientSwing.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="88" width="153" x="382" y="291"/>    
+    <position height="88" width="153" x="291" y="236"/>    
     <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="4" language="java" name="chat.client.mvp.presenter.ClientPresenter" project="javachat" 
-    file="/javachat/src/chat/client/mvp/presenter/ClientPresenter.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="196" width="187" x="688" y="291"/>    
-    <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="false" private="false" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="5" language="java" name="chat.client.mvp.presenter.ClientPresenter.ProcessCommandThread" project="javachat" 
-    file="/javachat/src/chat/client/mvp/presenter/ClientPresenter.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="88" width="203" x="688" y="527"/>    
-    <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="false" private="false" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
-  <class id="6" language="java" name="chat.base.WorkerThread" project="javachat" 
+  <class id="4" language="java" name="chat.base.WorkerThread" project="javachat" 
     file="/javachat/src/chat/base/WorkerThread.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="159" width="140" x="896" y="37"/>    
+    <position height="159" width="140" x="976" y="37"/>    
     <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="chat.base.Command" project="javachat" file="/javachat/src/chat/base/Command.java" 
+  <class id="5" language="java" name="chat.base.Command" project="javachat" file="/javachat/src/chat/base/Command.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="268" width="262" x="973" y="925"/>    
+    <position height="268" width="262" x="695" y="977"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <enumeration id="8" language="java" name="chat.base.CommandName" project="javachat" 
+  <enumeration id="6" language="java" name="chat.base.CommandName" project="javachat" 
     file="/javachat/src/chat/base/CommandName.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="322" width="213" x="942" y="1233"/>    
+    <position height="322" width="213" x="646" y="1285"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </enumeration>  
-  <class id="9" language="java" name="chat.base.User" project="javachat" file="/javachat/src/chat/base/User.java" 
+  <class id="7" language="java" name="chat.base.User" project="javachat" file="/javachat/src/chat/base/User.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="106" width="149" x="1324" y="925"/>    
+    <position height="106" width="149" x="997" y="977"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="10" language="java" name="chat.client.mvp.view.swing.ClientViewSwing" project="javachat" 
+  <class id="8" language="java" name="chat.client.mvp.view.swing.ClientViewSwing" project="javachat" 
     file="/javachat/src/chat/client/mvp/view/swing/ClientViewSwing.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="358" width="275" x="42" y="527"/>    
+    <position height="358" width="275" x="331" y="579"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="11" language="java" name="chat.client.mvp.presenter.ClientCommandHandler" project="javachat" 
+  <class id="9" language="java" name="chat.client.mvp.presenter.ClientCommandHandler" project="javachat" 
     file="/javachat/src/chat/client/mvp/presenter/ClientCommandHandler.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="142" width="309" x="973" y="527"/>    
+    <position height="142" width="309" x="646" y="579"/>    
     <display autosize="true" stereotype="false" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="12" language="java" name="chat.client.mvp.presenter.ClientPresenterNew" project="javachat" 
+  <class id="10" language="java" name="chat.client.mvp.presenter.ClientPresenterNew" project="javachat" 
     file="/javachat/src/chat/client/mvp/presenter/ClientPresenterNew.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="214" width="187" x="606" y="37"/>    
+    <position height="214" width="187" x="44" y="236"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="13" language="java" name="chat.base.CommandHandler" project="javachat" 
+  <class id="11" language="java" name="chat.base.CommandHandler" project="javachat" 
     file="/javachat/src/chat/base/CommandHandler.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="195" width="232" x="1303" y="291"/>    
+    <position height="303" width="275" x="976" y="236"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="14" language="java" name="chat.client.mvp.presenter.PresenterFabric" project="javachat" 
+  <class id="12" language="java" name="chat.client.mvp.presenter.PresenterFabric" project="javachat" 
     file="/javachat/src/chat/client/mvp/presenter/PresenterFabric.java" binary="false" corner="BOTTOM_RIGHT">    
-    <position height="106" width="186" x="357" y="527"/>    
+    <position height="106" width="186" x="84" y="579"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="false" private="false" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <realization id="15">    
-    <bendpoint x="344" y="925"/>    
+  <association id="13">    
+    <bendpoint x="32" y="579"/>    
+    <bendpoint x="32" y="977"/>    
+    <end type="SOURCE" refId="10" navigable="false">      
+      <attribute id="14" name="view">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="15" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="1" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization id="16">    
+    <bendpoint x="53" y="579"/>    
     <end type="SOURCE" refId="10"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <association id="17">    
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="18" name="user">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="19" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="7" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization id="20">    
+    <bendpoint x="340" y="977"/>    
+    <end type="SOURCE" refId="8"/>    
     <end type="TARGET" refId="1"/>  
   </realization>  
-  <association id="16">    
-    <bendpoint x="1333" y="527"/>    
-    <end type="SOURCE" refId="13" navigable="false">      
-      <attribute id="17" name="user">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="18" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="9" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <generalization id="19">    
-    <end type="SOURCE" refId="11"/>    
-    <end type="TARGET" refId="13"/>  
-  </generalization>  
-  <dependency id="20">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="10"/>  
-  </dependency>  
   <dependency id="21">    
-    <bendpoint x="678" y="925"/>    
-    <end type="SOURCE" refId="5"/>    
-    <end type="TARGET" refId="1"/>  
-  </dependency>  
-  <dependency id="22">    
-    <bendpoint x="1312" y="527"/>    
-    <end type="SOURCE" refId="13"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="23">    
-    <end type="SOURCE" refId="1"/>    
+    <bendpoint x="300" y="579"/>    
+    <end type="SOURCE" refId="3"/>    
     <end type="TARGET" refId="2"/>  
   </dependency>  
-  <association id="24">    
-    <end type="SOURCE" refId="7" navigable="false">      
-      <attribute id="25" name="commandName">        
+  <association id="22">    
+    <bendpoint x="1006" y="579"/>    
+    <end type="SOURCE" refId="11" navigable="false">      
+      <attribute id="23" name="user">        
         <position height="0" width="0" x="0" y="0"/>      
       </attribute>      
-      <multiplicity id="26" minimum="0" maximum="1">        
+      <multiplicity id="24" minimum="0" maximum="1">        
         <position height="0" width="0" x="0" y="0"/>      
       </multiplicity>    
     </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
+    <end type="TARGET" refId="7" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <generalization id="27">    
-    <end type="SOURCE" refId="13"/>    
-    <end type="TARGET" refId="6"/>  
+  <generalization id="25">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="11"/>  
   </generalization>  
+  <dependency id="26">    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="5"/>  
+  </dependency>  
+  <dependency id="27">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="8"/>  
+  </dependency>  
   <dependency id="28">    
-    <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="1"/>  
+    <bendpoint x="985" y="579"/>    
+    <end type="SOURCE" refId="11"/>    
+    <end type="TARGET" refId="5"/>  
   </dependency>  
   <association id="29">    
-    <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="30" name="processCommandThread">        
+    <end type="SOURCE" refId="9" navigable="false">      
+      <attribute id="30" name="presenter">        
         <position height="0" width="0" x="0" y="0"/>      
       </attribute>      
       <multiplicity id="31" minimum="0" maximum="1">        
         <position height="0" width="0" x="0" y="0"/>      
       </multiplicity>    
     </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
+    <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="32">    
-    <bendpoint x="615" y="291"/>    
-    <bendpoint x="615" y="527"/>    
-    <bendpoint x="636" y="925"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="33" name="view">        
+  <dependency id="32">    
+    <bendpoint x="655" y="977"/>    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="6"/>  
+  </dependency>  
+  <dependency id="33">    
+    <end type="SOURCE" refId="1"/>    
+    <end type="TARGET" refId="2"/>  
+  </dependency>  
+  <association id="34">    
+    <end type="SOURCE" refId="8" navigable="false">      
+      <attribute id="35" name="presenter">        
         <position height="0" width="0" x="0" y="0"/>      
       </attribute>      
-      <multiplicity id="34" minimum="0" maximum="1">        
+      <multiplicity id="36" minimum="0" maximum="1">        
         <position height="0" width="0" x="0" y="0"/>      
       </multiplicity>    
     </end>    
-    <end type="TARGET" refId="1" navigable="true"/>    
+    <end type="TARGET" refId="2" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <realization id="35">    
-    <bendpoint x="594" y="291"/>    
-    <bendpoint x="594" y="527"/>    
+  <association id="37">    
+    <end type="SOURCE" refId="5" navigable="false">      
+      <attribute id="38" name="commandName">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="39" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <dependency id="40">    
+    <bendpoint x="447" y="977"/>    
+    <end type="SOURCE" refId="9"/>    
+    <end type="TARGET" refId="1"/>  
+  </dependency>  
+  <dependency id="41">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="12"/>  
+  </dependency>  
+  <generalization id="42">    
+    <end type="SOURCE" refId="11"/>    
+    <end type="TARGET" refId="4"/>  
+  </generalization>  
+  <dependency id="43">    
     <end type="SOURCE" refId="12"/>    
     <end type="TARGET" refId="2"/>  
-  </realization>  
-  <association id="36">    
-    <bendpoint x="657" y="527"/>    
-    <bendpoint x="657" y="925"/>    
-    <end type="SOURCE" refId="4" navigable="false">      
-      <attribute id="37" name="view">        
+  </dependency>  
+  <association id="44">    
+    <end type="SOURCE" refId="10" navigable="false">      
+      <attribute id="45" name="clientCommandHandler">        
         <position height="0" width="0" x="0" y="0"/>      
       </attribute>      
-      <multiplicity id="38" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="1" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="39">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="40" name="user">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="41" minimum="0" maximum="1">        
+      <multiplicity id="46" minimum="0" maximum="1">        
         <position height="0" width="0" x="0" y="0"/>      
       </multiplicity>    
     </end>    
     <end type="TARGET" refId="9" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <dependency id="42">    
-    <bendpoint x="573" y="527"/>    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="2"/>  
-  </dependency>  
-  <dependency id="43">    
-    <end type="SOURCE" refId="5"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="44">    
-    <end type="SOURCE" refId="11"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="45">    
-    <bendpoint x="942" y="527"/>    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="7"/>  
-  </dependency>  
-  <dependency id="46">    
-    <bendpoint x="824" y="925"/>    
-    <end type="SOURCE" refId="5"/>    
-    <end type="TARGET" refId="8"/>  
-  </dependency>  
-  <association id="47">    
-    <end type="SOURCE" refId="11" navigable="false">      
-      <attribute id="48" name="presenter">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="49" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <nesting id="50">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="5"/>  
-  </nesting>  
-  <dependency id="51">    
-    <bendpoint x="1265" y="925"/>    
-    <end type="SOURCE" refId="11"/>    
-    <end type="TARGET" refId="8"/>  
-  </dependency>  
-  <dependency id="52">    
-    <end type="SOURCE" refId="12"/>    
-    <end type="TARGET" refId="4"/>  
-  </dependency>  
-  <association id="53">    
-    <end type="SOURCE" refId="10" navigable="false">      
-      <attribute id="54" name="presenter">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="55" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="2" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <dependency id="56">    
-    <bendpoint x="942" y="925"/>    
-    <end type="SOURCE" refId="11"/>    
+  <dependency id="47">    
+    <end type="SOURCE" refId="2"/>    
     <end type="TARGET" refId="1"/>  
   </dependency>  
-  <dependency id="57">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="14"/>  
-  </dependency>  
-  <dependency id="58">    
-    <bendpoint x="921" y="527"/>    
-    <bendpoint x="921" y="925"/>    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="8"/>  
-  </dependency>  
-  <dependency id="59">    
-    <end type="SOURCE" refId="14"/>    
-    <end type="TARGET" refId="2"/>  
-  </dependency>  
-  <association id="60">    
-    <bendpoint x="926" y="291"/>    
-    <end type="SOURCE" refId="12" navigable="false">      
-      <attribute id="61" name="clientCommandHandler">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="62" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="11" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <realization id="63">    
-    <bendpoint x="636" y="527"/>    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="2"/>  
-  </realization>  
-  <generalization id="64">    
-    <bendpoint x="905" y="291"/>    
-    <end type="SOURCE" refId="5"/>    
-    <end type="TARGET" refId="6"/>  
-  </generalization>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
     sort-features="false" accessors="true" visibility="true">    
     <attributes public="true" package="true" protected="true" private="true" static="true"/>    

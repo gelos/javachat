@@ -14,13 +14,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import chat.base.Constants;
-import chat.client.mvp.presenter.ClientPresenter;
 import chat.client.mvp.presenter.Presenter;
 import chat.client.mvp.presenter.PresenterFabric;
-import chat.client.mvp.view.View;
-import chat.client.mvp.view.swing.ClientViewSwing;
 import chat.server.Server;
-import mockit.Capturing;
 import mockit.Expectations;
 import mockit.Verifications;
 

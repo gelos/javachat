@@ -1,8 +1,5 @@
 package chat.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static chat.base.CommandName.CMDDLM;
 import static chat.base.CommandName.CMDPRVMSG;
 import static chat.base.CommandName.CMDUDLM;
@@ -17,9 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-
 import chat.base.Constants;
-import chat.client.mvp.presenter.ClientPresenter;
 import chat.client.mvp.presenter.Presenter;
 import chat.client.mvp.presenter.PresenterFabric;
 import chat.client.mvp.view.View;

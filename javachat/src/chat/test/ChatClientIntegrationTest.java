@@ -28,7 +28,6 @@ class ChatClientIntegrationTest {
 
   public static final int MAX_TEST_REPEAT = 1;
   private static final long LATCH_OPERATION_TIMEOUT_SEC = 3L;
-  private static final int OPERATION_DELAY = 100;
   private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE =
       "The client did not receive a message ";
   private static final String CHAT_MSG_1 = "hello";
@@ -75,8 +74,8 @@ class ChatClientIntegrationTest {
 
     boolean isCountDownLatchZero = false;
 
-    // Partial mocking ClientViewSwingTest instance
-    ClientViewSwingTest clientView = new ClientViewSwingTest();
+    // Partial mocking ClientViewSwingWithLatch instance
+    ClientViewSwingWithLatch clientView = new ClientViewSwingWithLatch();
     CountDownLatch latch = new CountDownLatch(1);
     clientView.setLatch(latch);
 
@@ -118,8 +117,6 @@ class ChatClientIntegrationTest {
 
       }
     };
-
-
 
     latch = new CountDownLatch(1);
     clientView.setLatch(latch);
@@ -187,9 +184,9 @@ class ChatClientIntegrationTest {
 
     boolean isCountDownLatchZero = false;
 
-    // Partial mocking ClientViewSwingTest class and instance
-    ClientViewSwingTest clientView1 = new ClientViewSwingTest();
-    ClientViewSwingTest clientView2 = new ClientViewSwingTest();
+    // Partial mocking ClientViewSwingWithLatch class and instance
+    ClientViewSwingWithLatch clientView1 = new ClientViewSwingWithLatch();
+    ClientViewSwingWithLatch clientView2 = new ClientViewSwingWithLatch();
 
     // Indicate which methods are being mocked on concrete instance.
     new Expectations(clientView1) {
@@ -435,9 +432,9 @@ class ChatClientIntegrationTest {
 
     boolean isCountDownLatchZero = false;
 
-    // Partial mocking ClientViewSwingTest class and instance
-    ClientViewSwingTest clientView1 = new ClientViewSwingTest();
-    ClientViewSwingTest clientView2 = new ClientViewSwingTest();
+    // Partial mocking ClientViewSwingWithLatch class and instance
+    ClientViewSwingWithLatch clientView1 = new ClientViewSwingWithLatch();
+    ClientViewSwingWithLatch clientView2 = new ClientViewSwingWithLatch();
 
     // Indicate which methods are being mocked on concrete instance.
     new Expectations(clientView1) {

@@ -9,6 +9,7 @@ import static chat.base.Constants.MSG_EXIT_USR;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import org.slf4j.MDC;
 import chat.base.Command;
 import chat.base.CommandHandler;
@@ -58,30 +59,23 @@ public class ClientCommandHandler extends CommandHandler {
        * }
        */
 
-    } catch (IOException | ClassNotFoundException e) {
+    } catch (SocketException e) {
+      // TODO: handle exception
+      System.out.println("normal close");
+    } 
+    catch (IOException | ClassNotFoundException e) {
       // TODO Auto-generated catch block
       System.out.println("ClientCommandHandler.run() catch " + e.getMessage());
-      System.out.println("ClientCommandHandler.run() clientSocket.isClosed() " + clientSocket.isClosed());
+      //System.out
+      //    .println("ClientCommandHandler.run() clientSocket.isClosed() " + clientSocket.isClosed());
       e.printStackTrace();
     } finally {
       MDC.clear();
       user = null;
 
-      // TODO Auto-generated method stub
-      if (clientSocket != null && clientSocket.isConnected()) {
-        // send to server exit command
-        System.out.println("ClientCommandHandler.run() send Exit cmd");
-        new Command(CommandName.CMDEXIT, "").send(outputStream);
-
-        try {
-          closeClientSocket();
-        } catch (IOException e) {
-          logger.error("closeConnection()", e); //$NON-NLS-1$
-        }
-      }
     }
 
-    System.out.println("exit run()");
+    //System.out.println("exit run()");
 
   }
 
@@ -105,7 +99,7 @@ public class ClientCommandHandler extends CommandHandler {
 
       case CMDOK:
         if (Command.getPayload().equals(CommandName.CMDENTER.toString())) {
-          isChatSessionOpened.set(true);
+          isChatSessionOpenedFlag.set(true);
         }
         break;
 
@@ -132,19 +126,28 @@ public class ClientCommandHandler extends CommandHandler {
   @Override
   public void stop() {
 
-    // First of all, we set the flag isRunning to false and close input stream, this will allow us
-    // to exit the while loop in the run method.
+    if (clientSocket != null && clientSocket.isConnected()) {
+      // send to server exit command
+      System.out.println("ClientCommandHandler.run() send Exit cmd");
+      new Command(CommandName.CMDEXIT, "").send(outputStream);
+    }
+
+    // Set the flag isRunning to false and close client socket, this will allow us to exit the while
+    // loop in the run method.
     super.stop();
 
-    System.out.println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
-    
+    System.out
+        .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
+
     try {
-      closeInputStream();
+      // closeInputStream();
+      closeClientSocket();
     } catch (IOException e) {
       logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
     }
 
-    System.out.println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
+    //System.out
+    //    .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
     System.out.println("ClientCommandHandler.stop() - stop thread");
 
   }

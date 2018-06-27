@@ -45,7 +45,7 @@
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOG_PATH}/logfile.log</file>
 		<rollingPolicy  class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-		<fileNamePattern>${LOG_ARCHIVE}/logfile.%d{yyyy-MM-dd}.log</fileNamePattern>
+		<fileNamePattern>${LOG_ARCHIVE}/logfile.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
 			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
 			<maxFileSize>5MB</maxFileSize>
 			</timeBasedFileNamingAndTriggeringPolicy>

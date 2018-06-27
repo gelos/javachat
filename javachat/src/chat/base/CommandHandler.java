@@ -16,7 +16,7 @@ public abstract class CommandHandler extends WorkerThread {
   /**
    * Logger for this class
    */
-  protected static final Logger logger = LoggerFactory.getLogger(ServerCommandHandler.class);
+  protected static final Logger logger = LoggerFactory.getLogger(CommandHandler.class);
   protected static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
   /** The client socket. */
@@ -28,10 +28,10 @@ public abstract class CommandHandler extends WorkerThread {
   /** The chat user. */
   protected User user = null;
   /** The is session opened flag. */
-  protected AtomicBoolean isChatSessionOpened;
+  protected AtomicBoolean isChatSessionOpenedFlag;
 
   public final Boolean getIsChatSessionOpened() {
-    return isChatSessionOpened.get();
+    return isChatSessionOpenedFlag.get();
   }
 
   public CommandHandler(Socket clientSocket) {
@@ -39,7 +39,7 @@ public abstract class CommandHandler extends WorkerThread {
     synchronized (clientSocket) {
       this.clientSocket = clientSocket;
     }
-    this.isChatSessionOpened = new AtomicBoolean(false);
+    this.isChatSessionOpenedFlag = new AtomicBoolean(false);
   }
 
   protected synchronized void openOutputStream() throws IOException {

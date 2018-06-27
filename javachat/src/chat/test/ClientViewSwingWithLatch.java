@@ -4,7 +4,7 @@ import java.util.concurrent.CountDownLatch;
 
 import chat.client.mvp.view.swing.ClientViewSwing;
 
-public class ClientViewSwingTest extends ClientViewSwing {
+public class ClientViewSwingWithLatch extends ClientViewSwing {
 
 	/**
 	 * 
@@ -24,7 +24,7 @@ public class ClientViewSwingTest extends ClientViewSwing {
 	
 	@Override
 	public void onSendMessage() {
-		System.out.println("ClientViewSwingTest.onSendMessage() " + this.hashCode() + " " + this.getClass().getSimpleName());
+		System.out.println("ClientViewSwingWithLatch.onSendMessage() " + this.hashCode() + " " + this.getClass().getSimpleName());
 	}
 	
 	@Override

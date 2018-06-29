@@ -81,14 +81,15 @@ public class ServerCommandHandler extends CommandHandler {
       while (isRunning()) {
 
         Command Command = (Command) inputStream.readObject();
-        processCommand(Command);
+        if (isRunning()) processCommand(Command);
 
       }
 
-    } catch (ClassNotFoundException | IOException e) {
-      logger.error("run()", e); //$NON-NLS-1$
+    //} catch (ClassNotFoundException | IOException e) {
+    } catch (Exception e) {
+      logger.error("ServerCommandHandler.run()", e); //$NON-NLS-1$
 
-      CommandHandler.logger.error("run()", e); //$NON-NLS-1$
+      //CommandHandler.logger.error("run()", e); //$NON-NLS-1$
 
     } finally {
 
@@ -113,20 +114,28 @@ public class ServerCommandHandler extends CommandHandler {
 
       MDC.clear();
       user = null;
-      try {
+      /*try {
         closeClientSocket();
       } catch (IOException e) {
         logger.error("run()", e); //$NON-NLS-1$
-      }
+      }*/
     }
   }
 
   @Override
   public void stop() {
+    
+    if (clientSocket != null && clientSocket.isConnected()) {
+      // send to server exit command
+      System.out.println("ClientCommandHandler.run() send Exit cmd");
+      new Command(CommandName.CMDEXIT, "").send(outputStream);
+    }
+    
     super.stop();
     // First close the input stream to release the while circle in run() method
     try {
-      closeInputStream();
+      //closeInputStream();
+      closeClientSocket();
     } catch (IOException e) {
       logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
     }
@@ -222,7 +231,7 @@ public class ServerCommandHandler extends CommandHandler {
           isChatSessionOpenedFlag.set(true); // set flag that current session is opened
 
           // create new user
-          user = new User(userName);
+          this.user = new User(userName);
 
           // send ok enter command to confirm session opening
           new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);

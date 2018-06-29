@@ -6,6 +6,7 @@ import static chat.base.CommandName.CMDUSRLST;
 import static chat.base.Constants.MSG_ACCPT_CLIENT;
 import static chat.base.Constants.MSG_CLOSE_CONNECTION;
 import static chat.base.Constants.MSG_EXIT_USR;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -19,7 +20,6 @@ import chat.base.User;
 
 public class ClientCommandHandler extends CommandHandler {
 
-  private User user;
   private Presenter presenter;
 
   public ClientCommandHandler(Socket clientSocket, String username, Presenter presenter) {
@@ -47,8 +47,11 @@ public class ClientCommandHandler extends CommandHandler {
       while (isRunning()) {
 
         Command command = (Command) inputStream.readObject();
-        loggerDebugMDC.debug(command.toString());
-        processCommand(command);
+        if (isRunning()) {
+          loggerDebugMDC.debug(command.toString());
+          processCommand(command);
+        }
+
       }
 
       /*
@@ -59,23 +62,26 @@ public class ClientCommandHandler extends CommandHandler {
        * }
        */
 
+      // } catch (SocketException | EOFException e) {
     } catch (SocketException e) {
       // TODO: handle exception
       System.out.println("normal close");
-    } 
+    }
+    catch (EOFException e) {
+      // TODO: handle exception
+      System.out.println("server close connection ???");
+    }
     catch (IOException | ClassNotFoundException e) {
       // TODO Auto-generated catch block
       System.out.println("ClientCommandHandler.run() catch " + e.getMessage());
-      //System.out
-      //    .println("ClientCommandHandler.run() clientSocket.isClosed() " + clientSocket.isClosed());
+      // System.out
+      // .println("ClientCommandHandler.run() clientSocket.isClosed() " + clientSocket.isClosed());
       e.printStackTrace();
     } finally {
       MDC.clear();
       user = null;
 
     }
-
-    //System.out.println("exit run()");
 
   }
 
@@ -136,9 +142,6 @@ public class ClientCommandHandler extends CommandHandler {
     // loop in the run method.
     super.stop();
 
-    System.out
-        .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
-
     try {
       // closeInputStream();
       closeClientSocket();
@@ -146,8 +149,8 @@ public class ClientCommandHandler extends CommandHandler {
       logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
     }
 
-    //System.out
-    //    .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
+    // System.out
+    // .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
     System.out.println("ClientCommandHandler.stop() - stop thread");
 
   }

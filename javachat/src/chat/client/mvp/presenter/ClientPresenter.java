@@ -11,12 +11,12 @@ import chat.base.Constants;
 import chat.client.mvp.view.View;
 import chat.server.Server;
 
-public class ClientPresenterNew implements Presenter {
+public class ClientPresenter implements Presenter {
 
   /**
    * Logger for this class
    */
-  protected static final Logger logger = LoggerFactory.getLogger(ClientPresenterNew.class);
+  protected static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
   // private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
   private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
@@ -29,10 +29,10 @@ public class ClientPresenterNew implements Presenter {
   public Socket clientSocket = null;
 
 
-  public ClientPresenterNew() {
+/*  public ClientPresenter() {
     super();
   }
-
+*/
   @Override
   public void openConnection(String username) {
     MDC.put("username", username);

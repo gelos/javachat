@@ -50,14 +50,14 @@ public abstract class CommandHandler extends WorkerThread {
     inputStream = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
   }
 
-  protected synchronized void closeInputStream() throws IOException {
+/*  protected synchronized void closeInputStream() throws IOException {
     if (clientSocket != null && inputStream != null) {
       //inputStream.close();
       // this allow not close socket when we are close input stream
       clientSocket.shutdownInput();
       inputStream = null;
     }
-  }
+  }*/
 
   protected synchronized void closeClientSocket() throws IOException {
 

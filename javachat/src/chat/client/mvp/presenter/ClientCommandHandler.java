@@ -12,6 +12,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import org.slf4j.MDC;
+import chat.base.ChatSession;
 import chat.base.Command;
 import chat.base.CommandHandler;
 import chat.base.CommandName;
@@ -85,6 +86,9 @@ public class ClientCommandHandler extends CommandHandler {
 
   }
 
+  /* (non-Javadoc)
+   * @see chat.client.mvp.presenter.BusinessLogic#processCommand(chat.base.Command)
+   */
   @Override
   public void processCommand(Command Command) {
     switch (Command.getCommandName()) {
@@ -142,16 +146,9 @@ public class ClientCommandHandler extends CommandHandler {
     // loop in the run method.
     super.stop();
 
-    try {
-      // closeInputStream();
-      closeClientSocket();
-    } catch (IOException e) {
-      logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
-    }
-
     // System.out
     // .println("ClientCommandHandler.stop() clientSocket.isClosed() " + clientSocket.isClosed());
-    System.out.println("ClientCommandHandler.stop() - stop thread");
+   // System.out.println("ClientCommandHandler.stop() - stop thread");
 
   }
 

@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import chat.base.ChatSession;
 import chat.base.Command;
 import chat.base.CommandHandler;
 import chat.base.Constants;
@@ -46,6 +47,7 @@ public class Server {
   /** The client session handlers thread-safe storage. */
   // private CopyOnWriteArrayList<ServerCommandHandler> serverCommandHandlers;
   private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
+  //private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
 
   /** The chat client communication thread. */
   private ProcessClientConnectionsThread processClientConnectionsThread;
@@ -84,6 +86,7 @@ public class Server {
 
     // Initialize client handlers storage
     serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
+    //serverCommandHandlers = new ConcurrentHashMap<String, ChatSession>();
 
     // Start thread for create clients handler
     processClientConnectionsThread = new ProcessClientConnectionsThread(serverPort);
@@ -125,6 +128,7 @@ public class Server {
 
     if (serverCommandHandlers != null) {
 
+      //for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
       for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
 
         serverCommandHandler.stop();
@@ -225,6 +229,8 @@ public class Server {
     /** The server socket. */
     private ServerSocket serverSocket;
 
+    private ServerChatSession serverChatSession;
+
     public ProcessClientConnectionsThread(int port) {
       this.serverSocketPort = port;
     }
@@ -251,7 +257,9 @@ public class Server {
 
             clientSocket = serverSocket.accept();
 
+            System.out.println("create new client socket on  server");
             new ServerCommandHandler(clientSocket, serverCommandHandlers).start(THREAD_NAME_SRV);
+            //serverChatSession = new ServerChatSession(clientSocket, serverCommandHandlers);
           }
         }
 

@@ -24,7 +24,7 @@ public abstract class CommandHandler extends WorkerThread {
   /** The input stream. */
   protected ObjectInputStream inputStream = null;
   /** The output stream. */
-  protected ObjectOutputStream outputStream = null;
+  public ObjectOutputStream outputStream = null;
   /** The chat user. */
   protected User user = null;
   /** The is session opened flag. */
@@ -65,6 +65,18 @@ public abstract class CommandHandler extends WorkerThread {
       clientSocket.close();
       clientSocket = null;
     }
+  }
+  
+  @Override
+  public void stop() {
+    super.stop();
+    
+    try {
+      closeClientSocket();
+    } catch (IOException e) {
+      logger.error(getClass().getSimpleName() +  ".stop()", e); //$NON-NLS-1$
+    }
+    
   }
 
   public abstract void processCommand(Command Command);

@@ -68,9 +68,13 @@ public class ServerCommandHandler extends CommandHandler {
 
     try {
 
+      System.out.println("pre server open input stream " + clientSocket.isConnected());
+      
       openInputStream();
+      System.out.println("server open input stream");
       openOutputStream();
-
+      System.out.println("server open output stream");
+      
       String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
           .toString().replace("/", "");
       CommandHandler.logger.info("run() - {}", MSG_ACCPT_CLIENT + ip); //$NON-NLS-1$
@@ -133,12 +137,12 @@ public class ServerCommandHandler extends CommandHandler {
     
     super.stop();
     // First close the input stream to release the while circle in run() method
-    try {
+    /*try {
       //closeInputStream();
       closeClientSocket();
     } catch (IOException e) {
       logger.error("ServerCommandHandler.stop()", e); //$NON-NLS-1$
-    }
+    }*/
   }
 
   /**
@@ -236,7 +240,7 @@ public class ServerCommandHandler extends CommandHandler {
           // send ok enter command to confirm session opening
           new Command(CMDOK, "", CMDENTER.toString()).send(outputStream);
 
-          // TODO what if isChatSessionOpenedFlag set to true but we cant send ok enter command to
+          // TODO what if isSessionOpenedFlag set to true but we cant send ok enter command to
           // client check with unit tests
           // send to all users usrlst command
           sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));

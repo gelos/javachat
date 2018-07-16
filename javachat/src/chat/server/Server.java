@@ -46,8 +46,8 @@ public class Server {
 
   /** The client session handlers thread-safe storage. */
   // private CopyOnWriteArrayList<ServerCommandHandler> serverCommandHandlers;
-  private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
-  //private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
+  //private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
+  private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
 
   /** The chat client communication thread. */
   private ProcessClientConnectionsThread processClientConnectionsThread;
@@ -85,8 +85,8 @@ public class Server {
     System.out.println(Constants.MSG_SERVER_STARTING);
 
     // Initialize client handlers storage
-    serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
-    //serverCommandHandlers = new ConcurrentHashMap<String, ChatSession>();
+    //serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
+    serverCommandHandlers = new ConcurrentHashMap<String, ChatSession>();
 
     // Start thread for create clients handler
     processClientConnectionsThread = new ProcessClientConnectionsThread(serverPort);
@@ -129,21 +129,25 @@ public class Server {
     if (serverCommandHandlers != null) {
 
       //for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
-      for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
-
-        serverCommandHandler.stop();
-
-        try {
-
-          // TODO check why we cannot run with join()?
-
-          serverCommandHandler.getThread().join(CMD_HNDL_STOP_TIMEOUT);
-          serverCommandHandler = null;
-
-        } catch (InterruptedException e) {
-          logger.error("stop()", e); //$NON-NLS-1$
-        }
-
+//      for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
+//
+//        serverCommandHandler.stop();
+//
+//        try {
+//
+//          // TODO check why we cannot run with join()?
+//
+//          serverCommandHandler.getThread().join(CMD_HNDL_STOP_TIMEOUT);
+//          serverCommandHandler = null;
+//
+//        } catch (InterruptedException e) {
+//          logger.error("stop()", e); //$NON-NLS-1$
+//        }
+//
+      
+      for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
+        boolean sendEXTCMD = true;
+        serverCommandHandler.closeSession(sendEXTCMD);
       }
     }
 
@@ -258,8 +262,8 @@ public class Server {
             clientSocket = serverSocket.accept();
 
             System.out.println("create new client socket on  server");
-            new ServerCommandHandler(clientSocket, serverCommandHandlers).start(THREAD_NAME_SRV);
-            //serverChatSession = new ServerChatSession(clientSocket, serverCommandHandlers);
+            //new ServerCommandHandler(clientSocket, serverCommandHandlers).start(THREAD_NAME_SRV);
+            serverChatSession = new ServerChatSession(clientSocket, serverCommandHandlers);
           }
         }
 

@@ -21,7 +21,7 @@ public class CommandHandler_new extends WorkerThread {
   protected ObjectInputStream inputStream = null;
   /** The output stream. */
   // TODO create send method and change variable to protected
-  public ObjectOutputStream outputStream = null;
+  protected ObjectOutputStream outputStream = null;
   
   private AtomicBoolean isOutputStreamOpened;
   
@@ -77,10 +77,14 @@ public class CommandHandler_new extends WorkerThread {
   @Override
   public void run() {
     try {
+
+      // TODO comment this to notice that output stream must be opened first!!!
       openOutputStream();
 
       //new Command(CMDENTER, "", "").send(outputStream);
-      openInputStream();
+    openInputStream();
+      
+     // chatSession.openStreams();
 
       /*String ip = (((InetSocketAddress) clientSocket.getRemoteSocketAddress()).getAddress())
           .toString().replace("/", "");

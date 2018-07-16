@@ -18,7 +18,8 @@ public interface Presenter {
    * Close connection.
    */
   void closeConnection();
-
+  void closeConnection(boolean sendEXTCMD);
+  
   /**
    * Send command.
    *
@@ -49,4 +50,5 @@ public interface Presenter {
   View getView();
 
   void onViewStart();
+
 }

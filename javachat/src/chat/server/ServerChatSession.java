@@ -9,8 +9,11 @@ import static chat.base.CommandName.CMDULDLM;
 import static chat.base.CommandName.CMDUSRLST;
 import static chat.base.Constants.ERR_NAME_EXISTS_MSG;
 import static chat.base.Constants.ERR_USRS_NOT_FOUND;
+import static chat.base.Constants.MSG_CLOSE_CONNECTION;
+import static chat.base.Constants.MSG_EXIT_USR;
 import static chat.base.Constants.MSG_OPEN_CONNECTION;
 import static chat.base.Constants.MSG_WLC_USR;
+import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,64 +25,60 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.MDC;
 import chat.base.ChatSession;
 import chat.base.Command;
-import chat.base.CommandHandler_new;
+import chat.base.CommandHandler;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.base.User;
 
 public class ServerChatSession extends ChatSession {
 
-  private static final String THREAD_NAME_SRV = "server-";
+  // private static final String THREAD_NAME_SRV = "server-";
 
   /** The client session handler storage. */
-  //private ConcurrentHashMap<String, ServerChatSession> serverCommandHandlers;
-  //private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
-  private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
+  // private ConcurrentHashMap<String, ServerChatSession> serverCommandHandlers;
+  // private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
+  private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
 
-  private CommandHandler_new commandHandler = null;
+  // private CommandHandler_new commandHandler = null;
 
-  public final CommandHandler_new getCommandHandler() {
-    return commandHandler;
-  }
+  // public final CommandHandler_new getCommandHandler() {
+  // return commandHandler;
+  // }
 
   public ServerChatSession(Socket clientSocket,
       ConcurrentHashMap<String, ChatSession> serverCommandHandlers) {
-    super();
-//    this.serverCommandHandlers = serverCommandHandlers;
-    commandHandler = new CommandHandler_new(clientSocket, this);
-    commandHandler.start(THREAD_NAME_SRV);
+    super(clientSocket);
+    // this.serverCommandHandlers = serverCommandHandlers;
+    // commandHandler = new CommandHandler_new(clientSocket, this);
+    // commandHandler.start(THREAD_NAME_SRV);
+    this.serverCommandHandlers = serverCommandHandlers;
   }
 
   @Override
-  public void processCommand(Command Command) {
+  public void processCommand(Command command) {
     // loggerDebugMDC.debug(Command.toString());
 
     // ignore all command except CMDENTER while session not opened
-    if (!getIsSessionOpenedFlag() && Command.getCommandName() != CMDENTER) {
+    if (!getIsSessionOpenedFlag() && command.getCommandName() != CMDENTER) {
       // loggerRoot.debug("processCommand(Command) - end"); //$NON-NLS-1$
       return;
     }
 
     // chat command processing
-    switch (Command.getCommandName()) {
+    switch (command.getCommandName()) {
 
       case CMDERR:
         // TODO test it with unit test
-        System.err.println(user.getUsername() + ": error: " + Command.getMessage());
+        System.err.println(user.getUsername() + ": error: " + command.getMessage());
         // getView().show WarningWindow(command.toString(), WRN_UNKNOWN_COMMAND_MSG);
         // logger.error("ProcessCommandThread.run() {}", Command.getMessage());
         break;
 
       case CMDEXIT:
-        // TODO
+        // TODO stop & join CommandHandler in closeSession
 
-        commandHandler.stop();
-        try {
-          commandHandler.getThread().join();
-        } catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        boolean sendEXTCMD = false;
+        closeSession(sendEXTCMD);
 
         // stop(); // stop current ServerCommandHandler thread (set isRuning() to false)
         break;
@@ -87,51 +86,9 @@ public class ServerChatSession extends ChatSession {
       case CMDENTER:
 
         // get username
-        String userName = Command.getPayload();
+        String userName = command.getPayload();
 
-        // TODO check for username uniquely
-
-        if (!userName.isEmpty()) { // check for empty username
-
-          // add current handler to handler storage and now we can communicate with other
-          // chat
-          // clients
-          // using user name as a key
-          MDC.put("username", userName);
-         // serverCommandHandlers.put(userName, this);
-
-          isSessionOpenedFlag.set(true); // set flag that current session is opened
-          // isChatSessionOpenedFlag.set(true);
-
-          // create new user
-          this.user = new User(userName);
-
-          // send ok enter command to confirm session opening
-          new Command(CMDOK, "", CMDENTER.toString()).send(commandHandler.outputStream);
-
-          // TODO what if isSessionOpenedFlag set to true but we cant send ok enter command to
-          // client check with unit tests
-          // send to all users usrlst command
-          sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
-
-          // send to all welcome message
-          sendToAllChatClients(new Command(CMDMSG,
-              getCurrentDateTime() + " " + user.getUsername() + " " + MSG_WLC_USR));
-
-          // print to server console
-          String msg = MSG_OPEN_CONNECTION + userName;
-          // logger.info("run() {}", msg);
-          System.out.println(msg);
-
-        } else {
-
-          // if username is empty send error to client, print to console and save to log
-          String msg = ERR_NAME_EXISTS_MSG + " " + userName;
-          new Command(CMDERR, msg).send(commandHandler.outputStream);
-          // TODO add logger to the class
-          // logger.warn("ServerCommandHandler.processCommand() {}", msg);
-          System.out.println(msg);
-        }
+        openSession(userName);
         break;
 
       case CMDHLP:
@@ -143,8 +100,8 @@ public class ServerChatSession extends ChatSession {
 
         // Get user list from payload
         String[] usrList = new String[0];
-        if (!Command.getPayload().isEmpty()) {
-          usrList = Command.getPayload().split(CMDULDLM.toString());
+        if (!command.getPayload().isEmpty()) {
+          usrList = command.getPayload().split(CMDULDLM.toString());
         }
 
         Set<String> usrSet = new HashSet<String>(Arrays.asList(usrList));
@@ -153,7 +110,7 @@ public class ServerChatSession extends ChatSession {
 
         // Prepare message
         String message =
-            getCurrentDateTime() + " " + user.getUsername() + ": " + Command.getMessage();
+            getCurrentDateTime() + " " + user.getUsername() + ": " + command.getMessage();
 
         // IF private message recipient list is empty, send message to all clients
         if (usrSet.size() == 0) {
@@ -174,15 +131,15 @@ public class ServerChatSession extends ChatSession {
           for (String key : usrSet) {
 
             // Search chatHandler by chat user name string
-            //ServerChatSession serverCommandHandler = serverCommandHandlers.get(key);
-            ServerCommandHandler serverCommandHandler = serverCommandHandlers.get(key);
+            // ServerChatSession serverCommandHandler = serverCommandHandlers.get(key);
+            // ServerCommandHandler serverCommandHandler = serverCommandHandlers.get(key);
+            ChatSession serverCommandHandler = serverCommandHandlers.get(key);
 
             // If found send message
             if (serverCommandHandler != null) {
-              //new Command(CMDMSG, message)
-               //   .send(serverCommandHandler.getCommandHandler().outputStream);;
-              new Command(CMDMSG, message)
-                 .send(serverCommandHandler.outputStream);;
+              // new Command(CMDMSG, message)
+              // .send(serverCommandHandler.getCommandHandler().outputStream);;
+              serverCommandHandler.sendCommand(new Command(CMDMSG, message));
 
               // If not found, add to list
             } else {
@@ -195,7 +152,9 @@ public class ServerChatSession extends ChatSession {
             String errMessage = notFoundUserList.toString().replaceAll("\\[|\\]", "")
                 .replaceAll(", ", CMDULDLM.toString());
             System.out.println("ServerCommandHandler.run()" + notFoundUserList.toString());
-            new Command(CMDERR, ERR_USRS_NOT_FOUND + errMessage).send(commandHandler.outputStream);
+            // new Command(CMDERR, ERR_USRS_NOT_FOUND +
+            // errMessage).send(commandHandler.outputStream);
+            sendCommand(new Command(CMDERR, ERR_USRS_NOT_FOUND + errMessage));
           }
 
         }
@@ -215,8 +174,9 @@ public class ServerChatSession extends ChatSession {
         break;
 
       default:
-        String errMessage = Constants.WRN_UNKNOWN_COMMAND_MSG + " " + Command;
-        new Command(CMDERR, errMessage).send(commandHandler.outputStream);
+        String errMessage = Constants.WRN_UNKNOWN_COMMAND_MSG + " " + command;
+        // new Command(CMDERR, errMessage).send(commandHandler.outputStream);
+        sendCommand(new Command(CMDERR, errMessage));
         // logger.warn(errMessage);
         System.out.println(errMessage);
     }
@@ -244,13 +204,14 @@ public class ServerChatSession extends ChatSession {
   /**
    * Send chat command to all chat clients.
    *
-   * @param Command the command to send
+   * @param command the command to send
    */
-  private void sendToAllChatClients(Command Command) {
-    //for (ServerChatSession serverCommandHandler : serverCommandHandlers.values()) {
-    for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
-      //Command.send(serverCommandHandler.getCommandHandler().outputStream);
-      Command.send(serverCommandHandler.outputStream);
+  private void sendToAllChatClients(Command command) {
+    // for (ServerChatSession serverCommandHandler : serverCommandHandlers.values()) {
+    // for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
+    for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
+      // Command.send(serverCommandHandler.getCommandHandler().outputStream);
+      serverCommandHandler.sendCommand(command);
     }
   }
 
@@ -265,5 +226,108 @@ public class ServerChatSession extends ChatSession {
     return serverCommandHandlers.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
         CMDDLM.toString());
   }
+
+  @Override
+  public void openSession(String username) {
+    // TODO check for username uniquely
+
+    String userName = username;
+
+    if (!userName.isEmpty()) { // check for empty username
+
+      // add current handler to handler storage and now we can communicate with other
+      // chat
+      // clients
+      // using user name as a key
+      MDC.put("username", userName);
+      serverCommandHandlers.put(userName, this);
+
+      isSessionOpenedFlag.set(true); // set flag that current session is opened
+      // isChatSessionOpenedFlag.set(true);
+
+      // create new user
+      this.user = new User(userName);
+
+      // send ok enter command to confirm session opening
+      sendCommand(new Command(CMDOK, "", CMDENTER.toString()));
+
+      // TODO what if isSessionOpenedFlag set to true but we cant send ok enter command to
+      // client check with unit tests
+      // send to all users usrlst command
+      sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
+
+      System.out.println("ServerChatSession.openSession() CMDUSRLST " + getUserNamesListInString());
+      
+      // send to all welcome message
+      sendToAllChatClients(
+          new Command(CMDMSG, getCurrentDateTime() + " " + user.getUsername() + " " + MSG_WLC_USR));
+
+      // print to server console
+      String msg = MSG_OPEN_CONNECTION + userName;
+      // logger.info("run() {}", msg);
+      System.out.println(msg);
+
+    } else {
+
+      // if username is empty send error to client, print to console and save to log
+      String msg = ERR_NAME_EXISTS_MSG + " " + userName;
+      sendCommand(new Command(CMDERR, msg));
+      // TODO add logger to the class
+      // logger.warn("ServerCommandHandler.processCommand() {}", msg);
+      System.out.println(msg);
+    }
+
+
+  }
+
+  
+  @Override
+  public void closeSession(boolean sendEXTCMD) {
+
+    // First of all we remove this handler from serverCommandHandlers storage to
+    // prevent receiving messages
+    if (user != null) {
+      serverCommandHandlers.remove(user.getUsername());
+    }
+   
+    // print console message about closing connection
+    String msg = (user != null) ? user.getUsername() : "";
+    msg = MSG_CLOSE_CONNECTION + msg;
+    //CommandHandler.logger.info("run() - {}", msg); //$NON-NLS-1$
+    System.out.println(msg);
+
+    // Send a message to all clients about the current user's exit
+    sendToAllChatClients(new Command(CMDMSG,
+        getCurrentDateTime() + " " + user.getUsername() + " " + MSG_EXIT_USR));
+
+    // Send update user list command
+    sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
+
+    super.closeSession(sendEXTCMD);
+    
+    MDC.clear();
+    user = null;
+    
+    
+    
+  }
+
+
+//  @Override
+//  public void openStreams() {
+//    // TODO Auto-generated method stub
+//    try {
+//      
+////      clientCommandHandler.openInputStream();
+////      clientCommandHandler.openOutputStream();
+//      
+//      clientCommandHandler.openOutputStream();
+//      clientCommandHandler.openInputStream();
+//      
+//    } catch (IOException e) {
+//      // TODO Auto-generated catch block
+//      e.printStackTrace();
+//    }
+//  }
 
 }

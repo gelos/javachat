@@ -22,7 +22,7 @@ import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
-  public static final int MAX_TEST_REPEAT = 1;
+  public static final int MAX_TEST_REPEAT = 3;
   private static final long LATCH_OPERATION_TIMEOUT_SEC = 3L;
   private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE =
       "The client did not receive a message ";
@@ -137,7 +137,7 @@ class ChatClientIntegrationTest {
 
     latch = new CountDownLatch(1);
     clientView.setLatch(latch);
-    clientPresenter.closeConnection();
+    clientPresenter.closeConnection(true);
     isCountDownLatchZero = latch.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
     assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 
@@ -165,7 +165,7 @@ class ChatClientIntegrationTest {
   @DisplayName("Sending messages between two clients.")
   void sendMessagesBetweenTwoClientsTest() throws Throwable {
 
-    // TODO test opening session in already opened session
+    // TODO test openning session in already opened session
 
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -388,7 +388,7 @@ class ChatClientIntegrationTest {
     latch2 = new CountDownLatch(1);
     clientView2.setLatch(latch2);
 
-    clientPresenter2.closeConnection();
+    clientPresenter2.closeConnection(true);
     // Waiting for ClientView2 to complete onConnectionClosed
     isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
     assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);

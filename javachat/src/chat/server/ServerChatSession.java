@@ -13,7 +13,6 @@ import static chat.base.Constants.MSG_CLOSE_CONNECTION;
 import static chat.base.Constants.MSG_EXIT_USR;
 import static chat.base.Constants.MSG_OPEN_CONNECTION;
 import static chat.base.Constants.MSG_WLC_USR;
-import java.io.IOException;
 import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,38 +24,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.MDC;
 import chat.base.ChatSession;
 import chat.base.Command;
-import chat.base.CommandHandler;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.base.User;
 
 public class ServerChatSession extends ChatSession {
 
-  // private static final String THREAD_NAME_SRV = "server-";
-
-  /** The client session handler storage. */
-  // private ConcurrentHashMap<String, ServerChatSession> serverCommandHandlers;
-  // private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
-  private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
-
-  // private CommandHandler_new commandHandler = null;
-
-  // public final CommandHandler_new getCommandHandler() {
-  // return commandHandler;
-  // }
+  /** The client session handlers thread-safe storage. */
+  private ConcurrentHashMap<String, ChatSession> chatSessionStorage;
 
   public ServerChatSession(Socket clientSocket,
-      ConcurrentHashMap<String, ChatSession> serverCommandHandlers) {
-    super(clientSocket);
-    // this.serverCommandHandlers = serverCommandHandlers;
-    // commandHandler = new CommandHandler_new(clientSocket, this);
-    // commandHandler.start(THREAD_NAME_SRV);
-    this.serverCommandHandlers = serverCommandHandlers;
+      ConcurrentHashMap<String, ChatSession> chatSessionStorage) {
+    //super(clientSocket);
+    super(Constants.THREAD_NAME_SRV);
+    runCommandHandler(clientSocket);
+    this.chatSessionStorage = chatSessionStorage;
   }
 
   @Override
   public void processCommand(Command command) {
-    // loggerDebugMDC.debug(Command.toString());
+
+    super.processCommand(command);
 
     // ignore all command except CMDENTER while session not opened
     if (!getIsSessionOpenedFlag() && command.getCommandName() != CMDENTER) {
@@ -131,9 +119,9 @@ public class ServerChatSession extends ChatSession {
           for (String key : usrSet) {
 
             // Search chatHandler by chat user name string
-            // ServerChatSession serverCommandHandler = serverCommandHandlers.get(key);
-            // ServerCommandHandler serverCommandHandler = serverCommandHandlers.get(key);
-            ChatSession serverCommandHandler = serverCommandHandlers.get(key);
+            // ServerChatSession serverCommandHandler = chatSessionStorage.get(key);
+            // ServerCommandHandler serverCommandHandler = chatSessionStorage.get(key);
+            ChatSession serverCommandHandler = chatSessionStorage.get(key);
 
             // If found send message
             if (serverCommandHandler != null) {
@@ -160,10 +148,10 @@ public class ServerChatSession extends ChatSession {
         }
 
         /*
-         * // send private message for (ServerCommandHandler chatHandler : serverCommandHandlers) {
-         * if ((usrSet.size() == 0) // send message to all user or only to users in private //
-         * message user list || (usrSet.size() > 0 &&
-         * usrSet.contains(chatHandler.chatUser.getUsername()))) {
+         * // send private message for (ServerCommandHandler chatHandler : chatSessionStorage) { if
+         * ((usrSet.size() == 0) // send message to all user or only to users in private // message
+         * user list || (usrSet.size() > 0 && usrSet.contains(chatHandler.chatUser.getUsername())))
+         * {
          * 
          * String message = getCurrentDateTime() + " " + user.getUsername() + ": " +
          * chatCommand.getMessage(); new Command(chatCommand.getCommandName(), message)
@@ -207,9 +195,9 @@ public class ServerChatSession extends ChatSession {
    * @param command the command to send
    */
   private void sendToAllChatClients(Command command) {
-    // for (ServerChatSession serverCommandHandler : serverCommandHandlers.values()) {
-    // for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
-    for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
+    // for (ServerChatSession serverCommandHandler : chatSessionStorage.values()) {
+    // for (ServerCommandHandler serverCommandHandler : chatSessionStorage.values()) {
+    for (ChatSession serverCommandHandler : chatSessionStorage.values()) {
       // Command.send(serverCommandHandler.getCommandHandler().outputStream);
       serverCommandHandler.sendCommand(command);
     }
@@ -223,15 +211,15 @@ public class ServerChatSession extends ChatSession {
    */
   private String getUserNamesListInString() {
 
-    return serverCommandHandlers.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
+    return chatSessionStorage.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
         CMDDLM.toString());
   }
 
   @Override
-  public void openSession(String username) {
+  public void openSession(String userName) {
     // TODO check for username uniquely
 
-    String userName = username;
+    super.openSession(userName);
 
     if (!userName.isEmpty()) { // check for empty username
 
@@ -240,7 +228,7 @@ public class ServerChatSession extends ChatSession {
       // clients
       // using user name as a key
       MDC.put("username", userName);
-      serverCommandHandlers.put(userName, this);
+      chatSessionStorage.put(userName, this);
 
       isSessionOpenedFlag.set(true); // set flag that current session is opened
       // isChatSessionOpenedFlag.set(true);
@@ -257,7 +245,7 @@ public class ServerChatSession extends ChatSession {
       sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
       System.out.println("ServerChatSession.openSession() CMDUSRLST " + getUserNamesListInString());
-      
+
       // send to all welcome message
       sendToAllChatClients(
           new Command(CMDMSG, getCurrentDateTime() + " " + user.getUsername() + " " + MSG_WLC_USR));
@@ -280,54 +268,31 @@ public class ServerChatSession extends ChatSession {
 
   }
 
-  
+
   @Override
   public void closeSession(boolean sendEXTCMD) {
 
-    // First of all we remove this handler from serverCommandHandlers storage to
+    // First of all we remove this handler from chatSessionStorage storage to
     // prevent receiving messages
     if (user != null) {
-      serverCommandHandlers.remove(user.getUsername());
+      chatSessionStorage.remove(user.getUsername());
     }
-   
+
     // print console message about closing connection
     String msg = (user != null) ? user.getUsername() : "";
     msg = MSG_CLOSE_CONNECTION + msg;
-    //CommandHandler.logger.info("run() - {}", msg); //$NON-NLS-1$
+    // CommandHandler.logger.info("run() - {}", msg); //$NON-NLS-1$
     System.out.println(msg);
 
     // Send a message to all clients about the current user's exit
-    sendToAllChatClients(new Command(CMDMSG,
-        getCurrentDateTime() + " " + user.getUsername() + " " + MSG_EXIT_USR));
+    sendToAllChatClients(
+        new Command(CMDMSG, getCurrentDateTime() + " " + user.getUsername() + " " + MSG_EXIT_USR));
 
     // Send update user list command
     sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
 
     super.closeSession(sendEXTCMD);
-    
-    MDC.clear();
-    user = null;
-    
-    
-    
+
   }
-
-
-//  @Override
-//  public void openStreams() {
-//    // TODO Auto-generated method stub
-//    try {
-//      
-////      clientCommandHandler.openInputStream();
-////      clientCommandHandler.openOutputStream();
-//      
-//      clientCommandHandler.openOutputStream();
-//      clientCommandHandler.openInputStream();
-//      
-//    } catch (IOException e) {
-//      // TODO Auto-generated catch block
-//      e.printStackTrace();
-//    }
-//  }
 
 }

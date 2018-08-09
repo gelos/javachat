@@ -19,7 +19,7 @@ public class ClientPresenter implements Presenter {
 
   private static final String THREAD_NAME_CLN = "client-";
 
-  // private CommandHandler_new clientCommandHandler = null;
+  // private CommandHandler_new commandHandler = null;
   private View view;
   // TODO refactor as local var
   // public Socket clientSocket = null;
@@ -49,7 +49,7 @@ public class ClientPresenter implements Presenter {
 
   @Override
   public void sendCommand(String commandString) {
-    //if ((clientCommandHandler != null) && (clientCommandHandler.isRunning())) {
+    //if ((commandHandler != null) && (commandHandler.isRunning())) {
       Command command = new Command(commandString);
       switch (command.getCommandName()) {
         case CMDEXIT:
@@ -61,7 +61,7 @@ public class ClientPresenter implements Presenter {
         case CMDPRVMSG:
         case CMDENTER:
         case CMDMSG:
-          //command.send(clientCommandHandler.outputStream);
+          //command.send(commandHandler.outputStream);
           chatSession.sendCommand(command);
           // loggerDebug.debug("sendCommand(String) - getView().onSendMessage(), getView:
           // " + getView().hashCode()); //$NON-NLS-1$
@@ -73,7 +73,7 @@ public class ClientPresenter implements Presenter {
           getView().onSendMessage();
           break;
         default:
-          //new Command(CommandName.CMDMSG, commandString).send(clientCommandHandler.outputStream);
+          //new Command(CommandName.CMDMSG, commandString).send(commandHandler.outputStream);
           chatSession.sendCommand(new Command(CommandName.CMDMSG, commandString));
           getView().onSendMessage();
           break;

@@ -8,20 +8,19 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import chat.base.ChatSession;
-import chat.base.Command;
-import chat.base.CommandHandler;
 import chat.base.Constants;
 import chat.base.WorkerThread;
 
+
+// TODO: Auto-generated Javadoc
 // TODO: use netty+protobuf or ZeroMQ
 // TODO add log support logback https://stackify.com/logging-logback/
 // TODO use Callable, Future, CompleteCallable
 /**
- * Implements the server part of the chat application. Accepts client sessions through
+ * It implements the server part of the chat application. Accepts client sessions through
  * {@link ProcessClientConnectionsThread}, allows you to use the console commands through
  * {@link ProcessConsoleInputThread}.
  * 
@@ -29,64 +28,41 @@ import chat.base.WorkerThread;
 
 public class Server {
 
-  // Constructor
-
-  private static final int CMD_HNDL_STOP_TIMEOUT = 100;
-
-  /** The server serverSocketPort number. */
-  public final static int SERVER_PORT = 3000;
-
-  /** The server host ip address. */
-  public final static String SERVER_IP = "127.0.0.1";
-
-  /**
-   * Logger for this class
-   */
+  /** Logger for this class. */
   private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
-  /** The client session handlers thread-safe storage. */
-  // private CopyOnWriteArrayList<ServerCommandHandler> serverCommandHandlers;
-  //private ConcurrentHashMap<String, ServerCommandHandler> serverCommandHandlers;
-  private ConcurrentHashMap<String, ChatSession> serverCommandHandlers;
-
-  /** The chat client communication thread. */
+  /** The thread to process client connections. */
   private ProcessClientConnectionsThread processClientConnectionsThread;
 
   /** The process console input thread. */
   private ProcessConsoleInputThread processConsoleInputThread;
 
+  /** The thread to stop server. */
   private StopServerThread stopServerThread;
 
-  private AtomicBoolean stopServerFlag;
 
   /**
    * Instantiates a new chat server on default SERVER_PORT.
    */
   public Server() {
-
-    // start server on SERVER_SOCKET
-    this(SERVER_PORT);
-
+    this(Constants.SERVER_PORT);
   }
+
 
   /**
    * Instantiates a new chat server.
    *
-   * @param serverSocketPort the serverSocketPort to start
+   * @param serverPort the port for accept client requests
    */
   public Server(int serverPort) {
 
-    // Start thread that stop server on stopServerFlag set
-    stopServerFlag = new AtomicBoolean(false);
-    stopServerThread = new StopServerThread();
-    stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
-    logger.info("Server.Server(int) - {}", Constants.MSG_SERVER_STARTING); //$NON-NLS-1$ //$NON-NLS-2$
+    logger.info(this.getClass().getSimpleName() + "." + "Server(int) - {}", //$NON-NLS-1$ //$NON-NLS-2$
+        Constants.MSG_SERVER_STARTING);
     System.out.println(Constants.MSG_SERVER_STARTING);
 
-    // Initialize client handlers storage
-    //serverCommandHandlers = new ConcurrentHashMap<String, ServerCommandHandler>();
-    serverCommandHandlers = new ConcurrentHashMap<String, ChatSession>();
+    stopServerThread = new StopServerThread();
+    stopServerThread.start(stopServerThread.getClass().getSimpleName());
 
     // Start thread for create clients handler
     processClientConnectionsThread = new ProcessClientConnectionsThread(serverPort);
@@ -96,60 +72,31 @@ public class Server {
     processConsoleInputThread = new ProcessConsoleInputThread();
     processConsoleInputThread.start(processConsoleInputThread.getClass().getSimpleName());
 
-    // Check that both thread successfully running
-    if (processClientConnectionsThread.isRunning() && processConsoleInputThread.isRunning()) {
+    // Check that all threads successfully running
+    if (processClientConnectionsThread.isRunning() && processConsoleInputThread.isRunning()
+        && stopServerThread.isRunning()) {
 
-      logger.info("Server.Server(int) - {}", Constants.MSG_SERVER_STARTED); //$NON-NLS-1$
-
+      logger.info(this.getClass().getSimpleName() + "." + "Server(int) - {}", //$NON-NLS-1$
+          Constants.MSG_SERVER_STARTED);
       System.out.println(Constants.MSG_COMMAND_TO_SHUTDOWN_SERVER);
       System.out.println(Constants.MSG_SERVER_STARTED);
 
     } else {
 
-      // Forcing the server to close
-      stopServerFlag.set(true);
+      // Forcing the server to stop
+      stopServerThread.stop();
 
     }
   }
 
   /**
-   * Stop.
+   * The stop method stop all running thread.
    */
   public void stop() {
 
-    logger.info("Server.stop() - {}", Constants.MSG_STOPPING_SERVER_THREADS); //$NON-NLS-1$
+    logger.info(this.getClass().getSimpleName() + "." + "stop() - {}", //$NON-NLS-1$
+        Constants.MSG_STOPPING_SERVER_THREADS);
     System.out.println(Constants.MSG_STOPPING_SERVER_THREADS);
-
-    logger.info("Server.stop() - {}", Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS); //$NON-NLS-1$
-    System.out.println(Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS);
-
-    // TODO change serial stop to parallel stop with distinct thread for stopping each
-    // serverCommandHandler
-
-    if (serverCommandHandlers != null) {
-
-      //for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
-//      for (ServerCommandHandler serverCommandHandler : serverCommandHandlers.values()) {
-//
-//        serverCommandHandler.stop();
-//
-//        try {
-//
-//          // TODO check why we cannot run with join()?
-//
-//          serverCommandHandler.getThread().join(CMD_HNDL_STOP_TIMEOUT);
-//          serverCommandHandler = null;
-//
-//        } catch (InterruptedException e) {
-//          logger.error("stop()", e); //$NON-NLS-1$
-//        }
-//
-      
-      for (ChatSession serverCommandHandler : serverCommandHandlers.values()) {
-        boolean sendEXTCMD = true;
-        serverCommandHandler.closeSession(sendEXTCMD);
-      }
-    }
 
     if (processClientConnectionsThread != null) {
 
@@ -161,7 +108,7 @@ public class Server {
         processClientConnectionsThread = null;
 
       } catch (InterruptedException e) {
-        logger.error("stop()", e); //$NON-NLS-1$
+        logger.error(this.getClass().getSimpleName() + "." + "stop()", e); //$NON-NLS-1$
       }
 
     }
@@ -172,15 +119,16 @@ public class Server {
 
       try {
 
-        processConsoleInputThread.getThread().join();
+        processConsoleInputThread.getThread().join(Constants.THR_WAIT_TIMEOUT);
         processConsoleInputThread = null;
 
       } catch (InterruptedException e) {
-        logger.error("stop()", e); //$NON-NLS-1$
+        logger.error(this.getClass().getSimpleName() + "." + "stop()", e); //$NON-NLS-1$
       }
     }
 
-    logger.info("Server.stop() - {}", Constants.MSG_SERVER_STOPPED); //$NON-NLS-1$
+    logger.info(this.getClass().getSimpleName() + "." + "stop() - {}", //$NON-NLS-1$
+        Constants.MSG_SERVER_STOPPED);
     System.out.println(Constants.MSG_SERVER_STOPPED);
 
   }
@@ -194,22 +142,25 @@ public class Server {
     new Server();
   }
 
-  // Constructor
 
-  public final void setStopServerFlag(Boolean stopServerFlag) {
-    this.stopServerFlag.set(stopServerFlag);
-  }
-
+  /**
+   * Calling the Server.stop() method after StopServerThread.stop() was called from another thread.
+   */
   private class StopServerThread extends WorkerThread {
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 
-      while (!stopServerFlag.get()) {
+      while (this.isRunning()) {
         try {
           Thread.sleep(10);
         } catch (InterruptedException e) {
-          logger.error("$Runnable.run()", e); //$NON-NLS-1$
+          logger.error(this.getClass().getSimpleName() + "." + "run()", e); //$NON-NLS-1$
         }
       }
       Server.this.stop();
@@ -218,39 +169,37 @@ public class Server {
   }
 
   /**
-   * Creates an {@link ServerCommandHandler} object for each new client connection.
+   * Processes client chat connections with a {@link ServerChatSession} object.
    * 
    */
   private class ProcessClientConnectionsThread extends WorkerThread {
 
-    private static final String THREAD_NAME_SRV = "server-";
-
-    private int serverSocketPort;
-
-    /** The client connection socket. */
-    private Socket clientSocket;
+    /** The client session handlers thread-safe storage. */
+    private ConcurrentHashMap<String, ChatSession> chatSessionStorage;
 
     /** The server socket. */
     private ServerSocket serverSocket;
 
-    private ServerChatSession serverChatSession;
-
+    /**
+     * Instantiates a new process client connections thread.
+     *
+     * @param port the port
+     */
     public ProcessClientConnectionsThread(int port) {
-      this.serverSocketPort = port;
+      super();
+
+      chatSessionStorage = new ConcurrentHashMap<String, ChatSession>();
+
+      openServerSocket(port);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
-
-      if (!openServerSocket(serverSocketPort)) {
-        // stop();
-        return;
-      }
-
-      logger.info("ProcessClientConnectionsThread.run() - {}", //$NON-NLS-1$
-          Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
-      System.out.println(
-          Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort + Constants.MSG_CONNECTION_SOCKET_2);
 
       try {
 
@@ -259,72 +208,53 @@ public class Server {
 
           synchronized (serverSocket) {
 
-            clientSocket = serverSocket.accept();
+            Socket socket = serverSocket.accept();
+            new ServerChatSession(socket, chatSessionStorage);
 
-            System.out.println("create new client socket on  server");
-            //new ServerCommandHandler(clientSocket, serverCommandHandlers).start(THREAD_NAME_SRV);
-            serverChatSession = new ServerChatSession(clientSocket, serverCommandHandlers);
           }
         }
 
-      } catch (SocketException e) { // Throws when calling ServerSocket.close
+      } catch (SocketException e) { // Throws when calling ServerSocket.close() to interrupt the
+                                    // ServerSocket.accept()
 
-        if (isServerSocketClosed() && !this.isRunning()) {
+        // If Server socket closed and thread trying to stop (isRunning() == false) ignore error
+        // because it is normal situation when we are stopping server
 
-          // if Server socket not opened and thread trying to stop ignore error because it
-          // is normal situation when we stopping server
+        if (!isServerSocketClosed() || this.isRunning()) {
 
-        } else {
+          // Something wrong, write error to log
+          logger.error(this.getClass().getSimpleName() + ". run() - " //$NON-NLS-1$
+              + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e);
 
-          // Something wrong write error and stop server
-          logger.error("run() - " + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
         }
 
       } catch (IOException e) { // stop server on IOException
 
-        logger.error("run() - " + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e); //$NON-NLS-1$
+        logger.error(this.getClass().getSimpleName() + "." + "run() - " //$NON-NLS-1$
+            + Constants.ERR_MSG_CHAT_CLIENT_ACCEPTION_FAILED, e);
 
-      } /*
-         * finally {
-         * 
-         * stop();
-         * 
-         * }
-         */
-    }
 
-    private synchronized boolean isServerSocketClosed() {
-      return (serverSocket == null || serverSocket.isClosed());
-    }
+      } finally {
 
-    private synchronized boolean openServerSocket(int serverSocketPort) {
-      try {
-        serverSocket = new ServerSocket(serverSocketPort);
-      } catch (BindException e) {
-        logger.error("openServerSocket(int) - " + Constants.ERR_PORT_IN_USE_1 + serverSocketPort //$NON-NLS-1$
-            + Constants.ERR_PORT_IN_USE_2, e); // $NON-NLS-2$
-        return false;
+        // Close all chat sessions
 
-      } catch (IOException e) {
-        logger.error("openServerSocket(int) - " + Constants.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET //$NON-NLS-1$
-            + serverSocketPort, e);
-        return false;
-      }
-      return true;
-    }
+        logger.info(this.getClass().getSimpleName() + "." + "run() - {}", //$NON-NLS-1$
+            Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS);
+        System.out.println(Constants.MSG_STOPPING_CHAT_CLIENT_HANDLERS);
 
-    private synchronized void closeServerSocket() {
-      if (serverSocket != null) {
-        // Close server socket to release blocking on while circle in
-        // processClientConnectionsThread on clientSocket.accept(). Throw SocketException
-        // and stop thread.
-        try {
-          serverSocket.close();
-        } catch (IOException e) {
-          logger.error("closeServerSocket()", e); //$NON-NLS-1$
+        // TODO change serial stop to parallel stop with distinct thread for stopping each
+        // serverCommandHandler
+
+        if (chatSessionStorage != null) {
+
+          for (ChatSession chatSession : chatSessionStorage.values()) {
+            boolean sendEXTCMD = true;
+            chatSession.closeSession(sendEXTCMD);
+          }
         }
-        serverSocket = null;
+
       }
+
     }
 
     /**
@@ -339,17 +269,78 @@ public class Server {
       closeServerSocket();
     }
 
+    /**
+     * Checks if ServerSocket closed.
+     *
+     * @return true, if is server socket closed
+     */
+    private synchronized boolean isServerSocketClosed() {
+      return (serverSocket == null || serverSocket.isClosed());
+    }
+
+    /**
+     * Open server socket.
+     *
+     * @param serverSocketPort the server socket port
+     */
+    private synchronized void openServerSocket(int serverSocketPort) {
+      try {
+        serverSocket = new ServerSocket(serverSocketPort);
+        logger.info(getClass().getSimpleName() + ".run() - {}", //$NON-NLS-1$
+            Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort
+                + Constants.MSG_CONNECTION_SOCKET_2);
+        System.out.println(Constants.MSG_CONNECTION_SOCKET_1 + serverSocketPort
+            + Constants.MSG_CONNECTION_SOCKET_2);
+      } catch (BindException e) {
+        logger.error(this.getClass().getSimpleName() + "." + "openServerSocket(int) - " //$NON-NLS-1$
+            + Constants.ERR_PORT_IN_USE_1 + serverSocketPort + Constants.ERR_PORT_IN_USE_2, e); // $NON-NLS-2$
+
+      } catch (IOException e) {
+        logger.error(this.getClass().getSimpleName() + "." + "openServerSocket(int) - " //$NON-NLS-1$
+            + Constants.ERR_MSG_FAILED_TO_CREATE_SERVER_SOCKET + serverSocketPort, e);
+      }
+    }
+
+    /**
+     * Close server socket.
+     */
+    private synchronized void closeServerSocket() {
+      if (serverSocket != null) {
+        // Close server socket to release blocking on while circle in
+        // processClientConnectionsThread on clientSocket.accept(). Throw SocketException
+        // and stop thread.
+        try {
+          serverSocket.close();
+        } catch (IOException e) {
+          logger.error(this.getClass().getSimpleName() + "." + "closeServerSocket()", e); //$NON-NLS-1$
+        }
+        serverSocket = null;
+      }
+    }
+
   }
 
-  /** The thread for processing input from the console. */
+  /**
+   * The thread for processing input from the console.
+   */
   private class ProcessConsoleInputThread extends WorkerThread {
 
+    /** The console input. */
     private BufferedReader consoleInput;
 
+    /**
+     * Instantiates a new process console input thread.
+     */
     public ProcessConsoleInputThread() {
+      super();
       consoleInput = new BufferedReader(new InputStreamReader(System.in));
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Runnable#run()
+     */
     @Override
     public void run() {
 
@@ -370,8 +361,11 @@ public class Server {
 
             // Check input for stop command
             if (s.equalsIgnoreCase(Constants.SERVER_CMD_STOP)) {
-              Server.this.setStopServerFlag(true);
+              // Forcing the server to stop
+              stopServerThread.stop();
               break;
+            } else {
+              System.out.println(Constants.MSG_COMMAND_TO_SHUTDOWN_SERVER);
             }
           }
         }
@@ -379,11 +373,9 @@ public class Server {
         consoleInput.close();
 
       } catch (IOException | InterruptedException e) {
-        logger.error("ProcessConsoleInputThread.run()", e); //$NON-NLS-1$
+        logger.error(this.getClass().getSimpleName() + "." + "run()", e); //$NON-NLS-1$
       }
     }
   }
-
-
 
 };

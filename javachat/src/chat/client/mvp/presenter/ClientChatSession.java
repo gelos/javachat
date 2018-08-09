@@ -9,7 +9,6 @@ import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.base.User;
-import chat.server.Server;
 
 public class ClientChatSession extends ChatSession {
 
@@ -18,11 +17,15 @@ public class ClientChatSession extends ChatSession {
   private static final int MAX_TIMEOUT_OUT_STREAM_OPEN_MS = 100;
 
   public ClientChatSession(Presenter presenter) {
+    super(Constants.THREAD_NAME_CLIENT);
     this.presenter = presenter;
   }
 
   @Override
   public void processCommand(Command command) {
+
+    super.processCommand(command);
+
     switch (command.getCommandName()) {
 
       case CMDERR:
@@ -62,15 +65,18 @@ public class ClientChatSession extends ChatSession {
   }
 
   @Override
-  public void openSession(String username) {
+  public void openSession(String userName) {
     // MDC.put("username", username);
+
+    super.openSession(userName);
+
 
     Socket clientSocket = null;
 
     presenter.getView().onConnectionOpening(Constants.DEFAULT_WINDOW_NAME);
 
     try {
-      clientSocket = new Socket(Server.SERVER_IP, Server.SERVER_PORT);
+      clientSocket = new Socket(Constants.SERVER_IP, Constants.SERVER_PORT);
     } catch (UnknownHostException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -79,16 +85,16 @@ public class ClientChatSession extends ChatSession {
       e.printStackTrace();
     }
 
-    // clientCommandHandler = new ClientCommandHandler(clientSocket, username, this);
-    // clientCommandHandler = new CommandHandler_new(clientSocket, this);
-    // clientCommandHandler.start(THREAD_NAME_CLN);
+    // commandHandler = new ClientCommandHandler(clientSocket, username, this);
+    // commandHandler = new CommandHandler_new(clientSocket, this);
+    // commandHandler.start(THREAD_NAME_CLN);
 
     runCommandHandler(clientSocket);
 
-    this.user = new User(username);
+    this.user = new User(userName);
 
     int waitingForOutputStreamOpenningTimeoutMiliseconds = 0;
-    while (!clientCommandHandler.getIsOutputStreamOpened()
+    while (!commandHandler.getIsOutputStreamOpened()
         && (waitingForOutputStreamOpenningTimeoutMiliseconds <= MAX_TIMEOUT_OUT_STREAM_OPEN_MS)) {
       try {
         TimeUnit.MILLISECONDS.sleep(1);
@@ -103,9 +109,9 @@ public class ClientChatSession extends ChatSession {
     System.out.println("waitingForOutputStreamOpenningTimeoutMiliseconds "
         + waitingForOutputStreamOpenningTimeoutMiliseconds);
 
-    if (clientCommandHandler.getIsOutputStreamOpened()) {
+    if (commandHandler.getIsOutputStreamOpened()) {
       // new Command(CommandName.CMDENTER, "", user.getUsername())
-      // .send(clientCommandHandler.outputStream);
+      // .send(commandHandler.outputStream);
       sendCommand(new Command(CommandName.CMDENTER, "", user.getUsername()));
     } else {
 
@@ -141,7 +147,7 @@ public class ClientChatSession extends ChatSession {
     if (getIsSessionOpenedFlag()) { // we receive ok enter command
 
       // do that we must do in View on session open
-      presenter.getView().onConnectionOpened(username);
+      presenter.getView().onConnectionOpened(userName);
 
     } else {
       // TODO closeConnection here
@@ -176,19 +182,5 @@ public class ClientChatSession extends ChatSession {
     presenter.getView().onConnectionClosed(Constants.DEFAULT_WINDOW_NAME);
 
   }
-
-  // @Override
-  // public void openStreams() {
-  // // TODO Auto-generated method stub
-  // try {
-  // clientCommandHandler.openOutputStream();
-  // clientCommandHandler.openInputStream();
-  //
-  // } catch (IOException e) {
-  // // TODO Auto-generated catch block
-  // e.printStackTrace();
-  // }
-  //
-  // }
 
 }

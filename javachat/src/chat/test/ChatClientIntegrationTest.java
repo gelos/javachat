@@ -22,7 +22,7 @@ import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
-  public static final int MAX_TEST_REPEAT = 1;
+  public static final int MAX_TEST_REPEAT = 3;
   private static final long LATCH_OPERATION_TIMEOUT_SEC = 3L;
   private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE =
       "The client did not receive a message ";

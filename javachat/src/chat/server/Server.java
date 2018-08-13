@@ -249,7 +249,7 @@ public class Server {
 
           for (ChatSession chatSession : chatSessionStorage.values()) {
             boolean sendEXTCMD = true;
-            chatSession.closeSession(sendEXTCMD);
+            chatSession.close(sendEXTCMD);
           }
         }
 

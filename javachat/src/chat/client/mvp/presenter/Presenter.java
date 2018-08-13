@@ -18,8 +18,9 @@ public interface Presenter {
    * Close connection.
    */
   void closeConnection();
+
   void closeConnection(boolean sendEXTCMD);
-  
+
   /**
    * Send command.
    *
@@ -33,7 +34,7 @@ public interface Presenter {
    * @param message the message
    * @param userList the user list
    */
-  //void sendPrivateMessage(String message, String userList);
+  // void sendPrivateMessage(String message, String userList);
 
   /**
    * Sets the view.

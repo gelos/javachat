@@ -6,25 +6,37 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.MDC;
-import java.net.InetSocketAddress;
 
-public class CommandHandler_new extends WorkerThread {
+/**
+ * The Class CommandHandler. Class for send/receive {@link Command}.
+ */
+public class CommandHandler extends WorkerThread {
 
+  /** The client socket. */
   private Socket clientSocket = null;
   /** The input stream. */
   private ObjectInputStream inputStream = null;
   /** The output stream. */
   private ObjectOutputStream outputStream = null;
 
+  /** The is output stream opened. */
   private AtomicBoolean isOutputStreamOpened;
 
+  /** The chat session. */
   private ChatSession chatSession;
 
-  public CommandHandler_new(Socket clientSocket, ChatSession chatSession) {
+  /**
+   * Instantiates a new command handler.
+   *
+   * @param clientSocket the client socket
+   * @param chatSession the chat session
+   */
+  public CommandHandler(Socket clientSocket, ChatSession chatSession) {
     super();
     synchronized (clientSocket) {
       this.clientSocket = clientSocket;
@@ -33,6 +45,41 @@ public class CommandHandler_new extends WorkerThread {
     isOutputStreamOpened = new AtomicBoolean(false);
   }
 
+  /**
+   * Gets the checks if is output stream opened.
+   *
+   * @return the checks if is output stream opened
+   */
+  public final Boolean getIsOutputStreamOpened() {
+    return isOutputStreamOpened.get();
+  }
+
+  /**
+   * Send {@link Command} to output stream.
+   *
+   * @param command the command
+   */
+  public void send(Command command) {
+
+    try {
+
+      outputStream.writeObject(command);
+      outputStream.flush();
+
+    } catch (IOException e) {
+
+      logger.error(this.getClass().getSimpleName() + "." + "send(command)", e); //$NON-NLS-1$
+
+    }
+
+  }
+
+  /**
+   * Skeleton method for processing input command. Read {@link Command} from input stream and run
+   * {@link ChatSession#processCommand(Command)}.
+   * 
+   * @see java.lang.Runnable#run()
+   */
   @Override
   public void run() {
     try {
@@ -57,9 +104,6 @@ public class CommandHandler_new extends WorkerThread {
         }
 
       }
-
-
-      // } catch (SocketException | EOFException e) {
     } catch (SocketException e) {
       // TODO: handle exception
       System.out.println("normal close");
@@ -67,39 +111,36 @@ public class CommandHandler_new extends WorkerThread {
       // TODO: handle exception
       System.out.println("server close connection ???");
     } catch (IOException | ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      System.out.println("ClientCommandHandler.run() catch " + e.getMessage());
-      // System.out
-      // .println("ClientCommandHandler.run() clientSocket.isClosed() " + clientSocket.isClosed());
-      e.printStackTrace();
-    } finally {
-      MDC.clear();
-      // user = null;
-
+      logger.error(this.getClass().getSimpleName() + "." + "run() {}", e);
     }
-
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see chat.base.WorkerThread#stop()
+   */
   @Override
   public void stop() {
 
     super.stop();
 
     try {
+
       closeClientSocket();
+
     } catch (IOException e) {
+
       logger.error(this.getClass().getSimpleName() + "." + "stop()", e); //$NON-NLS-1$
+
     }
   }
 
-  public final Boolean getIsOutputStreamOpened() {
-    return isOutputStreamOpened.get();
-  }
-
-  public void send(Command command) {
-    command.send(outputStream);
-  }
-
+  /**
+   * Open streams.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private synchronized void openStreams() throws IOException {
 
     // Output stream must be opened first, see http://www.jguru.com/faq/view.jsp?EID=333392
@@ -110,6 +151,11 @@ public class CommandHandler_new extends WorkerThread {
   }
 
 
+  /**
+   * Close client socket.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   private synchronized void closeClientSocket() throws IOException {
 
     if (clientSocket != null) {

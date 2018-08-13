@@ -14,7 +14,7 @@ public abstract class ChatSession {
   /** The logger. */
   protected final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
   protected static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
-    
+
   /** The is session opened flag. */
   protected AtomicBoolean isSessionOpenedFlag;
 
@@ -22,16 +22,10 @@ public abstract class ChatSession {
   protected User user = null;
 
   /** The command handler. */
-  protected CommandHandler_new commandHandler = null;
-  
+  protected CommandHandler commandHandler = null;
+
   private String thrdName;
 
-  
-  public ChatSession(String thrdName) {
-    this.thrdName = thrdName;
-    isSessionOpenedFlag = new AtomicBoolean(false);
-  }
-  
   /**
    * Instantiates a new chat session.
    */
@@ -40,27 +34,25 @@ public abstract class ChatSession {
   }
 
   /**
-   * Instantiates a new chat session.
-   *
-   * @param clientSocket the client socket
+   * Instantiates a new chat session and set thread name to {@link CommandHandler} thread.
    */
-//  public ChatSession(Socket clientSocket) {
-//    this();
-//    runCommandHandler(clientSocket);
-//  }
+  public ChatSession(String thrdName) {
+    this.thrdName = thrdName;
+    isSessionOpenedFlag = new AtomicBoolean(false);
+  }
 
   /**
-   * Run command handler.
+   * Run {@link CommandHandler} for processing commands in session. Open output&input streams.
    *
    * @param clientSocket the client socket
    */
   public void runCommandHandler(Socket clientSocket) {
-    commandHandler = new CommandHandler_new(clientSocket, this);
+    commandHandler = new CommandHandler(clientSocket, this);
     commandHandler.start(thrdName);
   }
 
   /**
-   * Gets the checks if is session opened flag.
+   * Return true if session is open.
    *
    * @return the checks if is session opened flag
    */
@@ -69,16 +61,16 @@ public abstract class ChatSession {
   }
 
   /**
-   * Send command.
+   * Open session. Initialize MDC with username to print it in logs.
    *
-   * @param command the command
+   * @param userName the name of user
    */
-  public void sendCommand(Command command) {
-    commandHandler.send(command);
-  };
+  public void open(String userName) {
+    MDC.put("username", userName);
+  }
 
   /**
-   * Process command.
+   * Method with business logic for input {@link Command}. Called from {@link CommandHandler#run()}.
    *
    * @param command the command
    */
@@ -87,20 +79,23 @@ public abstract class ChatSession {
   };
 
   /**
-   * Open session.
+   * Send command.
    *
-   * @param username the username
+   * @param command the command
    */
-  public void openSession(String userName) {
-    MDC.put("username", userName);
-  };
+  public void sendCommand(Command command) {
+    if ((commandHandler != null) && commandHandler.getIsOutputStreamOpened()) {
+      commandHandler.send(command);
+    }
+  }
 
   /**
-   * Close session.
+   * All the stuff that we need to do when closing the session. Stop {@link CommandHandler}, clear
+   * MDC, dispose user.
    *
-   * @param sendEXTCMD the send EXTCMD
+   * @param sendEXTCMD boolean flag, if true then sending EXTCMD
    */
-  public void closeSession(boolean sendEXTCMD) {
+  public void close(boolean sendEXTCMD) {
 
     if (sendEXTCMD) {
 
@@ -121,7 +116,7 @@ public abstract class ChatSession {
 
     MDC.clear();
     user = null;
-    
+
   };
 
 }

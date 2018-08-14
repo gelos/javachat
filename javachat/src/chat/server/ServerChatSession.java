@@ -76,7 +76,7 @@ public class ServerChatSession extends ChatSession {
       this.user = new User(userName);
 
       // Send OK command with ENTER payload to confirm session opening
-      sendCommand(new Command(CMDOK, "", CMDENTER.toString()));
+      send(new Command(CMDOK, "", CMDENTER.toString()));
 
       // Send command to update all chat client user lists
       sendToAllChatClients(new Command(CMDUSRLST, "", getUserNamesListInString()));
@@ -94,7 +94,7 @@ public class ServerChatSession extends ChatSession {
 
       // If username not valid send error command to client, print to console and save to log
       String msg = ERR_NAME_EXISTS_MSG + " " + userName;
-      sendCommand(new Command(CMDERR, msg));
+      send(new Command(CMDERR, msg));
       logger.error(this.getClass().getSimpleName() + "." + "openSession() {}", msg);
       System.out.println(msg);
 
@@ -103,15 +103,15 @@ public class ServerChatSession extends ChatSession {
   }
 
   /**
-   * Server implementation of {@link ChatSession#processCommand(Command)} method.
+   * Server implementation of {@link ChatSession#receive(Command)} method.
    *
    * @param command the command
-   * @see chat.base.ChatSession#processCommand(chat.base.Command)
+   * @see chat.base.ChatSession#receive(chat.base.Command)
    */
   @Override
-  public void processCommand(Command command) {
+  public void receive(Command command) {
 
-    super.processCommand(command);
+    super.receive(command);
 
     // Ignoring all commands except CMDENTER while session not open
     if (!getIsSessionOpenedFlag() && command.getCommandName() != CMDENTER) {
@@ -160,7 +160,7 @@ public class ServerChatSession extends ChatSession {
       default:
 
         errMessage = Constants.WRN_UNKNOWN_COMMAND_MSG + " " + command;
-        sendCommand(new Command(CMDERR, errMessage));
+        send(new Command(CMDERR, errMessage));
         loggerDebugMDC.debug(this.getClass().getSimpleName() + "." + "processCommand() {}",
             errMessage);
 
@@ -250,7 +250,7 @@ public class ServerChatSession extends ChatSession {
         // If found send message
         if (serverCommandHandler != null) {
 
-          serverCommandHandler.sendCommand(new Command(CMDMSG, message));
+          serverCommandHandler.send(new Command(CMDMSG, message));
 
           // If not found, add to list
         } else {
@@ -265,7 +265,7 @@ public class ServerChatSession extends ChatSession {
 
         loggerDebugMDC.debug(this.getClass().getSimpleName() + "." + "processMSGCommand() {} ",
             errMessage);
-        sendCommand(new Command(CMDERR, errMessage));
+        send(new Command(CMDERR, errMessage));
       }
     }
   }
@@ -291,7 +291,7 @@ public class ServerChatSession extends ChatSession {
   private void sendToAllChatClients(Command command) {
 
     for (ChatSession serverCommandHandler : chatSessionStorage.values()) {
-      serverCommandHandler.sendCommand(command);
+      serverCommandHandler.send(command);
     }
 
   }

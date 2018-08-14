@@ -120,4 +120,8 @@ public final class Constants {
   /** The Constant THREAD_NAME_CLN. */
   private static final String THREAD_NAME_CLN = "client-";
 
+  public static final String MSG_WRONG_FORMAT_OR_COMMAND_2 = "\" not supported.";
+
+  public static final String MSG_WRONG_FORMAT_OR_COMMAND_1 = "Wrong format or command \"";
+
 }

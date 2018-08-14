@@ -73,7 +73,7 @@ public class ClientChatSession extends ChatSession {
     if (commandHandler.getIsOutputStreamOpened()) {
 
       // Initiate session by sending the ENTER command
-      sendCommand(new Command(CommandName.CMDENTER, "", user.getUsername()));
+      send(new Command(CommandName.CMDENTER, "", user.getUsername()));
 
     } else {
 
@@ -125,14 +125,14 @@ public class ClientChatSession extends ChatSession {
   }
 
   /**
-   * Client implementation of {@link ChatSession#processCommand(Command)} method.
+   * Client implementation of {@link ChatSession#receive(Command)} method.
    *
-   * @see chat.base.ChatSession#processCommand(chat.base.Command)
+   * @see chat.base.ChatSession#receive(chat.base.Command)
    */
   @Override
-  public void processCommand(Command command) {
+  public void receive(Command command) {
 
-    super.processCommand(command);
+    super.receive(command);
 
     // Ignoring all commands except OK with payload ENTER while session not open
     if (!getIsSessionOpenedFlag() && command.getCommandName() != CommandName.CMDOK

@@ -76,7 +76,7 @@ public class CommandHandler extends WorkerThread {
 
   /**
    * Skeleton method for processing input command. Read {@link Command} from input stream and run
-   * {@link ChatSession#processCommand(Command)}.
+   * {@link ChatSession#receive(Command)}.
    * 
    * @see java.lang.Runnable#run()
    */
@@ -100,7 +100,7 @@ public class CommandHandler extends WorkerThread {
         Command command = (Command) inputStream.readObject();
         if (isRunning()) {
 
-          chatSession.processCommand(command);
+          chatSession.receive(command);
         }
 
       }

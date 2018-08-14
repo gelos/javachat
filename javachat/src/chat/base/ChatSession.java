@@ -74,7 +74,7 @@ public abstract class ChatSession {
    *
    * @param command the command
    */
-  public void processCommand(Command command) {
+  public void receive(Command command) {
     loggerDebugMDC.debug(command.toString());
   };
 
@@ -83,7 +83,7 @@ public abstract class ChatSession {
    *
    * @param command the command
    */
-  public void sendCommand(Command command) {
+  public void send(Command command) {
     if ((commandHandler != null) && commandHandler.getIsOutputStreamOpened()) {
       commandHandler.send(command);
     }
@@ -99,7 +99,7 @@ public abstract class ChatSession {
 
     if (sendEXTCMD) {
 
-      sendCommand(new Command(CommandName.CMDEXIT, ""));
+      send(new Command(CommandName.CMDEXIT, ""));
     }
 
 

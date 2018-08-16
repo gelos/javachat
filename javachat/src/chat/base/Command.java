@@ -34,22 +34,18 @@ public class Command implements Serializable {
 
   /**
    * Instantiating a new command, parsed from the input commandString. Command parsed:
+   * <li>{@link CommandName#CMDMSG}
+   * <li>{@link CommandName#CMDENTER}
+   * <li>{@link CommandName#CMDEXIT}
+   * <li>{@link CommandName#CMDPRVMSG}
+   * <p>
    * 
    * If the message is empty or the command is not found the list, return {@link CommandName#CMDERR}
    * command.
    *
    * @param commandString the command string
    */
-  
-  // TODO Fix it
-  
-//  <li>{@link CommandName#CMDMSG}
-//  * <li>{@link CommandName#CMDENTER}
-//  * <li>{@link CommandName#CMDEXIT}
-//  * <li>{@link CommandName#CMDPRVMSG}
-//  * <p>
-  
-  
+
   public Command(String commandString) {
 
     CommandName defaultCommandName = (commandString.length() == 0) ? CMDERR : CMDMSG;

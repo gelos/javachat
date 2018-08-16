@@ -21,8 +21,8 @@ import chat.base.WorkerThread;
 // TODO use Callable, Future, CompleteCallable
 /**
  * Implementing the server part of the chat application. Accepts client sessions through
- * {@link ProcessClientConnectionsThread}, allows you to use the console commands through
- * {@link ProcessConsoleInputThread}.
+ * {@link Server#processClientConnectionsThread}, allows you to use the console commands through
+ * {@link Server#processClientConnectionsThread}.
  * 
  */
 

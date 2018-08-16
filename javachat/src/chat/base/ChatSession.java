@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+// TODO: Auto-generated Javadoc
 /**
  * The basic class for ChatSession. Process all session activities.
  */
@@ -13,6 +14,8 @@ public abstract class ChatSession {
 
   /** The logger. */
   protected final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
+
+  /** The Constant loggerDebugMDC. */
   protected static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
   /** The is session opened flag. */
@@ -24,6 +27,7 @@ public abstract class ChatSession {
   /** The command handler. */
   protected CommandHandler commandHandler = null;
 
+  /** The thrd name. */
   private String thrdName;
 
   /**
@@ -33,8 +37,11 @@ public abstract class ChatSession {
     this("");
   }
 
+
   /**
    * Instantiates a new chat session and set thread name to {@link CommandHandler} thread.
+   *
+   * @param thrdName the thrd name
    */
   public ChatSession(String thrdName) {
     this.thrdName = thrdName;
@@ -42,7 +49,7 @@ public abstract class ChatSession {
   }
 
   /**
-   * Run {@link CommandHandler} for processing commands in session. Open output&input streams.
+   * Run {@link CommandHandler} for processing commands in session. Open output and input streams.
    *
    * @param clientSocket the client socket
    */

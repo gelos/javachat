@@ -33,7 +33,7 @@ public class ClientChatSession extends ChatSession {
   /**
    * Client implementation of {@link ChatSession#open(String)} method.
    *
-   * @see @see chat.base.ChatSession#openSession(java.lang.String)
+   * @see chat.base.ChatSession#open(String)
    */
   @Override
   public void open(String userName) {

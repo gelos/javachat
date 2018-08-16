@@ -53,7 +53,25 @@ public class ClientViewSwing extends JFrame implements View {
 
   // TODO stop Presenter on windows close
 
-  // Constructor
+  // frame.addWindowListener(new java.awt.event.WindowAdapter() {
+  // @Override
+  // public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+  // if (JOptionPane.showConfirmDialog(frame,
+  // "Are you sure to close this window?", "Really Closing?",
+  // JOptionPane.YES_NO_OPTION,
+  // JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+  // System.exit(0);
+  // }
+  // }
+  // });
+
+
+  /*
+   * @Override public void dispose() { onViewClose(); super.dispose(); }
+   * 
+   * @Override public void onViewClose() { getPresenter().closeConnection(); }
+   */
+
 
   /**
    * Initialize GUI components.
@@ -90,17 +108,17 @@ public class ClientViewSwing extends JFrame implements View {
   }
 
   @Override
-  public void onConnectionClosing(String title) {
-    // Empty method
-  }
+  public void onConnectionClosing(String title) {}
 
   @Override
   public void onConnectionClosed(String title) {
+
     chatTextField.removeActionListener(enterKeyListenerAction);
     chatTextField.removeActionListener(openConnectionListenerAction);
     chatTextField.addActionListener(openConnectionListenerAction);
     // chatTextField.setEditable(true);
     setTitle(title);
+
   }
 
   @Override
@@ -128,8 +146,8 @@ public class ClientViewSwing extends JFrame implements View {
       } else {
         doc.insertString(doc.getLength(), "\n" + message, null);
       }
-    } catch (BadLocationException e1) {
-      logger.error("onReceiveMessage(String)", e1); //$NON-NLS-1$
+    } catch (BadLocationException e) {
+      logger.error(this.getClass().getSimpleName() + "." + "onReceiveMessage(String)", e); //$NON-NLS-1$
     }
   }
 
@@ -137,12 +155,6 @@ public class ClientViewSwing extends JFrame implements View {
   public void setPresenter(Presenter presenter) {
     this.presenter = presenter;
   }
-
-  /*
-   * @Override public void dispose() { onViewClose(); super.dispose(); }
-   * 
-   * @Override public void onViewClose() { getPresenter().closeConnection(); }
-   */
 
   @Override
   public void showMessageWindow(Object message, String title) {
@@ -164,93 +176,80 @@ public class ClientViewSwing extends JFrame implements View {
     JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
   }
 
-  
-  
-//  frame.addWindowListener(new java.awt.event.WindowAdapter() {
-//      @Override
-//      public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-//          if (JOptionPane.showConfirmDialog(frame, 
-//              "Are you sure to close this window?", "Really Closing?", 
-//              JOptionPane.YES_NO_OPTION,
-//              JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-//              System.exit(0);
-//          }
-//      }
-//  });
-  
+
   private void initActions() {
-  
+
     enterKeyListenerAction = new AbstractAction() {
-  
+
       /**
        * 
        */
       private static final long serialVersionUID = 2285084326177903354L;
-  
+
       @Override
       public void actionPerformed(ActionEvent e) {
         getPresenter().sendCommand(chatTextField.getText());
       }
     };
-  
+
     openConnectionListenerAction = new AbstractAction() {
-  
+
       /**
        * 
        */
       private static final long serialVersionUID = -2510888198208290119L;
-  
+
       @Override
       public void actionPerformed(ActionEvent e) {
         getPresenter().openConnection(chatTextField.getText());
       }
     };
-  
+
   }
 
   private void initComponents() {
-  
+
     setBounds(100, 100, 500, 400);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     getContentPane().setLayout(new BorderLayout(0, 0));
-  
+
     JSplitPane splitPane = new JSplitPane();
     getContentPane().add(splitPane);
-  
+
     JPanel panel_left = new JPanel();
     splitPane.setLeftComponent(panel_left);
     panel_left.setLayout(new BorderLayout(0, 0));
-  
+
     chatUserList = new JList<String>();
     chatUserList.setModel(new DefaultListModel());
     chatUserList.setFocusable(false);
-  
+
     JScrollPane scrollChatUserList = new JScrollPane(chatUserList);
     panel_left.add(scrollChatUserList);
     splitPane.getLeftComponent().setPreferredSize(new Dimension(100, 0));
     splitPane.getLeftComponent().setMinimumSize(new Dimension(50, 0));
-  
+
     JPanel panel_right = new JPanel();
     splitPane.setRightComponent(panel_right);
     panel_right.setLayout(new BorderLayout(0, 0));
-  
+
     chatTextField = new JTextField();
     chatTextField.setToolTipText("Type text and press Enter button");
     panel_right.add(chatTextField, BorderLayout.SOUTH);
     chatTextField.setColumns(10);
-  
+
     JPanel chatPanel = new JPanel();
     JScrollPane scrollChatPane = new JScrollPane(chatPanel);
     panel_right.add(scrollChatPane, BorderLayout.CENTER);
     chatPanel.setLayout(new BorderLayout(0, 0));
-  
+
     chatTextPane = new JTextPane();
     chatTextPane.setFocusable(false);
     chatTextPane.setEditable(false);
     DefaultCaret caret = (DefaultCaret) chatTextPane.getCaret();
     caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     chatPanel.add(chatTextPane, BorderLayout.SOUTH);
-  
+
     chatTextField.requestFocusInWindow();
   }
 

@@ -20,7 +20,7 @@ import chat.base.WorkerThread;
 // TODO add log support logback https://stackify.com/logging-logback/
 // TODO use Callable, Future, CompleteCallable
 /**
- * It implements the server part of the chat application. Accepts client sessions through
+ * Implementing the server part of the chat application. Accepts client sessions through
  * {@link ProcessClientConnectionsThread}, allows you to use the console commands through
  * {@link ProcessConsoleInputThread}.
  * 
@@ -34,7 +34,7 @@ public class Server {
   /** The thread to process client connections. */
   private ProcessClientConnectionsThread processClientConnectionsThread;
 
-  /** The process console input thread. */
+  /** The thread to process console input thread. */
   private ProcessConsoleInputThread processConsoleInputThread;
 
   /** The thread to stop server. */

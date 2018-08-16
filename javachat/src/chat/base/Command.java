@@ -16,7 +16,7 @@ public class Command implements Serializable {
   /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 1L;
 
-  /** The command name. {@see CommandName} */
+  /** The command name. {@link CommandName} */
   private CommandName commandName;
 
   /** The message. */
@@ -34,16 +34,22 @@ public class Command implements Serializable {
 
   /**
    * Instantiating a new command, parsed from the input commandString. Command parsed:
-   * <li>{@link CommandName#CMDMSG}
-   * <li>{@link CommandName#CMDENTER}
-   * <li>{@link CommandName#CMDEXIT}
-   * <li>{@link CommandName#CMDPRVMSG}
-   * <p>
+   * 
    * If the message is empty or the command is not found the list, return {@link CommandName#CMDERR}
    * command.
    *
-   * @param messageSubString the command string
+   * @param commandString the command string
    */
+  
+  // TODO Fix it
+  
+//  <li>{@link CommandName#CMDMSG}
+//  * <li>{@link CommandName#CMDENTER}
+//  * <li>{@link CommandName#CMDEXIT}
+//  * <li>{@link CommandName#CMDPRVMSG}
+//  * <p>
+  
+  
   public Command(String commandString) {
 
     CommandName defaultCommandName = (commandString.length() == 0) ? CMDERR : CMDMSG;

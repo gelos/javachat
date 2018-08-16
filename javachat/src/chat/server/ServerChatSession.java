@@ -56,7 +56,7 @@ public class ServerChatSession extends ChatSession {
    * Server implementation of {@link ChatSession#open(String)} method.
    *
    * @param userName the user name
-   * @see @see chat.base.ChatSession#openSession(java.lang.String)
+   * @see chat.base.ChatSession#open(String)
    */
   @Override
   public void open(String userName) {

@@ -13,6 +13,7 @@ public class ClientSwing {
   /**
    * Logger for this class
    */
+  //TODO Create the one logger for one instance, server or client
   private static final Logger logger = LoggerFactory.getLogger(ClientSwing.class);
 
   /**

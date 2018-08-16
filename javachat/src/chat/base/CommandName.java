@@ -7,16 +7,23 @@ import java.util.Map;
 
 /**
  * The Enum CommandName used in {@link Command}. Command names that can be used:
- * <li>{@link #CMDDLM}</li>
- * <li>{@link #CMDEXIT}</li>
- * <li>{@link #CMDENTER}</li>
- * <li>{@link #CMDUSRLST}</li>
- * <li>{@link #CMDPRVMSG}</li>
- * <li>{@link #CMDMSG}</li>
- * <li>{@link #CMDERR}</li>
- * <li>{@link #CMDHLP}</li>
- * <li>{@link #CMDOK}</li>
+ * &lt;li&gt;{@link #CMDOK}}&lt;/li&gt;
  */
+
+
+
+
+//* <li>{@link #CMDDLM}</li>
+//* <li>{@link #CMDEXIT}</li>
+//* <li>{@link #CMDENTER}</li>
+//* <li>{@link #CMDUSRLST}</li>
+//* <li>{@link #CMDPRVMSG}</li>
+//* <li>{@link #CMDMSG}</li>
+//* <li>{@link #CMDERR}</li>
+//* <li>{@link #CMDHLP}</li>
+//* <li>{@link #CMDOK}</li>
+
+
 public enum CommandName implements Serializable {
 
   /** The space character as delimiter of command parts in string command representation. */

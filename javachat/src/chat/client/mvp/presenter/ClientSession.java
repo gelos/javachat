@@ -3,16 +3,16 @@ package chat.client.mvp.presenter;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
-import chat.base.ChatSession;
+import chat.base.Session;
 import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.base.User;
 
 /**
- * The Class ClientChatSession. Chat session on client side. Extends {@link ChatSession}.
+ * The Class ClientSession. Chat session on client side. Extends {@link Session}.
  */
-public class ClientChatSession extends ChatSession {
+public class ClientSession extends Session {
 
   /** The MVC presenter. */
   private Presenter presenter = null;
@@ -22,18 +22,18 @@ public class ClientChatSession extends ChatSession {
    *
    * @param presenter the presenter
    */
-  public ClientChatSession(Presenter presenter) {
+  public ClientSession(Presenter presenter) {
 
-    // Create ChatSession with client tag in ComandHandler thread name
+    // Create Session with client tag in ComandHandler thread name
     super(Constants.THREAD_NAME_CLIENT);
     this.presenter = presenter;
 
   }
 
   /**
-   * Client implementation of {@link ChatSession#open(String)} method.
+   * Client implementation of {@link Session#open(String)} method.
    *
-   * @see chat.base.ChatSession#open(String)
+   * @see chat.base.Session#open(String)
    */
   @Override
   public void open(String userName) {
@@ -125,9 +125,9 @@ public class ClientChatSession extends ChatSession {
   }
 
   /**
-   * Client implementation of {@link ChatSession#receive(Command)} method.
+   * Client implementation of {@link Session#receive(Command)} method.
    *
-   * @see chat.base.ChatSession#receive(chat.base.Command)
+   * @see chat.base.Session#receive(chat.base.Command)
    */
   @Override
   public void receive(Command command) {
@@ -187,9 +187,9 @@ public class ClientChatSession extends ChatSession {
   }
 
   /**
-   * Client implementation of {@link ChatSession#close(boolean)} method.
+   * Client implementation of {@link Session#close(boolean)} method.
    * 
-   * @see chat.base.ChatSession#close(boolean)
+   * @see chat.base.Session#close(boolean)
    */
   @Override
   public void close(boolean sendEXTCMD) {

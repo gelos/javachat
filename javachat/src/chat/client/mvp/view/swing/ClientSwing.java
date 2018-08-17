@@ -30,7 +30,7 @@ public class ClientSwing {
 
           // Initialize View and Presenter
           final Presenter presenter = new ClientPresenter();
-          final ClientViewSwing mainWindow = new ClientViewSwing();
+          final ViewSwing mainWindow = new ViewSwing();
           presenter.setView(mainWindow);
           mainWindow.setPresenter(presenter);
 

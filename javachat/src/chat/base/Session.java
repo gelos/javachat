@@ -6,11 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-// TODO: Auto-generated Javadoc
 /**
- * The basic class for ChatSession. Process all session activities.
+ * The basic class for Session. Process all session activities.
  */
-public abstract class ChatSession {
+public abstract class Session {
 
   /** The logger. */
   protected final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
@@ -33,7 +32,7 @@ public abstract class ChatSession {
   /**
    * Instantiates a new chat session.
    */
-  public ChatSession() {
+  public Session() {
     this("");
   }
 
@@ -43,7 +42,7 @@ public abstract class ChatSession {
    *
    * @param thrdName the thrd name
    */
-  public ChatSession(String thrdName) {
+  public Session(String thrdName) {
     this.thrdName = thrdName;
     isSessionOpenedFlag = new AtomicBoolean(false);
   }

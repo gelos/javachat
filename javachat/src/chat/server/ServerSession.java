@@ -21,42 +21,41 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import chat.base.ChatSession;
+import chat.base.Session;
 import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.base.User;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class ServerChatSession. Chat session on server side. Extends {@link ChatSession}.
+ * The Class ServerSession. Chat session on server side.
  */
-public class ServerChatSession extends ChatSession {
+public class ServerSession extends Session {
 
   /** The session handlers thread-safe storage. */
-  private ConcurrentHashMap<String, ChatSession> chatSessionStorage;
+  private ConcurrentHashMap<String, Session> sessionStorage;
 
   /**
    * Instantiates a new server chat session.
    *
    * @param clientSocket the client socket
-   * @param chatSessionStorage the chat session storage
+   * @param sessionStorage the chat session storage
    */
-  public ServerChatSession(Socket clientSocket,
-      ConcurrentHashMap<String, ChatSession> chatSessionStorage) {
+  public ServerSession(Socket clientSocket,
+      ConcurrentHashMap<String, Session> sessionStorage) {
 
-    // Create ChatSession with server tag in ComandHandler thread name
+    // Create Session with server tag in ComandHandler thread name
     super(Constants.THREAD_NAME_SRV);
     runCommandHandler(clientSocket);
 
-    this.chatSessionStorage = chatSessionStorage;
+    this.sessionStorage = sessionStorage;
   }
 
   /**
-   * Server implementation of {@link ChatSession#open(String)} method.
+   * Server implementation of {@link Session#open(String)} method.
    *
    * @param userName the user name
-   * @see chat.base.ChatSession#open(String)
+   * @see chat.base.Session#open(String)
    */
   @Override
   public void open(String userName) {
@@ -65,9 +64,9 @@ public class ServerChatSession extends ChatSession {
 
     if (isUserNameValid(userName)) {
 
-      // Adds current ChatSession to sessions storage and now we can communicate with other chat
+      // Adds current Session to sessions storage and now we can communicate with other chat
       // clients using user name as a key
-      chatSessionStorage.put(userName, this);
+      sessionStorage.put(userName, this);
 
       // Set flag that current session is opened
       isSessionOpenedFlag.set(true);
@@ -103,10 +102,10 @@ public class ServerChatSession extends ChatSession {
   }
 
   /**
-   * Server implementation of {@link ChatSession#receive(Command)} method.
+   * Server implementation of {@link Session#receive(Command)} method.
    *
    * @param command the command
-   * @see chat.base.ChatSession#receive(chat.base.Command)
+   * @see chat.base.Session#receive(chat.base.Command)
    */
   @Override
   public void receive(Command command) {
@@ -169,18 +168,18 @@ public class ServerChatSession extends ChatSession {
   }
 
   /**
-   * Server implementation of {@link ChatSession#close(boolean)} method.
+   * Server implementation of {@link Session#close(boolean)} method.
    *
    * @param sendEXTCMD the send EXTCMD
-   * @see chat.base.ChatSession#close(boolean)
+   * @see chat.base.Session#close(boolean)
    */
   @Override
   public void close(boolean sendEXTCMD) {
 
-    // First of all we remove this handler from chatSessionStorage storage to
+    // First of all we remove this handler from sessionStorage storage to
     // prevent receiving messages
     if (user != null) {
-      chatSessionStorage.remove(user.getUsername());
+      sessionStorage.remove(user.getUsername());
     }
 
     // print console message about closing connection
@@ -245,7 +244,7 @@ public class ServerChatSession extends ChatSession {
       for (String key : usrSet) {
 
         // Search chatHandler by chat user name string
-        ChatSession serverCommandHandler = chatSessionStorage.get(key);
+        Session serverCommandHandler = sessionStorage.get(key);
 
         // If found send message
         if (serverCommandHandler != null) {
@@ -290,7 +289,7 @@ public class ServerChatSession extends ChatSession {
    */
   private void sendToAllChatClients(Command command) {
 
-    for (ChatSession serverCommandHandler : chatSessionStorage.values()) {
+    for (Session serverCommandHandler : sessionStorage.values()) {
       serverCommandHandler.send(command);
     }
 
@@ -304,7 +303,7 @@ public class ServerChatSession extends ChatSession {
    */
   private String getUserNamesListInString() {
 
-    return chatSessionStorage.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
+    return sessionStorage.keySet().toString().replaceAll("\\[|\\]", "").replaceAll(", ",
         CMDDLM.toString());
   }
 

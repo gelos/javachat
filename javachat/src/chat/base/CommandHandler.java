@@ -28,20 +28,20 @@ public class CommandHandler extends WorkerThread {
   private AtomicBoolean isOutputStreamOpened;
 
   /** The chat session. */
-  private ChatSession chatSession;
+  private Session session;
 
   /**
    * Instantiates a new command handler.
    *
    * @param clientSocket the client socket
-   * @param chatSession the chat session
+   * @param session the chat session
    */
-  public CommandHandler(Socket clientSocket, ChatSession chatSession) {
+  public CommandHandler(Socket clientSocket, Session session) {
     super();
     synchronized (clientSocket) {
       this.clientSocket = clientSocket;
     }
-    this.chatSession = chatSession;
+    this.session = session;
     isOutputStreamOpened = new AtomicBoolean(false);
   }
 
@@ -76,7 +76,7 @@ public class CommandHandler extends WorkerThread {
 
   /**
    * Skeleton method for processing input command. Read {@link Command} from input stream and run
-   * {@link ChatSession#receive(Command)}.
+   * {@link Session#receive(Command)}.
    * 
    * @see java.lang.Runnable#run()
    */
@@ -100,7 +100,7 @@ public class CommandHandler extends WorkerThread {
         Command command = (Command) inputStream.readObject();
         if (isRunning()) {
 
-          chatSession.receive(command);
+          session.receive(command);
         }
 
       }

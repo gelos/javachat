@@ -24,13 +24,13 @@ import chat.client.mvp.presenter.Presenter;
 import chat.client.mvp.view.View;
 
 /**
- * The Class ClientViewSwing. Implementing the Swing GUI View.
+ * The Class ViewSwing. Implementing the Swing GUI View.
  */
-public class ClientViewSwing extends JFrame implements View {
+public class ViewSwing extends JFrame implements View {
   /**
    * Logger for this class
    */
-  private static final Logger logger = LoggerFactory.getLogger(ClientViewSwing.class);
+  private static final Logger logger = LoggerFactory.getLogger(ViewSwing.class);
 
   private static final long serialVersionUID = -2989309737312155966L;
 
@@ -76,7 +76,7 @@ public class ClientViewSwing extends JFrame implements View {
   /**
    * Initialize GUI components.
    */
-  public ClientViewSwing() {
+  public ViewSwing() {
 
     initActions();
     initComponents();

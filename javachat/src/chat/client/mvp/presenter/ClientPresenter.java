@@ -1,6 +1,6 @@
 package chat.client.mvp.presenter;
 
-import chat.base.ChatSession;
+import chat.base.Session;
 import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
@@ -15,13 +15,13 @@ public class ClientPresenter implements Presenter {
   private View view;
 
   /** The chat session. */
-  private ChatSession chatSession;
+  private Session session;
 
   /**
    * Instantiates a new client presenter.
    */
   public ClientPresenter() {
-    chatSession = new ClientChatSession(this);
+    session = new ClientSession(this);
   }
 
   /**
@@ -32,7 +32,7 @@ public class ClientPresenter implements Presenter {
   @Override
   public void openConnection(String username) {
 
-    chatSession.open(username);
+    session.open(username);
 
   }
 
@@ -59,7 +59,7 @@ public class ClientPresenter implements Presenter {
       case CMDPRVMSG:
       case CMDENTER:
       case CMDMSG:
-        chatSession.send(command);
+        session.send(command);
         getView().onSendMessage();
         break;
 
@@ -70,7 +70,7 @@ public class ClientPresenter implements Presenter {
         break;
 
       default:
-        chatSession.send(new Command(CommandName.CMDMSG, commandString));
+        session.send(new Command(CommandName.CMDMSG, commandString));
         getView().onSendMessage();
         break;
     }
@@ -96,7 +96,7 @@ public class ClientPresenter implements Presenter {
   @Override
   public void closeConnection(boolean sendEXTCMD) {
 
-    chatSession.close(sendEXTCMD);
+    session.close(sendEXTCMD);
 
   }
 

@@ -1,27 +1,22 @@
 package chat.base;
 
-import static chat.base.CommandName.*;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import static chat.base.CommandName.CMDDLM;
+import static chat.base.CommandName.CMDERR;
+import static chat.base.CommandName.CMDMSG;
+import static chat.base.CommandName.CMDUDLM;
+import static chat.base.CommandName.CMDULDLM;
 import java.io.Serializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The Class Chat Command. Commands to communicate between clients and chat server. Used
  * serialization for transfer command object on network.
  */
 public class Command implements Serializable {
-  /**
-   * Logger for this class
-   */
-  private static final Logger logger = LoggerFactory.getLogger(Command.class);
-  private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
 
   /** The Constant serialVersionUID. */
   private static final long serialVersionUID = 1L;
 
-  /** The command name. {@see CommandName} */
+  /** The command name. {@link CommandName} */
   private CommandName commandName;
 
   /** The message. */
@@ -29,8 +24,6 @@ public class Command implements Serializable {
 
   /** The payload. */
   private String payload;
-
-  // Constructors
 
   /**
    * Default constructor, instantiates a new ERR chat command with empty message.
@@ -40,16 +33,19 @@ public class Command implements Serializable {
   }
 
   /**
-   * Instantiates a new chat command, parsed from command string. Command parsed:
+   * Instantiating a new command, parsed from the input commandString. Command parsed:
    * <li>{@link CommandName#CMDMSG}
    * <li>{@link CommandName#CMDENTER}
    * <li>{@link CommandName#CMDEXIT}
    * <li>{@link CommandName#CMDPRVMSG}
    * <p>
-   * If message empty or command not in list return {@link CommandName#CMDERR} command.
+   * 
+   * If the message is empty or the command is not found the list, return {@link CommandName#CMDERR}
+   * command.
    *
-   * @param messageSubString the command string
+   * @param commandString the command string
    */
+
   public Command(String commandString) {
 
     CommandName defaultCommandName = (commandString.length() == 0) ? CMDERR : CMDMSG;
@@ -57,19 +53,13 @@ public class Command implements Serializable {
 
     String payloadSubString = "";
 
-    // left trim, lower case string and split by first left space in two piece
-    // String[] strArrayLowerCase =
-    // commandString.replaceAll("^\\s+", "").toLowerCase().split(CMDDLM.toString(),
-    // 2);
-
     // Left trim string and split by first left space in two piece by CMDDLM
     String leftTrimCommandString = commandString.replaceAll("^\\s+", "");
 
     String[] commandStringSplitedByCMDDLM = leftTrimCommandString.split(CMDDLM.toString(), 2);
 
-    // Try to resolve first piece of string as valid command tag ignoring letter
-    // case, return null
-    // if can't
+    // Trying to resolve first piece of string as the valid command tag. Ignoring letter case,
+    // return null if failed
     String commandNameStringLowerCase = commandStringSplitedByCMDDLM[0].toLowerCase();
     commandName = CommandName.get(commandNameStringLowerCase);
 
@@ -103,37 +93,30 @@ public class Command implements Serializable {
                         // where username list used ULDLM to separate usernames
                         // else return error command
 
-          // Split message to three parts: empty, username list and message by CMDUDLM
-          // strArray = commandString.trim().split(CMDUDLM.toString(), 3);
-
-          // strArray = messageSubString.trim().split(CMDUDLM.toString(), 3);
-
           // Left trim string and split message to three parts: empty, username list and
-          // message by
-          // CMDUDLM
+          // message by CMDUDLM
           commandStringSplitedByCMDDLM =
               messageSubString.replaceAll("^\\s+", "").split(CMDUDLM.toString(), 3);
 
-          // Check that we split minimum on three parts, first part empty (see format) and
-          // user
+          // Checking that we splitted minimum by three parts. First part empty (see format) user
           // name list not empty
           if (commandStringSplitedByCMDDLM.length > 2
               && (commandStringSplitedByCMDDLM[2].length() > CMDDLM.toString().length())
               && commandStringSplitedByCMDDLM[0].isEmpty()) {
 
-            // Remove if necessary first CMDDLM in command string
+            // Removing if necessary first CMDDLM in command string
             if (commandStringSplitedByCMDDLM[2].substring(0, CMDDLM.toString().length())
                 .equalsIgnoreCase(CMDDLM.toString())) {
+
+              // Getting the private message
               messageSubString =
-                  commandStringSplitedByCMDDLM[2].substring(CMDDLM.toString().length()); // get
-                                                                                         // private
-              // message
+                  commandStringSplitedByCMDDLM[2].substring(CMDDLM.toString().length());
             } else {
-              messageSubString = commandStringSplitedByCMDDLM[2]; // get private message
+              messageSubString = commandStringSplitedByCMDDLM[2];
             }
 
-            payloadSubString = commandStringSplitedByCMDDLM[1].trim(); // get recipient username
-                                                                       // list
+            // Geting the recipient username list
+            payloadSubString = commandStringSplitedByCMDDLM[1].trim();
 
             // remove duplicated continuous CMDDLM
             commandStringSplitedByCMDDLM = payloadSubString.split(CMDULDLM.toString());
@@ -185,23 +168,6 @@ public class Command implements Serializable {
     this.commandName = commandName;
     this.message = message;
     this.payload = payload;
-  }
-
-  /**
-   * Send.
-   *
-   * @param outputStream the output stream
-   */
-  public final void send(ObjectOutputStream outputStream) {
-    loggerDebugMDC.debug(this.toString());
-    try {
-      outputStream.writeObject(this);
-      outputStream.flush();
-    } catch (IOException e) {
-
-      logger.error("send(ObjectOutputStream)", e); //$NON-NLS-1$
-
-    }
   }
 
   /**

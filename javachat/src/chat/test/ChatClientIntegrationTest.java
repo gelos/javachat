@@ -14,15 +14,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import chat.base.Constants;
+import chat.client.mvp.presenter.ClientPresenter;
 import chat.client.mvp.presenter.Presenter;
-import chat.client.mvp.presenter.PresenterFabric;
 import chat.server.Server;
 import mockit.Expectations;
 import mockit.Verifications;
 
 class ChatClientIntegrationTest {
 
-  public static final int MAX_TEST_REPEAT = 1;
+  public static final int MAX_TEST_REPEAT = 3;
   private static final long LATCH_OPERATION_TIMEOUT_SEC = 3L;
   private static final String ERR_THE_CLIENT_DID_NOT_RECEIVE_A_MESSAGE =
       "The client did not receive a message ";
@@ -86,7 +86,7 @@ class ChatClientIntegrationTest {
       }
     };
 
-    final Presenter clientPresenter = PresenterFabric.createPresenter();
+    final Presenter clientPresenter = new ClientPresenter();
 
     clientPresenter.setView(clientView);
     clientView.setPresenter(clientPresenter);
@@ -137,7 +137,7 @@ class ChatClientIntegrationTest {
 
     latch = new CountDownLatch(1);
     clientView.setLatch(latch);
-    clientPresenter.closeConnection();
+    clientPresenter.closeConnection(true);
     isCountDownLatchZero = latch.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
     assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
 
@@ -165,7 +165,7 @@ class ChatClientIntegrationTest {
   @DisplayName("Sending messages between two clients.")
   void sendMessagesBetweenTwoClientsTest() throws Throwable {
 
-    // TODO test opening session in already opened session
+    // TODO test openning session in already opened session
 
     final AtomicReference<Throwable> exception = new AtomicReference<>();
     Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -175,8 +175,8 @@ class ChatClientIntegrationTest {
       }
     });
 
-    final Presenter clientPresenter1 = PresenterFabric.createPresenter();
-    final Presenter clientPresenter2 = PresenterFabric.createPresenter();
+    final Presenter clientPresenter1 = new ClientPresenter();
+    final Presenter clientPresenter2 = new ClientPresenter();
 
     boolean isCountDownLatchZero = false;
 
@@ -388,7 +388,7 @@ class ChatClientIntegrationTest {
     latch2 = new CountDownLatch(1);
     clientView2.setLatch(latch2);
 
-    clientPresenter2.closeConnection();
+    clientPresenter2.closeConnection(true);
     // Waiting for ClientView2 to complete onConnectionClosed
     isCountDownLatchZero = latch2.await(LATCH_OPERATION_TIMEOUT_SEC, TimeUnit.SECONDS);
     assertTrue(ERR_TIMEOUT_COUNTDOWN_LATCH, isCountDownLatchZero);
@@ -423,8 +423,8 @@ class ChatClientIntegrationTest {
       }
     });
 
-    final Presenter clientPresenter1 = PresenterFabric.createPresenter();
-    final Presenter clientPresenter2 = PresenterFabric.createPresenter();
+    final Presenter clientPresenter1 = new ClientPresenter();
+    final Presenter clientPresenter2 = new ClientPresenter();
 
     boolean isCountDownLatchZero = false;
 

@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import chat.base.Constants;
+import chat.client.mvp.presenter.ClientPresenter;
 import chat.client.mvp.presenter.Presenter;
-import chat.client.mvp.presenter.PresenterFabric;
 import chat.client.mvp.view.View;
 import chat.server.Server;
 import mockit.Capturing;
@@ -49,7 +49,7 @@ class SendPrivateMessageIntegrationTest {
 
 	// The factory method to create presenter and view Swing
 	private Presenter createChatClientFactory(View view) {
-		Presenter presenter = PresenterFabric.createPresenter();
+		Presenter presenter = new ClientPresenter();
 		view.setPresenter(presenter);
 		presenter.setView(view);
 		return presenter;

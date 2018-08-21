@@ -25,7 +25,7 @@ public class ClientSession extends Session {
   public ClientSession(Presenter presenter) {
 
     // Create Session with client tag in ComandHandler thread name
-    super(Constants.THREAD_NAME_CLIENT);
+    super(Constants.THREAD_NAME_CLN);
     this.presenter = presenter;
 
   }

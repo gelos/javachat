@@ -1,7 +1,5 @@
 package chat.client.mvp.view.swing;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -16,10 +14,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.ListModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import chat.client.mvp.presenter.Presenter;
 import chat.client.mvp.view.View;
 

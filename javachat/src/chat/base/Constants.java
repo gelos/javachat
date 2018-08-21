@@ -35,9 +35,6 @@ public final class Constants {
   /** The Constant DEFAULT_WINDOW_NAME. */
   public static final String DEFAULT_WINDOW_NAME = "Java Chat Client";
 
-  /** The Constant THREAD_NAME_CLIENT. */
-  public static final String THREAD_NAME_CLIENT = "client-";
-
   /** The Constant WRN_UNKNOWN_COMMAND_MSG. */
   public static final String WRN_UNKNOWN_COMMAND_MSG = "Received unknown command";
 
@@ -95,6 +92,9 @@ public final class Constants {
 
   public static final String THREAD_NAME_SRV = "server-";
 
+  /** The Constant THREAD_NAME_CLN. */
+  public static final String THREAD_NAME_CLN = "client-";
+
   /** The Constant MAX_TIMEOUT_SESSION_OPEN_MS. */
   public final static int MAX_TIMEOUT_SESSION_OPEN_MS = 100;
 
@@ -117,8 +117,6 @@ public final class Constants {
 
   public static final String MSG_CLIENT_STOPPED = "Client stopped.";
 
-  /** The Constant THREAD_NAME_CLN. */
-  private static final String THREAD_NAME_CLN = "client-";
 
   public static final String MSG_WRONG_FORMAT_OR_COMMAND_2 = "\" not supported.";
 

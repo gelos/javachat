@@ -10,7 +10,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.MDC;
 
 /**
  * The Class CommandHandler. Class for send/receive {@link Command}.

@@ -1,0 +1,5 @@
+chat.base
+chat.client.mvp.presenter
+chat.client.mvp.view
+chat.client.mvp.view.swing
+chat.server

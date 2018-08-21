@@ -4,16 +4,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class with implemented basic thread methods.
  */
 public abstract class WorkerThread implements Runnable {
 
+  /** The logger. */
   protected final Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
   
   /** The thread. */
   private Thread thread;
 
+  /**
+   * Gets the thread.
+   *
+   * @return the thread
+   */
   public final Thread getThread() {
     return thread;
   }
@@ -45,6 +52,7 @@ public abstract class WorkerThread implements Runnable {
     
   }
 
+  
   /**
    * Start.
    */
@@ -52,8 +60,11 @@ public abstract class WorkerThread implements Runnable {
     this.start("");
   }
 
+  
   /**
    * Start.
+   *
+   * @param threadPrefix the thread prefix
    */
   public void start(String threadPrefix) {
 

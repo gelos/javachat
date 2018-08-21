@@ -10,7 +10,7 @@ import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import chat.base.ChatSession;
+import chat.base.Session;
 import chat.base.Constants;
 import chat.base.WorkerThread;
 
@@ -19,10 +19,11 @@ import chat.base.WorkerThread;
 // TODO: use netty+protobuf or ZeroMQ
 // TODO add log support logback https://stackify.com/logging-logback/
 // TODO use Callable, Future, CompleteCallable
+// TODO create command history in client
 /**
- * It implements the server part of the chat application. Accepts client sessions through
- * {@link ProcessClientConnectionsThread}, allows you to use the console commands through
- * {@link ProcessConsoleInputThread}.
+ * Implementing the server part of the chat application. Accepts client sessions through
+ * {@link Server#processClientConnectionsThread}, allows you to use the console commands through
+ * {@link Server#processClientConnectionsThread}.
  * 
  */
 
@@ -34,7 +35,7 @@ public class Server {
   /** The thread to process client connections. */
   private ProcessClientConnectionsThread processClientConnectionsThread;
 
-  /** The process console input thread. */
+  /** The thread to process console input thread. */
   private ProcessConsoleInputThread processConsoleInputThread;
 
   /** The thread to stop server. */
@@ -169,13 +170,13 @@ public class Server {
   }
 
   /**
-   * Processes client chat connections with a {@link ServerChatSession} object.
+   * Processes client chat connections with a {@link ServerSession} object.
    * 
    */
   private class ProcessClientConnectionsThread extends WorkerThread {
 
     /** The client session handlers thread-safe storage. */
-    private ConcurrentHashMap<String, ChatSession> chatSessionStorage;
+    private ConcurrentHashMap<String, Session> sessionStorage;
 
     /** The server socket. */
     private ServerSocket serverSocket;
@@ -188,7 +189,7 @@ public class Server {
     public ProcessClientConnectionsThread(int port) {
       super();
 
-      chatSessionStorage = new ConcurrentHashMap<String, ChatSession>();
+      sessionStorage = new ConcurrentHashMap<String, Session>();
 
       openServerSocket(port);
     }
@@ -209,7 +210,7 @@ public class Server {
           synchronized (serverSocket) {
 
             Socket socket = serverSocket.accept();
-            new ServerChatSession(socket, chatSessionStorage);
+            new ServerSession(socket, sessionStorage);
 
           }
         }
@@ -245,11 +246,11 @@ public class Server {
         // TODO change serial stop to parallel stop with distinct thread for stopping each
         // serverCommandHandler
 
-        if (chatSessionStorage != null) {
+        if (sessionStorage != null) {
 
-          for (ChatSession chatSession : chatSessionStorage.values()) {
+          for (Session session : sessionStorage.values()) {
             boolean sendEXTCMD = true;
-            chatSession.closeSession(sendEXTCMD);
+            session.close(sendEXTCMD);
           }
         }
 

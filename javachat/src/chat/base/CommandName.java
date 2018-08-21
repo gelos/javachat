@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * The Enum CommandName used in {@link Command}. Command names that can be used:
+ * <li>{@link #CMDOK}</li>
  * <li>{@link #CMDDLM}</li>
  * <li>{@link #CMDEXIT}</li>
  * <li>{@link #CMDENTER}</li>
@@ -17,19 +18,20 @@ import java.util.Map;
  * <li>{@link #CMDHLP}</li>
  * <li>{@link #CMDOK}</li>
  */
+
 public enum CommandName implements Serializable {
 
   /** The space character as delimiter of command parts in string command representation. */
   CMDDLM(" "),
 
   /**
-   * The single quote character (') as delimiter of recipient user list in {@link CMDPRVMSG} from
+   * The single quote character (') as delimiter of recipient user list in {@link CommandName#CMDPRVMSG} from
    * over command parts in string command representation.
    */
   CMDUDLM("\'"),
 
   /**
-   * The delimiter inside recipient user list in {@link CMDPRVMSG} in string command representation.
+   * The delimiter inside recipient user list in {@link CommandName#CMDPRVMSG} in string command representation.
    */
   CMDULDLM(","),
 
@@ -44,7 +46,7 @@ public enum CommandName implements Serializable {
 
   /**
    * The command to update user list on client View. Payload is a string of the user names with
-   * {@link CMDDLM} as delimiter. Initiated by server, processed by client.
+   * {@link CommandName#CMDDLM} as delimiter. Initiated by server, processed by client.
    */
   CMDUSRLST("/usrlst"),
 

@@ -1,93 +1,121 @@
 package chat.client.mvp.presenter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import chat.base.ChatSession;
+import chat.base.Session;
 import chat.base.Command;
 import chat.base.CommandName;
 import chat.base.Constants;
 import chat.client.mvp.view.View;
 
+/**
+ * The Class ClientPresenter. Implements {@link Presenter}. Used in MVP model.
+ */
 public class ClientPresenter implements Presenter {
 
-  /**
-   * Logger for this class
-   */
-  protected static final Logger logger = LoggerFactory.getLogger(ClientPresenter.class);
-  // private static final Logger loggerDebug = LoggerFactory.getLogger("debug");
-  private static final Logger loggerDebugMDC = LoggerFactory.getLogger("debug.MDC");
-
-  private static final String THREAD_NAME_CLN = "client-";
-
-  // private CommandHandler_new commandHandler = null;
+  /** The view. */
   private View view;
-  // TODO refactor as local var
-  // public Socket clientSocket = null;
 
-  private ChatSession chatSession;
+  /** The chat session. */
+  private Session session;
 
+  /**
+   * Instantiates a new client presenter.
+   */
   public ClientPresenter() {
-    chatSession = new ClientChatSession(this);
+    session = new ClientSession(this);
   }
 
-
-
+  /**
+   * Implementing {@link Presenter#openConnection(String)}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#openConnection(java.lang.String)
+   */
   @Override
   public void openConnection(String username) {
 
-    chatSession.openSession(username);
+    session.open(username);
+
   }
 
+  /**
+   * Implementing {@link Presenter#sendCommand(String)}. Get the input string, parsing it to the
+   * {@link Command} object, and send it.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#sendCommand(java.lang.String)
+   */
+  @Override
+  public void sendCommand(String commandString) {
+
+    // Parsing sting to command object
+    Command command = new Command(commandString);
+
+    switch (command.getCommandName()) {
+
+      case CMDEXIT:
+        boolean sendEXTCMD = true;
+        closeConnection(sendEXTCMD);
+        onViewStart();
+        break;
+
+      case CMDPRVMSG:
+      case CMDENTER:
+      case CMDMSG:
+        session.send(command);
+        getView().onSendMessage();
+        break;
+
+      case CMDERR:
+        getView().showErrorWindow(Constants.MSG_WRONG_FORMAT_OR_COMMAND_1 + command.getMessage()
+            + Constants.MSG_WRONG_FORMAT_OR_COMMAND_2, "");
+        getView().onSendMessage();
+        break;
+
+      default:
+        session.send(new Command(CommandName.CMDMSG, commandString));
+        getView().onSendMessage();
+        break;
+    }
+  }
+
+
+  /**
+   * Implementing {@link Presenter#closeConnection()}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#closeConnection()
+   */
+  @Override
+  public void closeConnection() {
+    closeConnection(true);
+  }
+
+
+  /**
+   * Implementing {@link Presenter#closeConnection(boolean)}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#closeConnection(boolean)
+   */
   @Override
   public void closeConnection(boolean sendEXTCMD) {
 
-       
-    chatSession.closeSession(sendEXTCMD);
-
+    session.close(sendEXTCMD);
 
   }
 
-  @Override
-  public void sendCommand(String commandString) {
-    //if ((commandHandler != null) && (commandHandler.isRunning())) {
-      Command command = new Command(commandString);
-      switch (command.getCommandName()) {
-        case CMDEXIT:
-          // TODO duplicate send exit command
-          boolean sendEXTCMD = true;
-          closeConnection(sendEXTCMD);
-          onViewStart();
-          break;
-        case CMDPRVMSG:
-        case CMDENTER:
-        case CMDMSG:
-          //command.send(commandHandler.outputStream);
-          chatSession.sendCommand(command);
-          // loggerDebug.debug("sendCommand(String) - getView().onSendMessage(), getView:
-          // " + getView().hashCode()); //$NON-NLS-1$
-          getView().onSendMessage();
-          break;
-        case CMDERR:
-          getView().showErrorWindow(
-              "Wrong format or command \"" + command.getMessage() + "\" not supported.", "Error");
-          getView().onSendMessage();
-          break;
-        default:
-          //new Command(CommandName.CMDMSG, commandString).send(commandHandler.outputStream);
-          chatSession.sendCommand(new Command(CommandName.CMDMSG, commandString));
-          getView().onSendMessage();
-          break;
-      }
-
-    //}
-  }
-
+  /**
+   * Implementing {@link Presenter#setView(View)}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#setView(chat.client.mvp.view.View)
+   */
   @Override
   public void setView(View view) {
     this.view = view;
 
   }
 
+  /**
+   * Implementing {@link Presenter#getView()}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#getView()
+   */
   @Override
   public View getView() {
     if (view == null) {
@@ -97,20 +125,17 @@ public class ClientPresenter implements Presenter {
     }
   }
 
+  /**
+   * Implementing {@link Presenter#onViewStart()}.
+   * 
+   * @see chat.client.mvp.presenter.Presenter#onViewStart()
+   */
   @Override
   public void onViewStart() {
     getView().onConnectionOpening(Constants.DEFAULT_WINDOW_NAME);
     String[] emptyUserList = new String[0];
     getView().onUpdateChatUserList(emptyUserList);
     getView().onReceiveMessage(Constants.MSG_ASK_FOR_USERNAME);
-  }
-
-
-
-  @Override
-  public void closeConnection() {
-    // TODO Auto-generated method stub
-    closeConnection(true);
   }
 
 }

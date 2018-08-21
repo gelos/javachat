@@ -2,9 +2,9 @@ package chat.test;
 
 import java.util.concurrent.CountDownLatch;
 
-import chat.client.mvp.view.swing.ClientViewSwing;
+import chat.client.mvp.view.swing.ViewSwing;
 
-public class ClientViewSwingWithLatch extends ClientViewSwing {
+public class ClientViewSwingWithLatch extends ViewSwing {
 
 	/**
 	 * 

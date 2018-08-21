@@ -3,11 +3,8 @@ package chat.client.mvp.view.swing;
 import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import chat.client.mvp.presenter.ClientPresenter;
 import chat.client.mvp.presenter.Presenter;
-import chat.client.mvp.presenter.PresenterFabric;
-
-// TODO test swing app with JUnit http://www.javacreed.com/testing-swing-application/
-// TODO use MVC pattern http://www.javacreed.com/testing-swing-application/
 
 /**
  * The Class ClientSwing. Main class to start chat client.
@@ -16,6 +13,7 @@ public class ClientSwing {
   /**
    * Logger for this class
    */
+  //TODO Create the one logger for one instance, server or client
   private static final Logger logger = LoggerFactory.getLogger(ClientSwing.class);
 
   /**
@@ -29,19 +27,19 @@ public class ClientSwing {
       @Override
       public void run() {
         try {
-          
+
           // Initialize View and Presenter
-          final Presenter presenter = PresenterFabric.createPresenter();
-          final ClientViewSwing mainWindow = new ClientViewSwing();
+          final Presenter presenter = new ClientPresenter();
+          final ViewSwing mainWindow = new ViewSwing();
           presenter.setView(mainWindow);
           mainWindow.setPresenter(presenter);
-          
+
           // Show main window
           mainWindow.setVisible(true);
           presenter.onViewStart();
 
         } catch (Exception e) {
-          logger.error("$Runnable.run()", e); //$NON-NLS-1$
+          logger.error(this.getClass().getSimpleName() + "." + "run()", e); //$NON-NLS-1$
         }
       }
     });

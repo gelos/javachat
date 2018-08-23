@@ -88,8 +88,7 @@ class SendPrivateMessageIntegrationTest {
 		int i = 0;
 		for (Presenter chatClient : chatClientPresenterStorage) {
 			chatClient.openConnection(USER_NAME_PREFIX + i++);
-			// TODO remove timeout and run test to success
-			// TODO maybe use awaitility
+			// TODO test improve, remove timeout and run test to success, maybe use awaitility
 			TimeUnit.MILLISECONDS.sleep(OPERATION_DELAY);
 		}
 	}

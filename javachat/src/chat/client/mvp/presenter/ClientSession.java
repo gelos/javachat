@@ -155,7 +155,7 @@ public class ClientSession extends Session {
         break;
 
       case CMDHLP:
-        // TODO complete
+        // TODO provides help on all commands
         presenter.getView().showInformationWindow(
             Constants.MSG_COMMAND_NOT_IMPLEMENTED_YET + " " + CommandName.CMDHLP, "");
         break;

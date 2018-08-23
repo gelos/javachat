@@ -15,11 +15,9 @@ import chat.base.Constants;
 import chat.base.WorkerThread;
 
 
-// TODO: Auto-generated Javadoc
 // TODO: use netty+protobuf or ZeroMQ
-// TODO add log support logback https://stackify.com/logging-logback/
 // TODO use Callable, Future, CompleteCallable
-// TODO create command history in client
+// TODO provides commands history in the client UI
 /**
  * Implementing the server part of the chat application. Accepts client sessions through
  * {@link Server#processClientConnectionsThread}, allows you to use the console commands through

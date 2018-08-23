@@ -50,7 +50,7 @@ public class ViewSwing extends JFrame implements View {
   /** The user list. */
   private JList<?> chatUserList;
 
-  // TODO stop Presenter on windows close
+  // TODO stop Presenter when main window closing
 
   // frame.addWindowListener(new java.awt.event.WindowAdapter() {
   // @Override

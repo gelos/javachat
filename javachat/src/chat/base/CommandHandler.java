@@ -104,10 +104,10 @@ public class CommandHandler extends WorkerThread {
 
       }
     } catch (SocketException e) {
-      // TODO: handle exception
+      // TODO: properly handle exception
       System.out.println("normal close");
     } catch (EOFException e) {
-      // TODO: handle exception
+      // TODO: properly handle exception
       System.out.println("server close connection ???");
     } catch (IOException | ClassNotFoundException e) {
       logger.error(this.getClass().getSimpleName() + "." + "run() {}", e);

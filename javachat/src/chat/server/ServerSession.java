@@ -146,7 +146,6 @@ public class ServerSession extends Session {
         break;
 
       case CMDHLP:
-        // TODO complete
         System.out.println(Constants.MSG_COMMAND_NOT_IMPLEMENTED_YET + " " + CommandName.CMDHLP);
         break;
 
@@ -205,7 +204,7 @@ public class ServerSession extends Session {
    * @return true, if is user name valid & unique
    */
   private boolean isUserNameValid(String userName) {
-    // TODO check for username uniqueness
+    // TODO allow a only unique usernames
     return !userName.isEmpty();
   }
 

@@ -1,0 +1,74 @@
+17:33:27.040 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:33:27.048 [main] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Server socket on 3000 port created.
+17:33:27.049 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:33:38.785 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - Stopping server threads...
+17:33:38.785 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:33:38.786 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - The server is stopped.
+17:33:46.612 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:33:46.620 [main] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Server socket on 3000 port created.
+17:33:46.620 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:45:47.765 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:45:47.774 [main] ERROR ProcessClientConnectionsThread - ProcessClientConnectionsThread.openServerSocket(int) - Port 3000 already in use.
+java.net.BindException: Address already in use: JVM_Bind
+	at java.net.DualStackPlainSocketImpl.bind0(Native Method) ~[na:1.8.0_181]
+	at java.net.DualStackPlainSocketImpl.socketBind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.AbstractPlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.PlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at chat.server.Server$ProcessClientConnectionsThread.openServerSocket(Server.java:287) [server.exe:na]
+	at chat.server.Server$ProcessClientConnectionsThread.<init>(Server.java:192) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:67) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:47) [server.exe:na]
+	at chat.server.Server.main(Server.java:141) [server.exe:na]
+17:45:47.775 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:45:47.775 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:46:10.181 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - Stopping server threads...
+17:46:10.182 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:46:10.182 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - The server is stopped.
+17:47:31.680 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:47:31.687 [main] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Server socket on 3000 port created.
+17:47:31.688 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:50:43.770 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:50:43.779 [main] ERROR ProcessClientConnectionsThread - ProcessClientConnectionsThread.openServerSocket(int) - Port 3000 already in use.
+java.net.BindException: Address already in use: JVM_Bind
+	at java.net.DualStackPlainSocketImpl.bind0(Native Method) ~[na:1.8.0_181]
+	at java.net.DualStackPlainSocketImpl.socketBind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.AbstractPlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.PlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at chat.server.Server$ProcessClientConnectionsThread.openServerSocket(Server.java:287) [server.exe:na]
+	at chat.server.Server$ProcessClientConnectionsThread.<init>(Server.java:192) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:67) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:47) [server.exe:na]
+	at chat.server.Server.main(Server.java:141) [server.exe:na]
+17:50:43.780 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:50:43.780 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:52:00.091 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - Stopping server threads...
+17:52:00.091 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - The server is stopped.
+17:52:24.048 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:52:24.059 [main] ERROR ProcessClientConnectionsThread - ProcessClientConnectionsThread.openServerSocket(int) - Port 3000 already in use.
+java.net.BindException: Address already in use: JVM_Bind
+	at java.net.DualStackPlainSocketImpl.bind0(Native Method) ~[na:1.8.0_181]
+	at java.net.DualStackPlainSocketImpl.socketBind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.AbstractPlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.PlainSocketImpl.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.bind(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at java.net.ServerSocket.<init>(Unknown Source) ~[na:1.8.0_181]
+	at chat.server.Server$ProcessClientConnectionsThread.openServerSocket(Server.java:287) [server.exe:na]
+	at chat.server.Server$ProcessClientConnectionsThread.<init>(Server.java:192) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:67) [server.exe:na]
+	at chat.server.Server.<init>(Server.java:47) [server.exe:na]
+	at chat.server.Server.main(Server.java:141) [server.exe:na]
+17:52:24.059 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:52:24.059 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:54:17.234 [main] INFO  chat.server.Server - Server.Server(int) - Chat server starting...
+17:54:17.241 [main] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Server socket on 3000 port created.
+17:54:17.242 [main] INFO  chat.server.Server - Server.Server(int) - Server started.
+17:55:11.397 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - Stopping server threads...
+17:55:11.398 [ProcessClientConnectionsThreadThread-1] INFO  ProcessClientConnectionsThread - ProcessClientConnectionsThread.run() - Closing the chat client sessions...
+17:55:11.398 [StopServerThreadThread-0] INFO  chat.server.Server - Server.stop() - The server is stopped.
